@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/mainMenu.do" location="116,0" dimension="250,96" />
+  <StrutsActivity path="/extMainBegin.do" location="650,50" dimension="304,84" />
+  <StrutsActivity path="/extRoomMap.do" location="50,450" dimension="293,84" />
+  <StrutsActivity path="/extFindRoad.do" location="950,750" dimension="267,96" />
+  <StrutsActivity path="/svcStdPortal.do" location="650,450" dimension="275,84" />
+  <StrutsActivity path="/include/common_top_menu.jsp" location="0,196" dimension="206,51" />
+  <StrutsActivity path="/include/leftMenu.jsp" location="306,196" dimension="146,51" />
+  <StrutsActivity path="/ext/main/begn/eduInfo.jsp" location="650,250" dimension="191,48" />
+  <StrutsActivity path="/ext/main/begn/centents.jsp" location="950,250" dimension="198,48" />
+  <StrutsActivity path="/ext/main/begn/ingInfo.jsp" location="50,350" dimension="187,48" />
+  <StrutsActivity path="/ext/main/begn/crsInfo.jsp" location="350,350" dimension="188,48" />
+  <StrutsActivity path="/ext/main/begn/left.jsp" location="650,350" dimension="166,48" />
+  <StrutsActivity path="/ext/room/map/ExtRoom_RoomMap.jsp" location="50,650" dimension="263,48" />
+  <StrutsActivity path="/ext/find/road/ExtFind_FindRoad.jsp" location="350,850" dimension="224,51" />
+  <StrutsActivity path="/svc/center/Svc_StdPortal_Jiphap.jsp" location="50,750" dimension="226,51" />
+  <StrutsActivity path="/svc/center/Svc_StdPortal.jsp" location="950,650" dimension="203,48" />
+  <StrutsActivity path="/svc/center/Svc_StdPortal_Cyber.jsp" location="650,750" dimension="223,51" />
+  <StrutsActivity path="ext/main/begn/left.jsp" location="950,350" dimension="160,48" />
+  <StrutsActivity path="/ext/main/begn/Svc_StdPortal.jsp" location="650,650" dimension="227,48" />
+  <StrutsTransition id="/extFindRoad.do,list,/ext/find/road/ExtFind_FindRoad.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1083,846" />
+      <AbsolutePoint location="1083,875" />
+      <AbsolutePoint location="574,875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extRoomMap.do,list,/ext/room/map/ExtRoom_RoomMap.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainBegin.do,left_list,/ext/main/begn/left.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="856,134" />
+      <AbsolutePoint location="856,374" />
+      <AbsolutePoint location="816,374" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainBegin.do,eduCrsInfo,/ext/main/begn/crsInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,81" />
+      <AbsolutePoint location="467,81" />
+      <AbsolutePoint location="467,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainBegin.do,eduMonthInfo,/ext/main/begn/eduInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="802,134" />
+      <AbsolutePoint location="802,250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/mainMenu.do,top_list,/include/common_top_menu.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="191,96" />
+      <AbsolutePoint location="191,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/svcStdPortal.do,jiphap,/svc/center/Svc_StdPortal_Jiphap.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,492" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainBegin.do,eduIngInfo,/ext/main/begn/ingInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,111" />
+      <AbsolutePoint location="221,111" />
+      <AbsolutePoint location="221,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainBegin.do,list,/ext/main/begn/centents.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="954,92" />
+      <AbsolutePoint location="1049,92" />
+      <AbsolutePoint location="1049,250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/mainMenu.do,left_list,/include/leftMenu.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="321,96" />
+      <AbsolutePoint location="321,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/svcStdPortal.do,cyber,/svc/center/Svc_StdPortal_Cyber.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,492" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/svcStdPortal.do,list,/svc/center/Svc_StdPortal.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,492" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

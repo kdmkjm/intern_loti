@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysCode">
+
+	<typeAlias alias="sysCode" type="loti.sys.code.model.SysCode"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysCodeInfo" parameterClass="sysCode" resultClass="sysCode">
+		SELECT     
+						CODEDIV     ,
+						CODE        ,
+						NAME        ,
+						PROPERTY    ,
+						DEFAULTVALUE,
+						DISPORDER   ,
+						INSDATE     ,
+						MODDATE     ,
+						DELDATE     ,
+						REMARKS 
+			FROM	SYS_SYSTEMCODE
+		 WHERE	CODE = '00000'
+			 AND	CODEDIV = #codeDiv#
+			 AND	DELDATE IS NULL 
+	</select>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysCode" parameterClass="sysCode" resultClass="sysCode">
+		SELECT     
+						ROWNUM NUM, 
+						CODEDIV     ,
+						CODE        ,
+						NAME        ,
+						PROPERTY    ,
+						DEFAULTVALUE,
+						DISPORDER   ,
+						INSDATE     ,
+						MODDATE     ,
+						DELDATE     ,
+						REMARKS 
+			FROM	SYS_SYSTEMCODE
+		 WHERE	CODE != '00000'
+		 	 AND	CODEDIV = #codeDiv#
+		 	 AND  DELDATE IS NULL 
+	ORDER BY	DISPORDER
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSysCodeList" parameterClass="sysCode" resultClass="sysCode">
+		SELECT     
+						ROWNUM NUM, 
+						CODEDIV     ,
+						CODE        ,
+						NAME        ,
+						PROPERTY    ,
+						DEFAULTVALUE,
+						DISPORDER   ,
+						INSDATE     ,
+						MODDATE     ,
+						DELDATE     ,
+						REMARKS     
+			FROM	SYS_SYSTEMCODE
+		 WHERE	CODE = '00000'
+		   AND  DELDATE IS NULL
+	ORDER BY	DISPORDER
+	</select>
+
+	<!--  직급을 이름으로 조회한다. -->
+	<select id="searchRankByName" parameterClass="java.lang.String" resultClass="sysCode">
+		SELECT  RANKCODE,
+						REPLACE(RANKNAME,'','') RANKNAME,
+						GRADECODE,
+						JOBKIND
+		FROM	CMN_RANKCODE
+		WHERE	RANKNAME LIKE '%' || #searchKeyword# || '%'
+		ORDER BY RANKCODE
+	</select>
+
+	<!--  직렬을 이름으로 조회한다. -->
+	<select id="searchJobByName" parameterClass="java.lang.String" resultClass="sysCode">
+		SELECT  CODE,
+						CODENAME,
+						DISPLAYNAME,
+						RANKORDER,
+						INSDATE,
+						REMARKS
+		FROM	CMN_JOBCODE
+		WHERE	CODENAME LIKE '%' || #searchKeyword# || '%'
+		ORDER BY RANKORDER, DISPLAYNAME
+	</select>
+	
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectSysCodeListCount" parameterClass="sysCode" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM SYS_SYSTEMCODE
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectSysCodeCount" parameterClass="sysCode" resultClass="java.lang.Integer">
+		SELECT  COUNT(*) as CNT
+ 			FROM  SYS_SYSTEMCODE
+		 WHERE  CODEDIV = #codeDiv#
+  		 AND  CODE    = #code#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+		<!-- 코드 등록 시 중복등록 방지 위한 데이터 체크 -->
+	<select id="selectSysCodeCheckName" parameterClass="sysCode" resultClass="java.lang.Integer">
+		SELECT  COUNT(*) as CNT
+ 			FROM  SYS_SYSTEMCODE
+		 WHERE  NAME LIKE #name#
+		<isEqual property="type" compareValue="pri">
+			 AND	CODE LIKE '00000'
+		</isEqual>
+		<isEqual property="type" compareValue="slv">
+			 AND	CODE NOT LIKE '00000'
+			 AND	CODEDIV LIKE #codeDiv#
+		</isEqual>
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+		<!-- SYS_SYSTEMCODE DIV MAX KEY VALUE -->
+	<select id="selectSysCodeDivMaxKey" parameterClass="sysCode" resultClass="java.lang.String">
+		SELECT	LPAD(MAX(CODEDIV) + 1, 5, '0') MAX
+			FROM	SYS_SYSTEMCODE
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- SYS_SYSTEMCODE MAX KEY VALUE -->
+	<select id="selectSysCodeMaxKey" parameterClass="sysCode" resultClass="java.lang.String">
+		SELECT	LPAD(NVL(MAX(CODE),0) + 1, 5, '0') MAX
+			FROM  SYS_SYSTEMCODE
+		 WHERE	CODEDIV = #codeDiv#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSysCode" parameterClass="sysCode">
+		INSERT INTO SYS_SYSTEMCODE (	
+			   			CODEDIV     ,	
+			   			CODE        ,	
+			   			NAME        ,	
+			   			PROPERTY    ,	
+			   			DEFAULTVALUE,	
+			   			DISPORDER   ,	
+			   			INSDATE     ,	
+			   			MODDATE     ,	
+			   			DELDATE     ,	
+			   			REMARKS     	
+		) VALUES (
+						 
+			   			#codeDiv#     ,	
+			   			#code#        ,	
+			   			#name#        ,	
+			   			#property#    ,	
+			   			#defaultValue#,	
+			   			#dispOrder#   ,	
+			   			TO_CHAR(TO_DATE(SYSDATE), 'yyyymmdd')     ,	
+			   			#modDate#     ,	
+			   			#delDate#     ,	
+			   			#remarks#     	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSysCode" parameterClass="sysCode">
+		UPDATE	SYS_SYSTEMCODE SET
+						NAME         = #name#        ,
+						PROPERTY     = #property#    ,
+						DISPORDER    = #dispOrder#   ,
+						MODDATE      = TO_CHAR(TO_DATE(SYSDATE), 'yyyymmdd'), 
+						DELDATE      = NULL
+		 WHERE  CODEDIV = #codeDiv#
+			 AND  CODE    = #code#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSysCode" parameterClass="sysCode">
+		UPDATE	SYS_SYSTEMCODE SET
+						DELDATE   = TO_CHAR(TO_DATE(SYSDATE), 'yyyymmdd'),
+						DISPORDER = ''
+		 WHERE  CODEDIV = #codeDiv#
+			 AND  CODE    = #code#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+</sqlMap>
+
+

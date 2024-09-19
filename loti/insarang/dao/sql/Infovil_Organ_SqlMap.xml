@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Infovil_Organ">
+
+	<typeAlias alias="organList" type="loti.insarang.model.Organ_list"/>
+	<typeAlias alias="fileDataBean" type="loti.insarang.conn.FileDataBean"/>
+	<typeAlias alias="opr_Pass"  type="loti.opr.pass.model.Opr_Pass"/>
+	
+	<!-- 인사랑 전송 목록 가져오기 -->
+	<select id="selectOrganList" parameterClass="java.lang.String" resultClass="organList">
+  	SELECT CHIEFORGAN ORGANCODE
+      FROM CMN_MSTORGAN
+     WHERE ORGANGU IN ('1','2')
+	</select>
+	
+	<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE       
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      				,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD') 
+		)
+	</insert>	
+	
+	<!-- 인사랑연계 -->
+	<insert id="cmnRelayFile_ODOR" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE         ,
+			   			COURSECODE      ,
+			   			BTCILCKTIME     ,
+			   			TOTALCNT				,
+			   			CODESTR					,
+			   			GBN							,
+			   			SENDDT			
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			#recUser#      	,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			   			#courseCode#    ,
+			   			#btCilckTime#   ,
+			   			#totalCnt#			,
+			   			#codeStr#    		,
+			   			#gbn#   				,
+			   			#sendDt#
+		)
+	</insert>
+	
+	<!--  이수확정 -->
+	<update id="updateOpr_PassSend" parameterClass="opr_Pass">
+    UPDATE  OPR_LECTURE SET
+            PASSER = #sender#,
+            PASSDATE = TO_CHAR(SYSDATE,'YYYYMMDD') 
+     WHERE  COURSECODE = #searchCourseCode# 
+	</update>
+</sqlMap>
+
+

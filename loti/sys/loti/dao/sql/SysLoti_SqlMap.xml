@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysLoti">
+
+<typeAlias alias="sysLoti" type="loti.sys.loti.model.SysLoti"/>
+
+	<!-- 스케줄  조회 [sysAgent] -->
+	<select id="selectSysLoti" parameterClass="sysLoti" resultClass="sysLoti">
+		SELECT TRAN_ID				,
+					TRAN_PHONE			,
+					TRAN_CALLBACK		,
+					TRAN_STATUS			,
+					TRAN_DATE				,
+					TRAN_MSG				,
+					TRAN_ETC3
+		FROM EM_TRAN
+	</select>
+	
+	<!-- step3-3 SMS발송(SEND_SMS)에서 조회한 데이터를 MSSQL 서버에  등록 [sysAgent] -->
+	<insert id="insertSysLoti" parameterClass="sysLoti">
+			INSERT INTO EM_TRAN(
+					TRAN_ID					,
+					TRAN_PHONE			,
+					TRAN_CALLBACK		,
+					TRAN_STATUS			,
+					TRAN_DATE				,
+					TRAN_MSG				,
+					TRAN_ETC1				,
+					TRAN_ETC2				,
+					TRAN_ETC3
+			) VALUES (
+					#tran_id#				,
+					#tran_phone#		,
+					#tran_callback#	,
+					#tran_status#		,
+					#tran_date#			,
+					#tran_msg#			,
+					#tran_etc1#			,
+					#tran_etc2#			,
+					#tran_etc3#			
+			)
+	</insert>
+	
+</sqlMap>

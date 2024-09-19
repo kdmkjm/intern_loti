@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/rscInst.do" location="50,50" dimension="223,84" />
+  <StrutsActivity path="/rscLib.do" location="350,50" dimension="213,84" />
+  <StrutsActivity path="/rscLibSearch.do" location="350,1050" dimension="224,96" />
+  <StrutsActivity path="/rscBook.do" location="650,50" dimension="238,84" />
+  <StrutsActivity path="/rscRoom.do" location="950,50" dimension="245,84" />
+  <StrutsActivity path="/rscSMSStatusList.do" location="1250,50" dimension="324,84" />
+  <StrutsActivity path="/cmnPopupSendSMS.do" location="50,250" dimension="343,84" />
+  <StrutsActivity path="/cmnPopupSendEMail.do" location="650,250" dimension="348,84" />
+  <StrutsActivity path="/svcSMSSend.do" location="1250,250" dimension="271,84" />
+  <StrutsActivity path="/certPrt.do" location="50,450" dimension="303,84" />
+  <StrutsActivity path="/cmnCourse.do" location="650,1050" dimension="313,96" />
+  <StrutsActivity path="/cmnUser.do" location="1550,1150" dimension="299,96" />
+  <StrutsActivity path="/cmnProf.do" location="50,1250" dimension="298,96" />
+  <StrutsActivity path="/cmnCourseInfo.do" location="1850,650" dimension="302,96" />
+  <StrutsActivity path="/rsc/inst/Rsc_FacsMemt.jsp" location="650,450" dimension="197,48" />
+  <StrutsActivity path="/rsc/inst/Rsc_FacsMod.jsp" location="950,450" dimension="190,48" />
+  <StrutsActivity path="/rsc/inst/Rsc_FacsDetl.jsp" location="1550,450" dimension="186,48" />
+  <StrutsActivity path="/rscInst.act" location="1250,450" dimension="97,48" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibLendMgmt.jsp" location="950,550" dimension="207,48" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibLendStatus.jsp" location="1250,550" dimension="210,48" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibBookEnter.jsp" location="50,650" dimension="204,48" />
+  <StrutsActivity path="/rscLib.act" location="350,650" dimension="94,48" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibCateStatus.jsp" location="1550,550" dimension="188,51" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibUserSearch.jsp" location="1550,950" dimension="190,51" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualMgmt.jsp" location="650,650" dimension="218,48" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualStockOut.jsp" location="950,650" dimension="236,48" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualMod.jsp" location="1250,650" dimension="211,48" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualStockIn.jsp" location="50,750" dimension="227,48" />
+  <StrutsActivity path="/rscBook.act" location="350,750" dimension="105,48" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualIOHistory.jsp" location="950,750" dimension="237,48" />
+  <StrutsActivity path="/rsc/room/Rsc_RoomMonthLent.jsp" location="1250,750" dimension="238,48" />
+  <StrutsActivity path="/rsc/room/Rsc_RoomLent.jsp" location="50,850" dimension="203,48" />
+  <StrutsActivity path="/rscRoom.act" location="350,850" dimension="110,48" />
+  <StrutsActivity path="/rsc/smsstatus/Rsc_SMSStatusList.jsp" location="650,850" dimension="258,48" />
+  <StrutsActivity path="/rsc/smsstatus/Rsc_SMSStatusView.jsp" location="1250,850" dimension="266,48" />
+  <StrutsActivity path="/common/Cmn_PopupSendSMS.jsp" location="50,950" dimension="240,48" />
+  <StrutsActivity path="/common/Cmn_PopupSendEMail.jsp" location="350,950" dimension="245,48" />
+  <StrutsActivity path="/svcSMSSend.act" location="650,950" dimension="135,48" />
+  <StrutsActivity path="/svc/sms/Svc_SMSUserList.jsp" location="950,950" dimension="216,48" />
+  <StrutsActivity path="/svc/sms/Svc_SMSSend.jsp" location="1250,950" dimension="199,48" />
+  <StrutsActivity path="/ext/mylc/cert/ExtMylc_CertPrt.jsp" location="50,1050" dimension="233,48" />
+  <StrutsActivity path="/common/Cmn_PopupCourse.jsp" location="1250,1050" dimension="211,51" />
+  <StrutsActivity path="/common/Cmn_PopupUser.jsp" location="1550,1650" dimension="197,51" />
+  <StrutsActivity path="/common/Cmn_PopupProf.jsp" location="350,1750" dimension="196,51" />
+  <StrutsActivity path="/common/Cmn_PopupProf_Frame.jsp" location="650,1250" dimension="234,51" />
+  <StrutsActivity path="/ext/crs/course/Crs_CourseCyberQry.jsp" location="1850,850" dimension="244,51" />
+  <StrutsActivity path="/ext/crs/course/Crs_CourseQry.jsp" location="950,1250" dimension="213,51" />
+  <StrutsActivity path="/rsc/lib/Rsc_LibBookSearch.jsp" location="650,550" dimension="215,48" />
+  <StrutsActivity path="/rsc/book/Rsc_ManualSetCrs.jsp" location="650,750" dimension="224,48" />
+  <StrutsActivity path="/cmnRankJob.do" location="1250,1350" dimension="320,96" />
+  <StrutsActivity path="/common/Crs_CourseCyberQry.jsp" location="1850,1350" dimension="217,51" />
+  <StrutsActivity path="/common/Crs_CourseQry.jsp" location="50,1450" dimension="186,51" />
+  <StrutsActivity path="/common/sysJobSearch.jsp" location="350,1450" dimension="178,51" />
+  <StrutsActivity path="/common/sysRankSearch.jsp" />
+  <StrutsTransition id="/rscLib.do,cateStatus,/rsc/lib/Rsc_LibCateStatus.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="563,122" />
+      <AbsolutePoint location="578,122" />
+      <AbsolutePoint location="578,713" />
+      <AbsolutePoint location="1644,713" />
+      <AbsolutePoint location="1644,601" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,inBook,/rsc/book/Rsc_ManualStockIn.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="709,50" />
+      <AbsolutePoint location="709,-55" />
+      <AbsolutePoint location="-55,-55" />
+      <AbsolutePoint location="-55,774" />
+      <AbsolutePoint location="50,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnRankJob.do,jobpop,/common/sysJobSearch.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1410,1446" />
+      <AbsolutePoint location="1410,1475" />
+      <AbsolutePoint location="528,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,lend,/rscLib.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="426,50" />
+      <AbsolutePoint location="426,35" />
+      <AbsolutePoint location="35,35" />
+      <AbsolutePoint location="35,574" />
+      <AbsolutePoint location="429,574" />
+      <AbsolutePoint location="429,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLibSearch.do,userSearch,/rsc/lib/Rsc_LibUserSearch.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="462,1146" />
+      <AbsolutePoint location="462,1316" />
+      <AbsolutePoint location="1476,1316" />
+      <AbsolutePoint location="1476,975" />
+      <AbsolutePoint location="1550,975" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,outBook,/rsc/book/Rsc_ManualStockOut.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="739,134" />
+      <AbsolutePoint location="739,212" />
+      <AbsolutePoint location="1172,212" />
+      <AbsolutePoint location="1172,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,insert,/rscRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1072,134" />
+      <AbsolutePoint location="1072,433" />
+      <AbsolutePoint location="553,433" />
+      <AbsolutePoint location="553,874" />
+      <AbsolutePoint location="460,874" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnCourseInfo.do,info,/ext/crs/course/Crs_CourseQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2109,746" />
+      <AbsolutePoint location="2109,1275" />
+      <AbsolutePoint location="1163,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnPopupSendEMail.do,insert,/svcSMSSend.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="881,334" />
+      <AbsolutePoint location="881,735" />
+      <AbsolutePoint location="616,735" />
+      <AbsolutePoint location="616,974" />
+      <AbsolutePoint location="650,974" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscSMSStatusList.do,info,/rsc/smsstatus/Rsc_SMSStatusView.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,98" />
+      <AbsolutePoint location="1234,98" />
+      <AbsolutePoint location="1234,880" />
+      <AbsolutePoint location="1250,880" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,delete,/rscRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1195,92" />
+      <AbsolutePoint location="1228,92" />
+      <AbsolutePoint location="1228,845" />
+      <AbsolutePoint location="420,845" />
+      <AbsolutePoint location="420,850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,detl,/rsc/inst/Rsc_FacsDetl.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="161,134" />
+      <AbsolutePoint location="161,188" />
+      <AbsolutePoint location="400,188" />
+      <AbsolutePoint location="400,355" />
+      <AbsolutePoint location="1627,355" />
+      <AbsolutePoint location="1627,450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnUser.do,list,/common/Cmn_PopupUser.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,update,/rscInst.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="125,134" />
+      <AbsolutePoint location="125,244" />
+      <AbsolutePoint location="1240,244" />
+      <AbsolutePoint location="1240,474" />
+      <AbsolutePoint location="1250,474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,delete,/rscInst.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="147,134" />
+      <AbsolutePoint location="147,206" />
+      <AbsolutePoint location="642,206" />
+      <AbsolutePoint location="642,439" />
+      <AbsolutePoint location="1298,439" />
+      <AbsolutePoint location="1298,450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/svcSMSSend.do,search,/svc/sms/Svc_SMSUserList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1521,292" />
+      <AbsolutePoint location="1528,292" />
+      <AbsolutePoint location="1528,1181" />
+      <AbsolutePoint location="1058,1181" />
+      <AbsolutePoint location="1058,998" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnCourse.do,list,/common/Cmn_PopupCourse.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="963,1086" />
+      <AbsolutePoint location="1250,1086" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnProf.do,list,/common/Cmn_PopupProf.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnRankJob.do,jobpop,/common/Crs_CourseCyberQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1570,1386" />
+      <AbsolutePoint location="1850,1386" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,modify,/rsc/lib/Rsc_LibBookEnter.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="475,134" />
+      <AbsolutePoint location="475,616" />
+      <AbsolutePoint location="152,616" />
+      <AbsolutePoint location="152,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnPopupSendEMail.do,list,/common/Cmn_PopupSendEMail.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="923,334" />
+      <AbsolutePoint location="923,1016" />
+      <AbsolutePoint location="472,1016" />
+      <AbsolutePoint location="472,998" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,list,/rsc/book/Rsc_ManualMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="769,134" />
+      <AbsolutePoint location="769,182" />
+      <AbsolutePoint location="1210,182" />
+      <AbsolutePoint location="1210,616" />
+      <AbsolutePoint location="759,616" />
+      <AbsolutePoint location="759,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,modify,/rsc/room/Rsc_RoomLent.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1190,134" />
+      <AbsolutePoint location="1190,937" />
+      <AbsolutePoint location="151,937" />
+      <AbsolutePoint location="151,898" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,update,/rscBook.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="829,50" />
+      <AbsolutePoint location="829,5" />
+      <AbsolutePoint location="1845,5" />
+      <AbsolutePoint location="1845,813" />
+      <AbsolutePoint location="402,813" />
+      <AbsolutePoint location="402,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnRankJob.do,rankpop,/common/sysRankSearch.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1410,1398" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,create,/rsc/lib/Rsc_LibBookEnter.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="486,50" />
+      <AbsolutePoint location="486,-25" />
+      <AbsolutePoint location="-25,-25" />
+      <AbsolutePoint location="-25,674" />
+      <AbsolutePoint location="50,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,list,/rsc/inst/Rsc_FacsMemt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="137,134" />
+      <AbsolutePoint location="137,218" />
+      <AbsolutePoint location="632,218" />
+      <AbsolutePoint location="632,474" />
+      <AbsolutePoint location="650,474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnProf.do,frame,/common/Cmn_PopupProf_Frame.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="199,1298" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,create,/rsc/room/Rsc_RoomLent.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1062,134" />
+      <AbsolutePoint location="1062,427" />
+      <AbsolutePoint location="-85,427" />
+      <AbsolutePoint location="-85,874" />
+      <AbsolutePoint location="50,874" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/svcSMSSend.do,list,/svc/sms/Svc_SMSSend.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1506,334" />
+      <AbsolutePoint location="1506,765" />
+      <AbsolutePoint location="1755,765" />
+      <AbsolutePoint location="1755,1016" />
+      <AbsolutePoint location="1349,1016" />
+      <AbsolutePoint location="1349,998" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscSMSStatusList.do,list,/rsc/smsstatus/Rsc_SMSStatusList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,92" />
+      <AbsolutePoint location="1246,92" />
+      <AbsolutePoint location="1246,874" />
+      <AbsolutePoint location="908,874" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,list,/rsc/lib/Rsc_LibLendMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="429,134" />
+      <AbsolutePoint location="429,513" />
+      <AbsolutePoint location="1053,513" />
+      <AbsolutePoint location="1053,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,create,/rsc/book/Rsc_ManualMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="859,50" />
+      <AbsolutePoint location="859,35" />
+      <AbsolutePoint location="1755,35" />
+      <AbsolutePoint location="1755,616" />
+      <AbsolutePoint location="1355,616" />
+      <AbsolutePoint location="1355,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnRankJob.do,rankpop,/common/Crs_CourseQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,1398" />
+      <AbsolutePoint location="143,1398" />
+      <AbsolutePoint location="143,1450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnPopupSendSMS.do,list,/common/Cmn_PopupSendSMS.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="221,334" />
+      <AbsolutePoint location="221,385" />
+      <AbsolutePoint location="400,385" />
+      <AbsolutePoint location="400,638" />
+      <AbsolutePoint location="41,638" />
+      <AbsolutePoint location="41,974" />
+      <AbsolutePoint location="50,974" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,month,/rsc/room/Rsc_RoomMonthLent.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1147,134" />
+      <AbsolutePoint location="1147,519" />
+      <AbsolutePoint location="1468,519" />
+      <AbsolutePoint location="1468,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,insert,/rscLib.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="516,50" />
+      <AbsolutePoint location="516,-85" />
+      <AbsolutePoint location="-85,-85" />
+      <AbsolutePoint location="-85,409" />
+      <AbsolutePoint location="378,409" />
+      <AbsolutePoint location="378,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/certPrt.do,list,/ext/mylc/cert/ExtMylc_CertPrt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="335,534" />
+      <AbsolutePoint location="335,1074" />
+      <AbsolutePoint location="283,1074" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,insert,/rscInst.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="175,134" />
+      <AbsolutePoint location="175,176" />
+      <AbsolutePoint location="559,176" />
+      <AbsolutePoint location="559,343" />
+      <AbsolutePoint location="1304,343" />
+      <AbsolutePoint location="1304,450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,modify,/rsc/inst/Rsc_FacsMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="131,134" />
+      <AbsolutePoint location="131,234" />
+      <AbsolutePoint location="1045,234" />
+      <AbsolutePoint location="1045,450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,insert,/rscBook.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="739,50" />
+      <AbsolutePoint location="739,-85" />
+      <AbsolutePoint location="1785,-85" />
+      <AbsolutePoint location="1785,1221" />
+      <AbsolutePoint location="305,1221" />
+      <AbsolutePoint location="305,774" />
+      <AbsolutePoint location="350,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscInst.do,create,/rsc/inst/Rsc_FacsMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="189,134" />
+      <AbsolutePoint location="189,158" />
+      <AbsolutePoint location="451,158" />
+      <AbsolutePoint location="451,541" />
+      <AbsolutePoint location="1031,541" />
+      <AbsolutePoint location="1031,498" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/cmnCourseInfo.do,cyberinfo,/ext/crs/course/Crs_CourseCyberQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2001,746" />
+      <AbsolutePoint location="2001,850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,lendStatus,/rsc/lib/Rsc_LibLendStatus.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="553,134" />
+      <AbsolutePoint location="553,379" />
+      <AbsolutePoint location="1362,379" />
+      <AbsolutePoint location="1362,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,list,/rsc/room/Rsc_RoomLent.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1088,134" />
+      <AbsolutePoint location="1088,234" />
+      <AbsolutePoint location="1542,234" />
+      <AbsolutePoint location="1542,835" />
+      <AbsolutePoint location="151,835" />
+      <AbsolutePoint location="151,850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,history,/rsc/book/Rsc_ManualIOHistory.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="769,50" />
+      <AbsolutePoint location="769,-160" />
+      <AbsolutePoint location="2227,-160" />
+      <AbsolutePoint location="2227,965" />
+      <AbsolutePoint location="1815,965" />
+      <AbsolutePoint location="1815,743" />
+      <AbsolutePoint location="1068,743" />
+      <AbsolutePoint location="1068,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscRoom.do,update,/rscRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1082,134" />
+      <AbsolutePoint location="1082,445" />
+      <AbsolutePoint location="559,445" />
+      <AbsolutePoint location="559,880" />
+      <AbsolutePoint location="460,880" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,delete,/rscBook.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="799,50" />
+      <AbsolutePoint location="799,-25" />
+      <AbsolutePoint location="1649,-25" />
+      <AbsolutePoint location="1649,409" />
+      <AbsolutePoint location="505,409" />
+      <AbsolutePoint location="505,774" />
+      <AbsolutePoint location="455,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscBook.do,modify,/rsc/book/Rsc_ManualMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="799,134" />
+      <AbsolutePoint location="799,152" />
+      <AbsolutePoint location="1815,152" />
+      <AbsolutePoint location="1815,674" />
+      <AbsolutePoint location="1461,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,delete,/rscLib.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="456,50" />
+      <AbsolutePoint location="456,5" />
+      <AbsolutePoint location="5,5" />
+      <AbsolutePoint location="5,713" />
+      <AbsolutePoint location="397,713" />
+      <AbsolutePoint location="397,698" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/rscLib.do,update,/rscLib.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="563,92" />
+      <AbsolutePoint location="610,92" />
+      <AbsolutePoint location="610,674" />
+      <AbsolutePoint location="444,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

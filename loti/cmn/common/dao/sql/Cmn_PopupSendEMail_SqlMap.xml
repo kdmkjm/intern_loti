@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupSendEMail">
+
+	<typeAlias alias="cmn_PopupSendEMail" type="loti.cmn.common.model.Cmn_PopupSendEMail"/>
+
+	<!-- EMAIL발송_보내는사람(SEND_MAIL_FROM) MAX SEQ  [cmn_PopupSendEMail] -->
+	<select id="selectCmn_CmnSendMailFromCount" parameterClass="cmn_PopupSendEMail" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(FROM_NO),0)+1 AS FORM_NO 
+		FROM SEND_MAIL_FROM
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	
+	<!-- EMAIL발송_보내는사람(SEND_MAIL_FROM) 등록 [cmn_PopupSendEMail] -->
+	<insert id="insertSendMailFrom" parameterClass="cmn_PopupSendEMail">
+			INSERT INTO SEND_MAIL_FROM(
+						FROM_NO   			,
+				    FROM_NAME     	,
+				    FROM_EMAIL      ,
+				    SUBJECT         ,
+				    CONTENT         ,
+				    SEND_DTTM       ,
+				    SEND_GBN        ,
+				    SEND_REFER_YN   ,
+				    SEND_YN         ,
+				    SEND_BIGO       
+			) VALUES (
+						#fromNo#   			,
+						#fromName#     	,
+						#fromEmail#     ,
+						#subject#       ,
+						#content#       ,
+						TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS'),
+						#sendGbn#       ,
+						#sendReferYn#   ,
+						#sendYn#        ,
+						#sendBigo#       
+			)
+	</insert>
+	
+	<!-- EMAIL발송_받는사람(SEND_MAIL_TO) MAX SEQ  [cmn_PopupSendEMail] -->
+	<select id="selectCmn_CmnSendMailToCount" parameterClass="cmn_PopupSendEMail" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(TO_NO),0)+1 AS TO_NO 
+		FROM SEND_MAIL_TO
+		WHERE FROM_NO = #fromNo#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	
+	<!-- EMAIL발송_받는사람(SEND_MAIL_TO) 등록 [cmn_PopupSendEMail] -->
+	<insert id="insertSendMailTo" parameterClass="cmn_PopupSendEMail">
+			INSERT INTO SEND_MAIL_TO(
+						FROM_NO       ,
+				    TO_NO         ,
+				    TO_NAME       ,
+				    TO_EMAIL      ,
+				    ORG_FNAME     ,
+				    FNAME         ,
+				    FSIZE         ,
+				    SEND_REFER    
+			) VALUES (
+						#fromNo#       ,
+						#toNo#         ,
+						#toName#       ,
+						#toEmail#      ,
+						#orgFname#     ,
+						#fname#        ,
+						#fsize#        ,
+						#sendRefer#     
+			)
+	</insert>
+</sqlMap>
+
+

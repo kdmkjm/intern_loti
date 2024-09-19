@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_WeekPay">
+
+	<typeAlias alias="prf_WeekPay" type="loti.prf.weekpay.model.Prf_WeekPay"/>
+	
+	<!-- 기본조회 쿼리 -->
+	<select id="selectPrf_WeekPay" parameterClass="prf_WeekPay" resultClass="prf_WeekPay">
+		SELECT ROW_NUMBER() OVER (ORDER BY SRC2.lectdate, SRC2.profname) rnum 
+             , SRC2.PROFNO
+			 , SRC2.PROFCNT
+			 , SRC2.COURSECODE
+			 , SRC2.COURSENAME
+			 , SRC2.LECTDATE
+			 , SRC2.PAYFLAG
+			 , SRC2.LEVELNAME
+			 , SRC2.PROFNAME
+			 , (SELECT name FROM SYS_SYSTEMCODE WHERE codediv = '00001' AND code = SRC2.bankcode) AS bankcode
+		     , SRC2.accountno AS accountno
+			 , SRC2.LECTHOUR
+			 , DECODE(SRC2.MSCTFEE,NULL,0,SRC2.MSCTFEE) AS MSCTFEE
+			 , DECODE(SRC2.BASEPAY,NULL,0,SRC2.BASEPAY) AS BASEPAY
+			 , DECODE(SRC2.EXCEEDPAY,NULL,0,SRC2.EXCEEDPAY) AS EXCEEDPAY
+			 , SRC2.PROFHO
+			 , DECODE(SRC2.LECTPAY,NULL,0,SRC2.LECTPAY) AS LECTPAY
+			 , DECODE(SRC2.FOODPAY,NULL,0,SRC2.FOODPAY) AS FOODPAY
+			 , DECODE(SRC2.DAYPAY,NULL,0,SRC2.DAYPAY) AS DAYPAY
+			 , DECODE(SRC2.STAYPAY,NULL,0,SRC2.STAYPAY) AS STAYPAY
+			 , DECODE(SRC2.TRAFFICPAY,NULL,0,SRC2.TRAFFICPAY) AS TRAFFICPAY
+			 , DECODE(SRC2.INCOMETAX,NULL,0,SRC2.INCOMETAX) AS INCOMETAX
+			 , DECODE(SRC2.INHABTAX,NULL,0,SRC2.INHABTAX) AS INHABTAX 
+		     , DECODE((SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY),NULL,0,(SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY)) AS TRAVEL
+		     , DECODE((((SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY) + SRC2.LECTPAY) - (SRC2.INCOMETAX+SRC2.INHABTAX)),NULL,0,
+		       (((SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY) + SRC2.LECTPAY) - (SRC2.INCOMETAX+SRC2.INHABTAX))) AS NETPAY
+             , DECODE(SRC2.INCOMETAX,NULL,0,SRC2.INCOMETAX) + DECODE(SRC2.INHABTAX,NULL,0,SRC2.INHABTAX) AS sumTax
+             , DECODE((SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY),NULL,0,(SRC2.FOODPAY + SRC2.DAYPAY + SRC2.STAYPAY + SRC2.TRAFFICPAY)) + DECODE(SRC2.LECTPAY,NULL,0,SRC2.LECTPAY) AS netpay2		       
+		  FROM (
+		SELECT SRC.*		     
+		     , DECODE(SRC.PROFHO,'1',(25000 * SRC.PROFCNT) ,(20000 * SRC.PROFCNT)) AS FOODPAY
+		     , DECODE(SRC.PROFHO,'1',(20000 * SRC.PROFCNT) ,(20000 * SRC.PROFCNT)) AS DAYPAY
+		     , 0 AS STAYPAY
+		     , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = SRC.PROFNO)),',','') * SRC.PROFCNT AS TRAFFICPAY
+		     , CASE WHEN LECTPAY >= 250000
+		            THEN LECTPAY * 0.04
+		            ELSE 0
+		       END AS INCOMETAX
+		     , CASE WHEN LECTPAY >= 250000
+		            THEN (LECTPAY * 0.04) * 0.1
+		            ELSE 0
+		       END AS INHABTAX       
+		FROM (
+		SELECT A.PROFNO
+		     , COUNT(A.PROFNO) AS PROFCNT
+		     , LISTAGG(B.COURSECODE,',') WITHIN GROUP (ORDER BY A.LECTDATE) AS COURSECODE
+		     , LISTAGG(B.COURSENAME,',') WITHIN GROUP (ORDER BY A.LECTDATE) AS COURSENAME
+		     , LISTAGG(TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD'),'YYYY-MM-DD'),',') WITHIN GROUP (ORDER BY A.LECTDATE) AS LECTDATE
+		     , LISTAGG(A.PAYFLAG,',') WITHIN GROUP (ORDER BY A.LECTDATE) AS PAYFLAG
+		     , MAX(D.LEVELNAME) AS LEVELNAME
+		     , MAX(A.PROFNAME) AS PROFNAME
+		     , SUM(A.LECTHOUR) AS LECTHOUR
+		     , SUM(A.MSCTFEE) AS MSCTFEE
+		     , MAX(D.BASEPAY) AS BASEPAY
+		     , MAX(D.EXCEEDPAY) AS EXCEEDPAY
+		     , MAX(C.PROFHO) AS PROFHO
+		     , SUM( CASE WHEN a.lecthour = 1 THEN d.basepay 
+                		 WHEN a.lecthour > 1 THEN d.basepay + ((a.lecthour - 1) * d.exceedpay) END) AS LECTPAY
+             , MAX(C.bankcode) AS bankcode
+             , MAX(C.accountno) AS accountno
+		FROM PRF_LECTPAY A
+		   , OPR_LECTURE B
+		   , PRF_PROFESSOR C
+		   , PRF_PAYTABLE D
+		   , OPR_LECTPROF E
+		WHERE A.COURSECODE = B.COURSECODE
+		  AND A.PROFNO = C.PROFESSORNO
+		  AND C.PROFLEVEL = D.PROFLEVEL
+		  AND A.COURSECODE = E.COURSECODE
+		  AND A.PROFNO = E.PROFNO
+		  AND E.LECTUREFLAG LIKE 'Y'
+		  AND E.PROFPAYFLAG LIKE 'Y'
+		  AND A.CALCDATE IS NOT NULL
+		  
+		  <isNotEmpty prepend="AND" property="searchFrom">
+		    TO_DATE(A.LECTDATE,'YYYY-MM-DD') <![CDATA[ >= ]]> TO_DATE(#searchFrom#,'YYYY-MM-DD')
+		  </isNotEmpty>
+		  
+		  <isNotEmpty prepend="AND" property="searchTo">
+		  	TO_DATE(A.LECTDATE,'YYYY-MM-DD') <![CDATA[ <= ]]> TO_DATE(#searchTo#,'YYYY-MM-DD')
+		  </isNotEmpty>  
+		  
+		  <isEqual property="searchType" compareValue="0">
+	  		AND B.CRSTYPE1 <![CDATA[<>]]> '00004'
+		  </isEqual>
+		  
+		  <isEqual property="searchType" compareValue="1">
+		  	AND B.CRSTYPE1 = '00004'
+		  </isEqual>
+		  
+		GROUP BY A.PROFNO ) SRC ) SRC2
+	</select>
+	
+	<!-- 지급 확정 -->
+	<update id="updatePayFlag" parameterClass="prf_WeekPay">
+		UPDATE PRF_LECTPAY SET PAYFLAG = 'Y'
+		WHERE COURSECODE = #coursecode#
+		  AND LECTDATE = #lectdate#
+		  AND PROFNO = #profno#
+	</update>
+	
+	<select id="selectPrf_PayExcelList1" parameterClass="prf_WeekPay" resultClass="prf_WeekPay">
+	    SELECT ROW_NUMBER() OVER (ORDER BY AA.lectdate, AA.profname) rnum
+	         , AA.*                  
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay)) AS NETPAY2
+			 , DECODE((AA.incometax + AA.inhabtax), null, 0, (AA.incometax + AA.inhabtax)) AS sumTax		              		     
+		  FROM (
+		SELECT a.*         
+		     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+		     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+		  FROM (
+		 SELECT b.profno		AS profno
+		      , c.profname		AS profname
+	          , c.workplace		AS workplace
+	          , c.workpos		AS workpos
+	          , a.levelname 	AS proflevel
+	          , TO_CHAR(TO_DATE(b.lectdate,'YYYYMMDD'), 'FMMM.DD') LECTDATE
+	          , b.lectdate AS lectdateDup
+		      , b.lecthour		      
+	          , (SELECT name FROM SYS_SYSTEMCODE WHERE codediv = '00001' AND code = c.bankcode) AS bankcode
+	          , c.accountno AS accountno
+	          , a.basepay
+	          , a.exceedpay
+		      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+		             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay
+		      , CASE WHEN b.lecthour = 1 THEN 0 
+		             WHEN b.lecthour > 1 THEN ((b.lecthour - 1) * a.exceedpay) END AS exceedpay2      
+		      , NVL(b.msctfee, 0) MSCTFEE
+		      , TO_CHAR(TO_DATE(b.calcdate,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+		      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+		      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+		      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+		      , 0 AS staypay
+		      , (SELECT areaname FROM PRF_AREA WHERE areano = c.areacode) AS areaname
+	          , (SELECT coursename FROM OPR_LECTURE WHERE coursecode = b.coursecode) AS courseName
+	          , (SELECT timesubject FROM OPR_TIMETABLE WHERE coursecode = b.coursecode AND profname = c.profname) AS subjectName
+			   FROM PRF_PAYTABLE A, PRF_LECTPAY B, PRF_PROFESSOR C,
+			(SELECT coursecode, lectdate, profno, profname, ispayed, lectureflag
+			   FROM OPR_LECTPROF			
+			   ) D
+			  WHERE b.proflevel  = a.proflevel
+			    AND b.coursecode = d.coursecode
+			    AND b.lectdate   = d.lectdate
+			    AND b.profno     = d.profno
+			    AND b.profno     = c.professorno
+			    AND d.lectureflag LIKE 'Y'
+        AND REPLACE(b.lectdate, '-', '') <![CDATA[ >= ]]> #searchFrom#
+        AND REPLACE(b.lectdate, '-', '') <![CDATA[ <= ]]> #searchTo#
+	  ORDER BY lectdate, b.profname) A) AA
+	</select>
+	
+	
+	<select id="selectPrf_PayExcelList1DupCount" parameterClass="prf_WeekPay" resultClass="java.lang.Integer">
+	    SELECT COUNT(*) FROM (
+	    SELECT ROW_NUMBER() OVER (ORDER BY AA.lectdate, AA.profname) rnum
+	         , AA.*                  
+			     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+			     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+			              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+			  FROM (
+			SELECT a.*         
+			     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+			     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+			  FROM (
+			 SELECT b.profno		AS profno
+		      	  , c.profname
+		          , c.workplace
+		          , c.workpos
+		          , a.levelname AS PROFLEVEL
+		          , TO_CHAR(TO_DATE(b.lectdate,'YYYYMMDD'), 'FMMM.DD') LECTDATE
+		          , b.lectdate AS lectdateDup
+				  , b.lecthour		      
+		          , (SELECT name FROM SYS_SYSTEMCODE WHERE codediv = '00001' AND code = c.bankcode) AS bankcode
+		          , c.accountno AS accountno
+		          , a.basepay
+		          , a.exceedpay
+			      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+			             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+			      , NVL(b.msctfee, 0) MSCTFEE
+			      , TO_CHAR(TO_DATE(b.calcdate,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+			      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+			      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+			      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+			      , 0 AS staypay
+		          , (SELECT coursename FROM OPR_LECTURE WHERE coursecode = b.coursecode) AS courseName
+		          , (SELECT timesubject FROM OPR_TIMETABLE WHERE coursecode = b.coursecode AND profname = c.profname) AS subjectName
+			   FROM PRF_PAYTABLE  A
+			      , PRF_LECTPAY   B
+			      , PRF_PROFESSOR C
+				  , (SELECT coursecode, lectdate, profno, profname, ispayed, lectureflag
+				   	   FROM OPR_LECTPROF) D
+		  WHERE b.proflevel  = a.proflevel
+		    AND b.coursecode = d.coursecode
+		    AND b.lectdate   = d.lectdate
+		    AND b.profno     = d.profno
+		    AND b.profno     = c.professorno
+		    AND d.lectureflag LIKE 'Y'
+	        AND b.lectdate = #lectdateDup#
+	        AND b.profno   = #profno#
+	        AND b.profname = #profname#
+		  ORDER BY lectdate, b.profname) A) AA ) CNT
+	  </select>
+	
+		<select id="selectPrf_PayExcelList1MaxRnum" parameterClass="prf_WeekPay" resultClass="java.lang.Integer">  
+  	    SELECT MAX(AAA.rnum) FROM (
+	    SELECT ROW_NUMBER() OVER (ORDER BY AA.lectdate, AA.profname) rnum
+	         , AA.*                  
+			     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+			     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+			              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+			  FROM (
+			SELECT a.*         
+			     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+			     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+			  FROM (
+			 SELECT b.profno	AS profno
+		      	  , c.profname
+		          , c.workplace
+		          , c.workpos
+		          , a.levelname AS PROFLEVEL
+		          , TO_CHAR(TO_DATE(b.lectdate,'YYYYMMDD'), 'FMMM.DD') LECTDATE
+		          , b.lectdate AS lectdateDup
+				  , b.lecthour		      
+		          , (SELECT name FROM SYS_SYSTEMCODE WHERE codediv = '00001' AND code = c.bankcode) AS bankcode
+		          , c.accountno AS accountno
+		          , a.basepay
+		          , a.exceedpay
+			      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+			             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+			      , NVL(b.msctfee, 0) MSCTFEE
+			      , TO_CHAR(TO_DATE(b.calcdate,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+			      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+			      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+			      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+			      , 0 AS staypay
+		          , (SELECT coursename FROM OPR_LECTURE WHERE coursecode = b.coursecode) AS courseName
+		          , (SELECT timesubject FROM OPR_TIMETABLE WHERE coursecode = b.coursecode AND profname = c.profname) AS subjectName
+			   FROM PRF_PAYTABLE  A
+			      , PRF_LECTPAY   B
+			      , PRF_PROFESSOR C
+				  , (SELECT coursecode, lectdate, profno, profname, ispayed, lectureflag
+				   	   FROM OPR_LECTPROF) D
+		  WHERE b.proflevel  = a.proflevel
+		    AND b.coursecode = d.coursecode
+		    AND b.lectdate   = d.lectdate
+		    AND b.profno     = d.profno
+		    AND b.profno     = c.professorno
+		    AND d.lectureflag LIKE 'Y'	        
+		  ORDER BY lectdate, b.profname) A) AA ) AAA
+		  WHERE AAA.lectdateDup = #lectdateDup#
+	        AND AAA.profno      = #profno#
+	        AND AAA.profname    = #profname#
+		  </select>
+</sqlMap>

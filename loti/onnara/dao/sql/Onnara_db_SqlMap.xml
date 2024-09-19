@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Onnara_db">
+
+	<typeAlias alias="sendData" type="loti.onnara.conn.SendDataBean"/>
+	<typeAlias alias="misc" type="loti.onnara.model.Onnara_misc"/>
+	<typeAlias alias="onnara_std" type="loti.onnara.model.Onnara_std"/>
+	<typeAlias alias="od_Or_DataBean" type="loti.insarang.conn.OD_OR_DataBean"/>
+	<typeAlias alias="sending_list" type="loti.onnara.model.Sending_list"/>
+
+	<!-- 온나라 연계 번호 채번 -->
+	<select id="selectNum" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT SEQ 
+		FROM ONNARA_NUM
+		WHERE NYEAR = TO_CHAR(SYSDATE,'YYYY')
+	</select>		
+	
+	<!-- 온나라 연계 번호 등록 -->
+	<insert id="insertNum" parameterClass="java.lang.String">
+		INSERT INTO ONNARA_NUM (NYEAR, SEQ, UPDDTE) 
+		VALUES (TO_CHAR(SYSDATE,'YYYY'), 1, TO_CHAR(SYSDATE,'YYYY-MM-DD HH24:MI:SS'))
+	</insert>
+	
+	<!-- 온나라 연계 번호 증가 -->
+	<update id="updateNum" parameterClass="java.lang.String">
+		UPDATE ONNARA_NUM SET SEQ = SEQ + 1, UPDDTE = TO_CHAR(SYSDATE,'YYYY-MM-DD HH24:MI:SS')
+		WHERE NYEAR = TO_CHAR(SYSDATE,'YYYY')
+	</update>
+	
+	<!-- 사용자 정보 가져오기 -->
+	<select id="selectUserInfo" parameterClass="java.lang.String" resultClass="sendData">
+		SELECT A.JUMINNO, B.ORGANNAME, B.ORGANCODE, A.ONNARAID, A.ONNARAPASS, A.USERNAME, A.EMAIL,
+		       TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') SENDDATE
+		FROM CMN_PUBWORKER A, CMN_ORGANMAP B
+		WHERE A.ORGANCODE = B.ORGANCODE
+			AND JUMINNO = #juminno#	
+	</select>	
+	
+	<!-- 인사랑 전송정보를 조회한다. -->
+	<select id="selectInsaSend" parameterClass="java.lang.String" resultClass="sending_list">
+		SELECT  BTCILCKTIME, CODESTR, GBN, SENDDT
+      FROM  CMN_RELAYFILE
+     WHERE  BTCILCKTIME = #btCilckTime#
+  GROUP BY  BTCILCKTIME, CODESTR, GBN, SENDDT
+	</select>		
+	
+	<!-- 교육과정 목록 가져오기 -->
+	<select id="selectCourse_List" parameterClass="sending_list" resultClass="sending_list">
+		SELECT 
+						COURSECODE, 
+						COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME, 
+						TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+						TO_CHAR(TO_DATE(PASSDATE,'YYYYMMDD'), 'YYYY.MM.DD') PASSDATE, 
+						TO_CHAR(TO_DATE(STDCONFDATE,'YYYYMMDD'), 'YYYY.MM.DD') STDCONFDATE, 
+						TO_CHAR(TO_DATE(BASEYYMM||'01','YYYYMMDD'), 'YYYY.MM') BASEYYMM, 
+						ISPASS          
+      FROM 	OPR_LECTURE       
+     WHERE ((SUBSTR(REPLACE(EDUFROM,'-',''), 1, 6) BETWEEN REPLACE(#searchFromDate#,'-','')  AND REPLACE(#searchToDate#,'-','') AND CRSTYPE1 NOT LIKE '00003')
+        OR  (BASEYYMM BETWEEN REPLACE(#searchFromDate#,'-','')  AND REPLACE(#searchToDate#,'-','') AND CRSTYPE1 LIKE '00003')) 	
+				<isNotEmpty prepend="AND" property="crsType1">
+						CRSTYPE1 LIKE #crsType1#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="crsType2">
+						CRSTYPE2 LIKE #crsType2#
+				</isNotEmpty>
+				<isNotEmpty prepend="AND" property="crsType3">
+						CRSTYPE3 LIKE #crsType3#
+				</isNotEmpty>
+  	ORDER BY	EDUDATE, COURSENAME
+	</select>
+	
+	<!-- 인사랑 전송 목록 가져오기 -->
+	<select id="selectSendList" parameterClass="sending_list" resultClass="sending_list">
+  	SELECT  A.BTCILCKTIME,
+            NVL(TOTALCNT, 0) TOTALCNT,
+            COUNT (A.BTCILCKTIME) SUCCESSCNT,
+            DECODE(GBN, 'confirm', '교육생확정', 'finish', '교육생이수', 'recieve', '교육생수신') GBN,
+            ONNARAPDF
+      FROM  CMN_RELAYFILE A, CMN_ONNARAFILE B
+     WHERE  A.BTCILCKTIME = B.BTCILCKTIME(+)
+       AND  REPLACE(SUBSTR(A.BTCILCKTIME, 0, 7),'/','-') LIKE #searchFromDate#
+  GROUP BY  A.BTCILCKTIME, TOTALCNT, ONNARAPDF, GBN
+  ORDER BY  A.BTCILCKTIME DESC
+	</select>
+	
+	<!-- 교육확정자 명단 가져오기 (일반인 교육생을 지원할 경우 로직 수정 필요함) -->
+	<!-- 대표기관 기타중에서 직급이 NULL값이 아닌 광주광역시 교육생은 포함하기로 함 -->
+	<select id="selectConfirm_StdList" parameterClass="java.lang.String" resultClass="onnara_std">
+		<!-- 교육기관 테이블에 등록된 걸로 가져오기로 바꿈
+		SELECT A.COURSECODE, REPLACE(B.ORGANNAME,'대구광역시 ', '') ORGANNAME, A.GRADENAME, A.STDNAME
+    FROM (SELECT COURSECODE, STDNAME, ASSIGN, ASSIGNNAME, GRADENAME
+				  FROM OPR_APPLICANT
+					WHERE COURSECODE  IN ($courseCode$)
+    				AND ISSELECTED = 'Y') A, 
+         (SELECT ROWNUM SEQ, ORGANCODE, SIMPLENAME, ORGANNAME 
+          FROM CMN_ORGANMAP
+          START WITH ORGANCODE = '6430000'
+          CONNECT BY PRIOR ORGANCODE = PARENTORGAN
+          ORDER SIBLINGS BY ORGANORDER) B
+    WHERE A.ASSIGN = B.ORGANCODE          
+    ORDER BY A.COURSECODE, B.SEQ -->
+		SELECT 
+						A.COURSECODE, ASSIGNNAME ORGANNAME, A.RANKNAME GRADENAME, A.STDNAME
+      FROM (SELECT 
+      							COURSECODE, SEQ, STDNAME, ASSIGN, ASSIGNNAME, RANKNAME, CHIEFORGAN
+              FROM	OPR_APPLICANT
+             WHERE	COURSECODE IN ($courseCode$)
+               AND 	ISSELECTED = 'Y'
+               AND (CHIEFORGAN NOT LIKE '9999999' OR REPLACE(RANKNAME, ' ', '') IS NOT NULL)) A, 
+            CMN_MSTORGAN B, OPR_LECTURE C
+		 WHERE	A.CHIEFORGAN = B.CHIEFORGAN
+       AND  A.COURSECODE = C.COURSECODE
+  ORDER BY	EDUFROM, EDUTO, COURSENAME, B.ORGANGU, A.CHIEFORGAN
+	</select>
+	
+	<!-- 교육이수자명단 가져오기 (일반인 교육생을 지원할 경우 로직 수정 필요함) -->
+	<!-- 대표기관 기타중에서 직급이 NULL값이 아닌 광주광역시 교육생은 포함하기로 함 -->
+	<select id="selectFinish_StdList" parameterClass="java.lang.String" resultClass="onnara_std">
+		<!-- ASSIGN 사용안함
+		SELECT A.COURSECODE, REPLACE(B.ORGANNAME,'대구광역시 ', '') ORGANNAME, A.GRADENAME, A.STDNAME
+    FROM (SELECT COURSECODE, STDNAME, ASSIGN, ASSIGNNAME, GRADENAME
+          FROM OPR_CRSSTUDENT 
+          WHERE COURSECODE IN ($courseCode$)
+            AND ISFINISH = 'Y') A, 
+         (SELECT ROWNUM SEQ, ORGANCODE, SIMPLENAME, ORGANNAME 
+          FROM CMN_ORGANMAP
+          START WITH ORGANCODE = '6430000'
+          CONNECT BY PRIOR ORGANCODE = PARENTORGAN
+          ORDER SIBLINGS BY ORGANORDER) B
+    WHERE A.ASSIGN = B.ORGANCODE          
+    ORDER BY A.COURSECODE, B.SEQ
+    -->
+    SELECT 
+            A.COURSECODE, ASSIGNNAME ORGANNAME, A.GRADENAME, A.STDNAME
+      FROM (SELECT 
+                    COURSECODE, STDNAME, ASSIGN, ASSIGNNAME, RANKNAME GRADENAME, CHIEFORGAN, STDNO
+              FROM  OPR_CRSSTUDENT 
+             WHERE  COURSECODE IN ($courseCode$)
+               AND  ISFINISH = 'Y'
+               AND (CHIEFORGAN NOT LIKE '9999999' OR REPLACE(RANKNAME, ' ', '') IS NOT NULL)) A, 
+            CMN_MSTORGAN B, OPR_LECTURE C
+     WHERE	A.CHIEFORGAN = B.CHIEFORGAN
+       AND  A.COURSECODE = C.COURSECODE  
+  ORDER BY  EDUFROM, EDUTO, COURSENAME, A.STDNO, B.ORGANGU, A.CHIEFORGAN
+	</select>
+	
+	<!-- 과정 MASTER	정보 가져오기 -->
+	<select id="selectChoice_CourseList" parameterClass="java.lang.String" resultClass="onnara_std">
+<!--SELECT COURSECODE, COURSENAME, CRSTYPE1, SUBSTR(EDUFROM, 1, 6) BASEYYMM, 
+					 TO_CHAR(TO_DATE(EDUFROM), 'YYYY.MM.DD') || '~' || TO_CHAR(TO_DATE(EDUTO), 'MM.DD') EDUDATE
+		FROM OPR_LECTURE
+		WHERE COURSECODE IN ($courseCode$)
+		ORDER BY EDUFROM, EDUTO, COURSENAME-->
+		SELECT COURSECODE, COURSENAME, CRSTYPE1, DECODE(CRSTYPE1, '00003', BASEYYMM, SUBSTR(EDUFROM, 1, 6)) BASEYYMM, 
+					 TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'), 'YYYY.MM.DD') || '~' || TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE
+		FROM OPR_LECTURE
+		WHERE COURSECODE IN ($courseCode$)
+		ORDER BY EDUFROM, EDUTO, COURSENAME
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<!-- 기타 기관으로 등록된 사용자는 전송명단에서 제외 (기타 기관코드 '9999999') -->
+	<select id="selectOpr_FixSendList" parameterClass="java.util.HashMap" resultClass="od_Or_DataBean">
+		SELECT  A.COURSECODE COURSECODE,
+		 				B.COURSENAME||'('||TO_NUMBER(SUBSTR(B.COURSECODE,11,2))||'기)' COURSENAME,
+            C.EDUGBN EDUGBN,
+            B.EDUFROM EDUFROM,
+            B.EDUTO EDUTO,
+            DECODE(B.CRSTYPE1,'00003', (B.APVHOUR*60), D.EDUHOUR) EDUHOUR,
+            C.EDUTYPE EDUTYPE,
+            DECODE(B.CRSTYPE1,'00003' ,'2', '1') EDUMETHOD,
+            A.JUMINNO JUMINNO,
+            CHIEFORGAN STDORGCODE,
+            '1' ISSELECTED,
+            '0' ISFINISHED,
+            '0' SCORE
+				<!--
+						확정자 일경우에는 확정상태값 1, 이수상태0, 점수0으로 고정
+            DECODE(ISFINISH,'Y','1','0') ISFINISHED,
+            (NVL(SCORESTUDY,0)+NVL(SCOREATTEND,0)+NVL(SCORERESEARCH,0)+NVL(SCORETEAM,0)+NVL(SCOREADD,0)+NVL(SCOREPRA,0)+NVL(SCOREETC,0)) SCORE
+				-->
+      FROM  OPR_CRSSTUDENT A, OPR_LECTURE B,
+           (SELECT TYPE1, MAX(EDUGBN) EDUGBN, MAX(EDUTYPE) EDUTYPE FROM CMN_COURSETYPE GROUP BY TYPE1) C,
+           (SELECT  
+                    EDUHOUR*60 EDUHOUR
+              FROM (SELECT COURSECODE, SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) EDUHOUR
+                      FROM OPR_LECSUBJECT
+                     WHERE COURSECODE IN ($courseCode$) 
+                  GROUP BY COURSECODE)
+            ) D
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  B.CRSTYPE1 = C.TYPE1
+       AND  CHIEFORGAN NOT LIKE '9999999'
+       AND  A.COURSECODE IN (#courseCode#)     
+       AND  A.CHIEFORGAN IN (#mstOrgCode#)
+	</select>
+	
+	<!-- 이수명단전송 목록 조회쿼리 -->
+	<select id="selectOpr_PassSendList" parameterClass="java.util.HashMap" resultClass="od_Or_DataBean">
+	
+   SELECT  B.COURSECODE,
+                A.COURSENAME,
+                A.EDUGBN,
+                A.EDUFROM, 
+                A.EDUTO, 
+                DECODE(A.CRSTYPE1,'00003', (A.APVHOUR*60), A.EDUHOUR) EDUHOUR,
+                A.EDUTYPE, 
+                A.EDUMETHOD,
+                B.JUMINNO,
+                B.CHIEFORGAN STDORGCODE,
+                A.ISSELECTED,
+            DECODE(B.ISFINISH, 'Y', '1', 'N', '0') ISFINISHED,
+            ROUND(DECODE(A.CRSTYPE1, '00003', B.ACQUIRESCORE, 
+     NVL(B.SCORESTUDY, 0)+NVL(B.SCORERESEARCH, 0)+NVL(B.SCORETEAM, 0)+NVL(B.SCOREATTEND, 0)+NVL(B.SCOREADD, 0) + NVL(B.SCOREPRA, 0) + NVL(B.SCOREETC, 0) + NVL(B.SCOREFOREIGN, 0) 
+		+ NVL(B.SCORECONVER, 0) + NVL(B.SCOREPAPER, 0) + NVL(B.SCOREPERSONAL, 0) + NVL(B.SCORETEAMDISC, 0) + NVL(B.SCOREHOBBY, 0) + NVL(B.SCORESTAMINA, 0) + NVL(B.SCOREINFO, 0) + NVL(B.SCOREVALUE, 0)),0) SCORE
+      FROM  OPR_CRSSTUDENT B,
+            (SELECT  
+                    C.COURSECODE, C.CRSTYPE1, C.CRSTYPE2, C.CRSTYPE3, C.EDUFROM, C.EDUTO, 
+                    C.COURSENAME||'('||TO_NUMBER(SUBSTR(C.COURSECODE,11,2))||'기)' COURSENAME,
+                    C.APVHOUR, D.EDUHOUR*60 EDUHOUR, E.EDUGBN, E.EDUTYPE,
+                    DECODE(C.CRSTYPE1,'00003', 2, 1) EDUMETHOD,
+                    DECODE(NVL(SENDER,'0'),'0', 0, 1) ISSELECTED
+              FROM  OPR_LECTURE C,
+                   (SELECT COURSECODE, SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) EDUHOUR
+                      FROM OPR_LECSUBJECT
+                     WHERE COURSECODE IN ($courseCode$) 
+                  GROUP BY COURSECODE) D,
+                   (SELECT TYPE1, TYPE2, TYPE3, EDUGBN, EDUTYPE
+                      FROM CMN_COURSETYPE) E
+                     WHERE C.COURSECODE = D.COURSECODE(+)
+                       AND E.TYPE1 = C.CRSTYPE1
+                       AND E.TYPE2 = C.CRSTYPE2
+                       AND E.TYPE3 = C.CRSTYPE3
+            ) A
+     WHERE  B.COURSECODE = A.COURSECODE
+       AND  B.CHIEFORGAN NOT LIKE '9999999'
+       AND  B.COURSECODE IN (#courseCode#)   
+       AND  B.CHIEFORGAN IN (#mstOrgCode#)
+	</select>	
+	
+	<!-- 교육확정 전송일자 변경 -->
+	<update id="updateConfirmDate" parameterClass="misc">
+		UPDATE OPR_LECTURE SET 
+				STDCONFUSR = #juminNo#, 
+				STDCONFDATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		WHERE COURSECODE IN ($courseCode$)
+	</update>
+	
+	<!-- 이수자 전송일자 변경 -->
+	<update id="updatePassDate" parameterClass="misc">
+		UPDATE OPR_LECTURE SET 
+				PASSER = #juminNo#,
+		 		PASSDATE = TO_CHAR(SYSDATE,'YYYYMMDD')
+		WHERE COURSECODE IN ($courseCode$)
+	</update>
+	
+	<!-- 온나라 PDF 파일 INSER/UPDATE 를 위한 체크 -->
+	<select id="selectOnnaraPDF" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT COUNT(BTCILCKTIME) CNT
+		  FROM CMN_ONNARAFILE 
+		 WHERE BTCILCKTIME = #btCilckTime#
+	</select>
+	<insert id="insertOnnaraPDF" parameterClass="sending_list">
+		INSERT INTO CMN_ONNARAFILE (	
+			   			BTCILCKTIME	,	
+			   			ONNARAPDF
+		) VALUES (
+			   			#btCilckTime#,	
+			   			#onnaraPDF# 	
+		)
+	</insert>
+	<!-- 온나라 PDF 파일 -->
+	<update id="updateOnnaraPDF" parameterClass="sending_list">
+		UPDATE CMN_ONNARAFILE SET
+					 ONNARAPDF = #onnaraPDF# 
+		 WHERE BTCILCKTIME = #btCilckTime#
+	</update>
+</sqlMap>
+
+

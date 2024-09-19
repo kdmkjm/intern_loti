@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Tst_Satis">
+
+	<typeAlias alias="tst_Satis" type="loti.tst.satis.model.Tst_Satis"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectTst_Satis" parameterClass="tst_Satis" resultClass="tst_Satis">
+
+			SELECT C.SURVEYNO, (SELECT TITLE FROM TST_SURVEY D WHERE D.SURVEYNO = C.SURVEYNO) AS TITLE ,
+			       #searchCourseCode# AS COURSECODE, 
+			       NVL (MAX(CNT), 0) RSPTCNT,
+			       (SELECT COUNT (REPLYSEQ)
+			          FROM TST_RSPTINFO E
+					     WHERE C.SURVEYNO = E.SURVEYNO
+					       AND E.COURSECODE = #searchCourseCode#) AS REPLYCNT, 
+			       ROUND(SUM(TOTRSPT)/COUNT(JUMINNO),1) TOTRSPT,
+                   ROUND(SUM(TEACHERRSPT)/COUNT(JUMINNO),1) TEACHERRSPT
+              FROM (SELECT COURSECODE, COUNT(JUMINNO) CNT 
+                                  FROM OPR_CRSSTUDENT 
+                                 WHERE COURSECODE = #searchCourseCode# 
+                                 GROUP BY COURSECODE
+                   ) A, 
+                   (SELECT RN, SURVEYNO, COURSECODE, STDNO, JUMINNO, TOTRSPT, COMMRSPT, LECTRSPT, TEACHERRSPT
+                      FROM (SELECT ROWNUM RN, A.*
+                              FROM (SELECT A.SURVEYNO,
+                                           A.COURSECODE,
+                                           A.STDNO, 
+                                           A.JUMINNO, 
+                                           ROUND((NVL(MAX(E.COMMRSPT),0)+DECODE(COUNT(B.REPLY),0,0,(ROUND(SUM(DECODE(B.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(B.REPLY),1)))+DECODE(COUNT(C.REPLY),0,0,(ROUND(SUM(DECODE(C.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(C.REPLY),1))))/(DECODE(COUNT(E.COMMRSPT), 0, 0, 1)+DECODE(COUNT(B.REPLY), 0, 0, 1)+DECODE(COUNT(C.REPLY), 0, 0, 1)),1) TOTRSPT,
+                                           NVL(MAX(E.COMMRSPT),0) COMMRSPT,
+                                           DECODE(COUNT(B.REPLY),0,0,(ROUND(SUM(DECODE(B.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(B.REPLY),1))) AS LECTRSPT, 
+                                           DECODE(COUNT(C.REPLY),0,0,(ROUND(SUM(DECODE(C.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(C.REPLY),1))) AS TEACHERRSPT
+                                      FROM TST_RSPTINFO A, 
+                                           TST_LECTRSPT B,
+                                           TST_TEACHERRSPT C,
+                                           (SELECT B.SURVEYNO, B.REPLYSEQ, ROUND(SUM((SELECT MAX(EXAMSEQ)+1 FROM TST_SURVITEMEXAM X WHERE X.SURVEYNO = A.SURVEYNO AND X.REQSEQ = A.REQSEQ )-B.REPLY)/COUNT(A.REQSEQ),1) COMMRSPT 
+                                                FROM TST_SURVITEM A,
+                                                     TST_COMMRSPT B,
+                                                     TST_RSPTINFO C
+                                               WHERE B.SURVEYNO =A.SURVEYNO  
+                                                 AND B.REQSEQ =A.REQSEQ 
+                                                 AND B.SURVEYNO = C.SURVEYNO
+                                                 AND B.REPLYSEQ = C.REPLYSEQ 
+                                                 AND C.COURSECODE LIKE #searchCourseCode#||'%'
+                                                 AND A.SCOREFLAG = 'Y'
+                                               GROUP BY B.SURVEYNO, B.REPLYSEQ 
+                                           ) E
+                                     WHERE A.SURVEYNO = B.SURVEYNO(+)
+                                       AND A.REPLYSEQ = B.REPLYSEQ(+)
+                                       AND A.COURSECODE = B.COURSECODE(+)
+                                       AND A.SURVEYNO = C.SURVEYNO(+)
+                                       AND A.REPLYSEQ = C.REPLYSEQ(+)
+                                       AND A.COURSECODE = C.COURSECODE(+)
+                                       AND A.SURVEYNO = E.SURVEYNO(+)
+                                       AND A.REPLYSEQ = E.REPLYSEQ(+)
+                                       AND A.COURSECODE LIKE #searchCourseCode#||'%'
+                                     GROUP BY A.SURVEYNO, A.COURSECODE, A.STDNO, A.JUMINNO, A.JOBCODE, A.RANKCODE, A.GENDER, A.WORKDAY
+                                     ORDER BY TOTRSPT DESC
+                                   ) A)
+                     WHERE RN BETWEEN 1+(SELECT TRUNC(COUNT(JUMINNO)*0.05) FROM TST_RSPTINFO WHERE COURSECODE LIKE #searchCourseCode#) 
+                                    AND (SELECT COUNT(JUMINNO)-(TRUNC(COUNT(JUMINNO)*0.05)) FROM TST_RSPTINFO WHERE COURSECODE LIKE #searchCourseCode#)
+                   ) B,
+                   TST_COURSEMATCH C
+             WHERE A.COURSECODE = B.COURSECODE(+) 
+               AND A.COURSECODE = C.COURSECODE(+)      
+            GROUP BY C.SURVEYNO
+
+<!--			SELECT SURVEYNO,
+			       (SELECT TITLE FROM TST_SURVEY C WHERE B.SURVEYNO = C.SURVEYNO) AS TITLE ,
+			       #searchCourseCode# AS COURSECODE,
+			       NVL (CNT, 0) RSPTCNT,
+			       (SELECT COUNT (REPLYSEQ)
+			          FROM TST_RSPTINFO C
+			         WHERE B.SURVEYNO = C.SURVEYNO
+			           AND A.COURSECODE = C.COURSECODE) AS REPLYCNT,
+			       (SELECT   SUM (DECODE (REPLY, '1', 5, '2', 4, '3', 3, '4', 2, 1))/ COUNT(SURVEYNO)
+			          FROM TST_LECTRSPT C
+			         WHERE B.SURVEYNO = C.SURVEYNO AND C.COURSECODE = #searchCourseCode#) AS LECTRSPT,
+			       (SELECT   SUM (DECODE (REPLY, '1', 5, '2', 4, '3', 3, '4', 2, 1))/ COUNT(SURVEYNO)
+			          FROM TST_TEACHERRSPT C
+			         WHERE B.SURVEYNO = C.SURVEYNO AND C.COURSECODE = #searchCourseCode#) AS TEACHERRSPT,
+			       INSDATE, INSUSER
+			  FROM (SELECT COURSECODE, COUNT(JUMINNO) CNT 
+			          FROM OPR_CRSSTUDENT 
+			         WHERE COURSECODE = #searchCourseCode# 
+			         GROUP BY COURSECODE) A, 
+			       TST_COURSEMATCH B
+			 WHERE A.COURSECODE = B.COURSECODE(+)
+-->
+	</select>
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectTst_SatisOprList" parameterClass="tst_Satis" resultClass="tst_Satis">
+		SELECT
+            A.COURSECODE,
+            A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            SUBSTR(A.EDUFROM, 5, 2)||'.'||SUBSTR(A.EDUFROM, 7, 2)||'~'||SUBSTR(A.EDUTO, 5, 2)||'.'||SUBSTR(A.EDUTO, 7, 2) EDUDATE,
+            B.SURVEYNO, DECODE(NVL(B.TITLE,'1'), '1', '설문미연결', B.TITLE) TITLE,
+           (SELECT  
+                    COUNT(JUMINNO)  
+              FROM  OPR_CRSSTUDENT  
+             WHERE  COURSECODE = A.COURSECODE) RSPTCNT,
+           NVL(B.REPLYCNT,0) REPLYCNT 
+      FROM  OPR_LECTURE A, 
+           (SELECT
+                    A.SURVEYNO, A.TITLE, B.COURSECODE, C.REPLYCNT
+              FROM  TST_SURVEY A, TST_COURSEMATCH B,
+                    (SELECT  
+                            E.SURVEYNO, COUNT(E.REPLYSEQ) AS REPLYCNT 
+                      FROM  (SELECT DISTINCT SURVEYNO, REPLYSEQ FROM TST_COMMRSPT) E, TST_COURSEMATCH B  
+                     WHERE  B.SURVEYNO(+)   = E.SURVEYNO  
+                     GROUP BY E.SURVEYNO) C
+             WHERE  A.SURVEYNO(+) = B.SURVEYNO
+                    AND A.SURVEYNO = C.SURVEYNO(+)) B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.COURSECODE = #searchCourseCode#
+  ORDER BY  SURVEYNO
+		<!-- 
+		SELECT
+            A.COURSECODE,
+            A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            SUBSTR(A.EDUFROM, 5, 2)||'.'||SUBSTR(A.EDUFROM, 7, 2)||'~'||SUBSTR(A.EDUTO, 5, 2)||'.'||SUBSTR(A.EDUTO, 7, 2) EDUDATE,
+            B.SURVEYNO, DECODE(NVL(B.TITLE,'1'), '1', '설문미연결', B.TITLE) TITLE,
+           (SELECT  
+                    COUNT(JUMINNO)  
+              FROM  OPR_CRSSTUDENT  
+             WHERE  COURSECODE = A.COURSECODE) RSPTCNT,
+           (SELECT  
+           					COUNT(REPLYSEQ)  
+              FROM  TST_RSPTINFO E, TST_COURSEMATCH B  
+             WHERE  E.COURSECODE = B.COURSECODE
+               AND  B.SURVEYNO   = E.SURVEYNO  
+               AND  B.COURSECODE = A.COURSECODE) REPLYCNT 
+      FROM  OPR_LECTURE A, 
+           (SELECT
+                    A.SURVEYNO, A.TITLE, B.COURSECODE
+              FROM  TST_SURVEY A, TST_COURSEMATCH B
+             WHERE  A.SURVEYNO = B.SURVEYNO) B
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.EDUFROM LIKE REPLACE(#searchKeyword#, '-', '') || '%'
+       AND  A.CRSTYPE1 NOT LIKE '00003'
+  ORDER BY  A.EDUFROM, A.EDUTO, A.COURSENAME
+  -->
+	</select>
+	
+	
+	
+	
+	<!-- 과정별 설문 정보 조회 -->
+	<select id="selectTst_Survey" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	
+				   		A.SURVEYNO    ,
+				   		A.TITLE       ,
+				   		A.FROMDATE    ,
+				   		A.TODATE      ,
+				   		A.SUMMARY     ,
+				   		A.ISLECTSURVEY,
+				   		A.TARGET      ,
+				   		A.HEADTEXT    ,
+				   		A.TAILTEXT    ,
+				   		A.ITEMCOUNT   ,
+				   		A.CHARGER ,
+				   		(SELECT COUNT(REPLYSEQ) FROM TST_RSPTINFO B WHERE A.SURVEYNO = B.SURVEYNO) REPLYCNT,
+				   		B.COURSECODE      
+			  FROM		TST_SURVEY A, 
+			  			(SELECT SURVEYNO, COURSECODE 
+			  			   FROM TST_COURSEMATCH
+			  			  WHERE surveyno = #surveyno#) B
+			 WHERE A.SURVEYNO = #surveyno#
+			 		AND A.SURVEYNO = B.SURVEYNO
+	</select>
+
+	<!-- 과정별 설문 만족도 현황 조회 (만족도) -->
+	<select id="selectTst_SatisRSPT" parameterClass="tst_Satis" resultClass="tst_Satis">
+		SELECT 
+            ROUND(SUM(TOTRSPT)/COUNT(JUMINNO),1) TOTRSPT,
+            ROUND(SUM(TEACHERRSPT)/COUNT(JUMINNO),1) TEACHERRSPT
+      FROM 
+           (SELECT 
+                    ROWNUM RN, A.*
+              FROM 
+                   (SELECT 
+                            A.SURVEYNO,
+                            A.COURSECODE,
+                            A.STDNO, 
+                            A.JUMINNO, 
+                            ROUND((NVL(MAX(E.COMMRSPT),0)+DECODE(COUNT(B.REPLY),0,0,(ROUND(SUM(DECODE(B.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(B.REPLY),1)))+DECODE(COUNT(C.REPLY),0,0,(ROUND(SUM(DECODE(C.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(C.REPLY),1))))/(DECODE(COUNT(E.COMMRSPT), 0, 0, 1)+DECODE(COUNT(B.REPLY), 0, 0, 1)+DECODE(COUNT(C.REPLY), 0, 0, 1)),1) TOTRSPT,
+                            NVL(MAX(E.COMMRSPT),0) COMMRSPT,
+                            DECODE(COUNT(B.REPLY),0,0,(ROUND(SUM(DECODE(B.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(B.REPLY),1))) AS LECTRSPT, 
+                            DECODE(COUNT(C.REPLY),0,0,(ROUND(SUM(DECODE(C.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(C.REPLY),1))) AS TEACHERRSPT
+                      FROM  TST_RSPTINFO A, TST_LECTRSPT B, TST_TEACHERRSPT C,
+                           (SELECT 
+                                    B.SURVEYNO, 
+                                    B.REPLYSEQ, 
+                                    ROUND(SUM((SELECT MAX(EXAMSEQ)+1 FROM TST_SURVITEMEXAM X WHERE X.SURVEYNO = A.SURVEYNO AND X.REQSEQ = A.REQSEQ )-B.REPLY)/COUNT(A.REQSEQ),1) COMMRSPT 
+                              FROM  TST_SURVITEM A, TST_COMMRSPT B, TST_RSPTINFO C
+                             WHERE  B.SURVEYNO = A.SURVEYNO  
+                               AND  B.REQSEQ   = A.REQSEQ 
+                               AND  B.SURVEYNO = C.SURVEYNO
+                               AND  B.REPLYSEQ = C.REPLYSEQ 
+                               AND  C.COURSECODE = #coursecode#
+                               AND  A.SCOREFLAG = 'Y'
+                          GROUP BY  B.SURVEYNO, B.REPLYSEQ 
+                           ) E
+                     WHERE  A.SURVEYNO = B.SURVEYNO(+)
+                       AND  A.REPLYSEQ = B.REPLYSEQ(+)
+                       AND  A.COURSECODE = B.COURSECODE(+)
+                       AND  A.SURVEYNO = C.SURVEYNO(+)
+                       AND  A.REPLYSEQ = C.REPLYSEQ(+)
+                       AND  A.COURSECODE = C.COURSECODE(+)
+                       AND  A.SURVEYNO = E.SURVEYNO(+)
+                       AND  A.REPLYSEQ = E.REPLYSEQ(+)
+                       AND  A.COURSECODE = #coursecode#
+                  GROUP BY  A.SURVEYNO, A.COURSECODE, A.STDNO, A.JUMINNO, A.JOBCODE, A.RANKCODE, A.GENDER, A.WORKDAY
+                  ORDER BY  TOTRSPT DESC
+                   ) A
+           )
+                   
+             WHERE  RN BETWEEN 1 + (SELECT TRUNC(COUNT(JUMINNO)*0.05) FROM TST_RSPTINFO WHERE COURSECODE = #coursecode#) 
+               AND (SELECT COUNT(JUMINNO)-(TRUNC(COUNT(JUMINNO)*0.05)) FROM TST_RSPTINFO WHERE COURSECODE = #coursecode#)
+          GROUP BY COURSECODE
+	</select>
+	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_ItemList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	ROWNUM NUM, 
+				   		A.SURVEYNO    ,
+				   		A.REQSEQ      ,
+				   		DECODE(A.REPLYTYPE,6,(SELECT  MIN( REQSEQ ) REQ1     FROM TST_SURVITEM   WHERE  SURVEYNO = #surveyno# AND REPLYTYPE = 6  ), A.REQSEQ) DISREQSEQ,
+				   		A.ITEMGROUP   ,
+				   		A.ITEMCONTENTS ,
+				   		A.REPLYTYPE,
+				   		A.ETCFLAG,
+				   		NVL(B.PROFNO,'') PROFNO,
+              NVL(B.ITEMCONTENTS,'') PROFNAME,
+              NVL(B.SUBJNAME,'') SUBJNAME,
+              A.SCOREFLAG,
+				   		DECODE(A.REPLYTYPE, '5', (SELECT COUNT(B.REPLYSEQ) 
+				   		                          FROM TST_LECTRSPT B, 
+				   		                               (SELECT SURVEYNO, REPLYSEQ 
+				   		                                  FROM TST_RSPTINFO 
+<!-- 				   		                              WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                   AND GENDER LIKE #searchGender#||'%'  -->
+				   		                                   <isNotEmpty property="coursecode">
+				   		                                   WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                   </isNotEmpty>
+				   		                               ) C 
+				   		                         WHERE A.SURVEYNO=B.SURVEYNO 
+				   		                           AND A.REQSEQ = B.REQSEQ  
+				   		                           AND B.SURVEYNO = C.SURVEYNO 
+				   		                           AND B.REPLYSEQ = C.REPLYSEQ 
+				   		                           AND B.COURSECODE=#coursecode#
+				   		                       ), '6',(SELECT COUNT(D.REPLYSEQ) 
+				   		                                 FROM TST_TEACHERRSPT D, 
+				   		                                      (SELECT SURVEYNO, REPLYSEQ 
+				   		                                  			 FROM TST_RSPTINFO 
+<!-- 				   		                                 			WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                   				AND GENDER LIKE #searchGender#||'%'  -->
+				   		                                   				<isNotEmpty property="coursecode">
+				   		                                   				WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                   				</isNotEmpty>
+				   		                                			) C 
+				   		                         				WHERE B.SURVEYNO=D.SURVEYNO 
+				   		                           				AND B.REQSEQ = D.REQSEQ
+				   		                           				AND B.COURSECODE = D.COURSECODE
+				   		                           				AND B.PROFNO = D.PROFNO  
+				   		                           				AND D.SURVEYNO = C.SURVEYNO 
+				   		                           				AND D.REPLYSEQ = C.REPLYSEQ 
+				   		                           				AND D.COURSECODE=#coursecode#
+				   		                       ),
+				   		                       (SELECT COUNT(B.REPLYSEQ) 
+				   		                          FROM TST_COMMRSPT B, 
+				   		                               (SELECT SURVEYNO, REPLYSEQ 
+				   		                                  FROM TST_RSPTINFO 
+<!-- 				   		                              WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                   AND GENDER LIKE #searchGender#||'%'  -->
+				   		                                   <isNotEmpty property="coursecode">
+				   		                                   WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                   </isNotEmpty>
+				   		                                ) C 
+				   		                         WHERE A.SURVEYNO = B.SURVEYNO 
+				   		                           AND A.REQSEQ = B.REQSEQ 
+				   		                           AND B.SURVEYNO = C.SURVEYNO 
+				   		                           AND B.REPLYSEQ= C.REPLYSEQ
+				   		                        )
+				   		) ITEMCNT,
+				   		DECODE(A.SCOREFLAG,'Y',(SELECT ROUND(SUM((SELECT MAX(EXAMSEQ)+1 FROM TST_SURVITEMEXAM X WHERE X.SURVEYNO = D.SURVEYNO AND X.REQSEQ = D.REQSEQ )-D.REPLY)/COUNT(D.REPLYSEQ),1) 
+                                                                     FROM TST_COMMRSPT D, 
+                                                                          (SELECT SURVEYNO, REPLYSEQ 
+                                                                             FROM TST_RSPTINFO 
+<!--                                                                         WHERE JOBCODE LIKE #searchJob#||'%' 
+                                                                              AND GENDER LIKE #searchGender#||'%' -->
+                                                                              <isNotEmpty property="coursecode">
+                                                                              WHERE COURSECODE LIKE #coursecode#||'%'
+                                                                              </isNotEmpty>
+                                                                          ) C 
+                                                                    WHERE A.SURVEYNO=D.SURVEYNO 
+                                                                      AND A.REQSEQ = D.REQSEQ  
+                                                                      AND D.SURVEYNO = C.SURVEYNO 
+                                                                      AND D.REPLYSEQ= C.REPLYSEQ ),
+              DECODE(REPLYTYPE, '5',(SELECT SUM(DECODE(REPLY,'1', 5, '2', 4, '3', 3, '4', 2,1))/COUNT(B.REPLYSEQ) 
+				   		                         FROM TST_LECTRSPT B, 
+				   		                              (SELECT SURVEYNO, REPLYSEQ 
+				   		                                 FROM TST_RSPTINFO 
+<!-- 				   		                                WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                  AND GENDER LIKE #searchGender#||'%' -->
+				   		                                  <isNotEmpty property="coursecode">
+				   		                                  WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                  </isNotEmpty>
+				   		                               ) C 
+				   		                        WHERE A.SURVEYNO=B.SURVEYNO 
+				   		                          AND A.REQSEQ = B.REQSEQ  
+				   		                          AND B.SURVEYNO = C.SURVEYNO 
+				   		                          AND B.REPLYSEQ= C.REPLYSEQ 
+				   		                          AND B.COURSECODE=#coursecode#
+				   		                        ), '6',(SELECT SUM(DECODE(REPLY,'1', 5, '2', 4, '3', 3, '4', 2,1))/COUNT(D.REPLYSEQ) 
+								   		                          FROM TST_TEACHERRSPT D, 
+								   		                               (SELECT SURVEYNO, REPLYSEQ 
+								   		                                  FROM TST_RSPTINFO 
+<!-- 								   		                              WHERE JOBCODE LIKE #searchJob#||'%' 
+								   		                                   AND GENDER LIKE #searchGender#||'%' -->
+								   		                                   <isNotEmpty property="coursecode">
+								   		                                   WHERE COURSECODE LIKE #coursecode#||'%'
+								   		                                   </isNotEmpty>
+								   		                               ) C 
+								   		                         WHERE B.SURVEYNO=D.SURVEYNO 
+								   		                           AND B.REQSEQ = D.REQSEQ  
+								   		                           AND B.COURSECODE = D.COURSECODE
+								   		                           AND B.PROFNO = D.PROFNO
+								   		                           AND D.SURVEYNO = C.SURVEYNO 
+								   		                           AND D.REPLYSEQ= C.REPLYSEQ 
+								   		                           AND D.COURSECODE=#coursecode#
+				   		                        ), 0)) ITEMSCORE,
+				   		                       (SELECT MIN(LECTDATE)||MIN(TIMESEQ) FROM OPR_LECTPROF WHERE COURSECODE=#coursecode# AND PROFNO = B.PROFNO GROUP BY COURSECODE, PROFNO ) OTHER 
+			  FROM TST_SURVITEM A,
+			       TST_TEACHERITEM B
+       WHERE A.SURVEYNO = B.SURVEYNO(+)
+         AND A.REQSEQ = B.REQSEQ(+)
+         AND A.SURVEYNO = #surveyno#
+         AND B.COURSECODE(+) = #coursecode#
+       ORDER BY 4, OTHER, PROFNO, REQSEQ
+	</select>	
+
+
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_ItemList1" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO    ,
+				   		REQSEQ      ,
+				   		ITEMGROUP   ,
+				   		ITEMCONTENTS ,
+				   		REPLYTYPE,
+				   		ETCFLAG,
+				   		SCOREFLAG,
+				   		DECODE(REPLYTYPE, '5', (SELECT COUNT(B.REPLYSEQ) 
+				   		                          FROM TST_LECTRSPT B, 
+				   		                               (SELECT SURVEYNO, REPLYSEQ 
+				   		                                  FROM TST_RSPTINFO 
+<!-- 				   		                                 WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                   AND GENDER LIKE #searchGender#||'%'  -->
+				   		                                   <isNotEmpty property="coursecode">
+				   		                                   WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                   </isNotEmpty>
+				   		                                ) C 
+				   		                         WHERE A.SURVEYNO=B.SURVEYNO 
+				   		                           AND A.REQSEQ = B.REQSEQ  
+				   		                           AND B.SURVEYNO = C.SURVEYNO 
+				   		                           AND B.REPLYSEQ = C.REPLYSEQ 
+				   		                           AND B.COURSECODE=#coursecode#
+				   		                       ),
+				   		                       (SELECT COUNT(B.REPLYSEQ) 
+				   		                          FROM TST_COMMRSPT B, 
+				   		                               (SELECT SURVEYNO, REPLYSEQ 
+				   		                                  FROM TST_RSPTINFO 
+<!-- 				   		                              WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                   AND GENDER LIKE #searchGender#||'%'  -->
+				   		                                   <isNotEmpty property="coursecode">
+				   		                                   WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                   </isNotEmpty>
+				   		                                ) C 
+				   		                         WHERE A.SURVEYNO = B.SURVEYNO 
+				   		                           AND A.REQSEQ = B.REQSEQ 
+				   		                           AND B.SURVEYNO = C.SURVEYNO 
+				   		                           AND B.REPLYSEQ= C.REPLYSEQ
+				   		                        )
+				   		) ITEMCNT,
+				   		DECODE(A.SCOREFLAG,'Y',(SELECT ROUND(SUM((SELECT MAX(EXAMSEQ)+1 FROM TST_SURVITEMEXAM X WHERE X.SURVEYNO = D.SURVEYNO AND X.REQSEQ = D.REQSEQ )-D.REPLY)/COUNT(D.REPLYSEQ),1) 
+                                                                     FROM TST_COMMRSPT D, 
+                                                                          (SELECT SURVEYNO, REPLYSEQ 
+                                                                             FROM TST_RSPTINFO 
+<!--                                                                         WHERE JOBCODE LIKE #searchJob#||'%' 
+                                                                              AND GENDER LIKE #searchGender#||'%' -->
+                                                                              <isNotEmpty property="coursecode">
+                                                                              WHERE COURSECODE LIKE #coursecode#||'%'
+                                                                              </isNotEmpty>
+                                                                          ) C 
+                                                                    WHERE A.SURVEYNO=D.SURVEYNO 
+                                                                      AND A.REQSEQ = D.REQSEQ  
+                                                                      AND D.SURVEYNO = C.SURVEYNO 
+                                                                      AND D.REPLYSEQ= C.REPLYSEQ ),
+              DECODE(REPLYTYPE, '5',(SELECT SUM(DECODE(REPLY,'1', 5, '2', 4, '3', 3, '4', 2,1))/COUNT(B.REPLYSEQ) 
+				   		                         FROM TST_LECTRSPT B, 
+				   		                              (SELECT SURVEYNO, REPLYSEQ 
+				   		                                 FROM TST_RSPTINFO 
+<!-- 				   		                                WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		                                  AND GENDER LIKE #searchGender#||'%' -->
+				   		                                  <isNotEmpty property="coursecode">
+				   		                                  WHERE COURSECODE LIKE #coursecode#||'%'
+				   		                                  </isNotEmpty>
+				   		                               ) C 
+				   		                        WHERE A.SURVEYNO=B.SURVEYNO 
+				   		                          AND A.REQSEQ = B.REQSEQ  
+				   		                          AND B.SURVEYNO = C.SURVEYNO 
+				   		                          AND B.REPLYSEQ= C.REPLYSEQ 
+				   		                          AND B.COURSECODE=#coursecode#
+				   		                        ),0)) ITEMSCORE    
+			  FROM TST_SURVITEM A
+       WHERE  SURVEYNO = #surveyno#
+       ORDER BY REQSEQ
+	</select>	
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_ExamList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	SURVEYNO  ,
+				   		REQSEQ    ,
+				   		EXAMSEQ   ,
+				   		EXAMCONTENTS,
+				   		(SELECT COUNT(B.REPLYSEQ) 
+				   		   FROM TST_COMMRSPT B, 
+				   		        (SELECT SURVEYNO, REPLYSEQ 
+				   		           FROM TST_RSPTINFO 
+<!--				   		      WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		          AND GENDER LIKE #searchGender#||'%' -->
+				   		          <isNotEmpty property="coursecode">
+				   		          WHERE COURSECODE LIKE #coursecode#||'%'
+				   		          </isNotEmpty>
+				   		         ) C 
+				   		  WHERE A.SURVEYNO = B.SURVEYNO 
+				   		    AND A.REQSEQ = B.REQSEQ 
+				   		    AND INSTR(','||REPLACE(B.REPLY,',', ',,')||',', ','||A.EXAMSEQ||',') >0
+				   		    AND B.SURVEYNO = C.SURVEYNO 
+				   		    AND B.REPLYSEQ= C.REPLYSEQ 
+				   	  ) EXAMCNT      
+			  FROM TST_SURVITEMEXAM A
+       WHERE  SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq# 
+       ORDER BY REQSEQ, EXAMSEQ                  
+	</select>	
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_LectExamList" parameterClass="tst_Satis" resultClass="tst_Satis">
+      SELECT  SURVEYNO,
+              REQSEQ,
+              EXAMSEQ,
+              EXAMCONTENTS,
+              (SELECT COUNT(B.REPLYSEQ) 
+                 FROM TST_LECTRSPT B, 
+                      (SELECT SURVEYNO, REPLYSEQ 
+                         FROM TST_RSPTINFO 
+<!--                      WHERE JOBCODE LIKE #searchJob#||'%' 
+                          AND GENDER LIKE #searchGender#||'%'  -->
+        				  <isNotEmpty property="coursecode">
+                          WHERE COURSECODE LIKE #coursecode#||'%'
+                          </isNotEmpty>
+                       ) C 
+                WHERE A.SURVEYNO = B.SURVEYNO 
+                  AND A.REQSEQ = B.REQSEQ 
+                  AND A.EXAMSEQ = B.REPLY 
+                  AND B.SURVEYNO = C.SURVEYNO 
+				   		    AND B.REPLYSEQ= C.REPLYSEQ 
+                  AND B.COURSECODE=#coursecode#
+              ) EXAMCNT
+        FROM  (SELECT #surveyno# SURVEYNO, #reqseq# REQSEQ, 1 EXAMSEQ, '매우만족' EXAMCONTENTS FROM DUAL
+         			 UNION ALL
+               SELECT #surveyno#, #reqseq#, 2 EXAMSEQ, '만족' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, 3 EXAMSEQ, '보통' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, 4 EXAMSEQ, '불만족' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, 5 EXAMSEQ, '매우불만족' EXAMCONTENTS FROM DUAL
+              ) A                    
+	</select>	
+		
+	<!-- 설문결과 조회 -->
+	<select id="selectTst_SurveyResultItem" parameterClass="tst_Satis" resultClass="tst_Satis">
+		SELECT  A.SURVEYNO,
+                A.TITLE,
+                A.SUMMARY,
+                B.REQSEQ,
+                B.ITEMGROUP,
+                B.ITEMCONTENTS,
+                B.REPLYTYPE,
+                B.ETCFLAG,
+                B.SCOREFLAG,
+                A.FROMDATE,
+                A.TODATE,
+                A.ITEMCOUNT,
+                C.RSPTCNT,
+                B.REPLYCNT
+        FROM    (SELECT   SURVEYNO, TITLE, FROMDATE, TODATE, SUMMARY, ITEMCOUNT
+                FROM    TST_SURVEY
+                WHERE   SURVEYNO =#surveyno#) A,
+                (SELECT A.SURVEYNO, A.REQSEQ, A.ITEMGROUP, A.ITEMCONTENTS, A.REPLYTYPE, A.ETCFLAG, A.SCOREFLAG, B.REPLYCNT
+                FROM    TST_SURVITEM A,
+                        (SELECT SURVEYNO, REQSEQ, COUNT(REPLYSEQ) AS REPLYCNT
+                        FROM    TST_COMMRSPT
+                        GROUP BY SURVEYNO, REQSEQ) B
+                WHERE   A.SURVEYNO=#surveyno#
+                        AND A.SURVEYNO = B.SURVEYNO
+                        AND A.REQSEQ = B.REQSEQ) B,
+                (SELECT B.SURVEYNO, COUNT(A.JUMINNO) AS RSPTCNT
+                FROM OPR_CRSSTUDENT A, TST_COURSEMATCH B
+                WHERE A.COURSECODE = B.COURSECODE
+                GROUP BY B.SURVEYNO) C
+        WHERE   A.SURVEYNO = B.SURVEYNO
+                AND A.SURVEYNO = C.SURVEYNO
+     </select>
+     
+     <!-- 설문 결과 조회 -->
+     <select id="selectTst_SurveyResultExam" parameterClass="tst_Satis" resultClass="tst_Satis">
+     	SELECT
+              A.SURVEYNO,
+              A.REQSEQ,
+              A.EXAMSEQ,
+              A.EXAMCONTENTS,
+              B.COURSECODE,
+              B.RSPTCNT,
+              A.REPLYCNT
+        FROM
+              (SELECT A.SURVEYNO, A.REQSEQ, A.EXAMSEQ, A.EXAMCONTENTS, NVL(B.REPLYCNT,0) REPLYCNT
+              FROM    TST_SURVITEMEXAM A,
+                        (SELECT REQSEQ, REPLACE(REPLACE(REPLY,' ',''),',','')REPLY, COUNT(REPLY) AS REPLYCNT
+                          FROM TST_COMMRSPT
+                          WHERE surveyno=#surveyno# AND REQSEQ=#reqseq#
+                          GROUP BY  REQSEQ, REPLY
+                          ORDER BY  REQSEQ, REPLY) B
+              WHERE   A.SURVEYNO=#surveyno# 
+                      AND A.REQSEQ=#reqseq#
+                      AND A.EXAMSEQ = B.REPLY(+)) A,
+              (SELECT  
+                    B.SURVEYNO, B.COURSECODE, COUNT(JUMINNO) AS RSPTCNT 
+                  FROM  OPR_CRSSTUDENT A, TST_COURSEMATCH B  
+                 WHERE  B.SURVEYNO=#surveyno#
+                        AND B.COURSECODE = A.COURSECODE
+                 GROUP BY B.SURVEYNO, B.COURSECODE) B
+        WHERE
+              A.SURVEYNO = B.SURVEYNO
+        ORDER BY REQSEQ, EXAMSEQ    
+     </select>
+     
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_OtherList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	A.SURVEYNO  ,
+				   		REQSEQ    ,
+				   		OTHER				   		
+			  FROM TST_COMMRSPT A,
+			       (SELECT SURVEYNO, REPLYSEQ 
+			          FROM TST_RSPTINFO 
+			         WHERE SURVEYNO = #surveyno# 
+<!-- 			           AND JOBCODE LIKE #searchJob#||'%' 
+			           AND GENDER LIKE #searchGender#||'%'  -->
+			           <isNotEmpty property="coursecode">
+				   		   AND COURSECODE LIKE #coursecode#||'%'
+				   		   </isNotEmpty>
+			        ) C 
+       WHERE  A.SURVEYNO = C.SURVEYNO
+         AND  A.REPLYSEQ = C.REPLYSEQ
+         AND  A.SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq# 
+         <!-- AND  A.OTHER IS NOT NULL -->
+	</select>		
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_ReplyList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	A.SURVEYNO  ,
+				   		REQSEQ    ,
+				   		REPLY				   		
+			  FROM TST_COMMRSPT A,
+			       (SELECT SURVEYNO, REPLYSEQ 
+			          FROM TST_RSPTINFO 
+			         WHERE SURVEYNO = #surveyno# 
+<!-- 			           AND JOBCODE LIKE #searchJob#||'%' 
+			           AND GENDER LIKE #searchGender#||'%'  -->
+			           <isNotEmpty property="coursecode">
+				   		   AND COURSECODE LIKE #coursecode#||'%'
+				   		   </isNotEmpty>
+			        ) C 
+       WHERE  A.SURVEYNO = C.SURVEYNO
+         AND  A.REPLYSEQ = C.REPLYSEQ
+         AND  A.SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq#                  
+	</select>	
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_TeacherList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		COURSECODE,
+				   		PROFNO,
+				   		ITEMCONTENTS PROFNAME,
+				   		SUBJNAME,
+				   		DISPLAYNO,
+				   		(SELECT COUNT(B.REPLYSEQ) 
+				   		   FROM TST_TEACHERRSPT B, 
+				   		   			(SELECT SURVEYNO, REPLYSEQ 
+				   		   			   FROM TST_RSPTINFO 
+<!-- 				   		   			  WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		   			    AND GENDER LIKE #searchGender#||'%'  -->
+				   		   			    <isNotEmpty property="coursecode">
+				   		            WHERE COURSECODE LIKE #coursecode#||'%'
+				   		            </isNotEmpty>
+				   		   			 ) C
+				   		   WHERE A.SURVEYNO=B.SURVEYNO 
+				   		     AND A.REQSEQ = B.REQSEQ 
+				   		     AND B.COURSECODE=A.COURSECODE 
+				   		     AND B.PROFNO = A.PROFNO
+				   		     AND B.SURVEYNO = C.SURVEYNO 
+				   		     AND B.REPLYSEQ= C.REPLYSEQ 
+				   		) TEACHERCNT,
+				   		(SELECT SUM(DECODE(REPLY,'1', 5, '2', 4, '3', 3, '4', 2,1))/COUNT(B.REPLYSEQ) 
+				   		   FROM TST_TEACHERRSPT B, 
+				   		   			(SELECT SURVEYNO, REPLYSEQ 
+				   		   			   FROM TST_RSPTINFO 
+<!-- 				   		   			  WHERE JOBCODE LIKE #searchJob#||'%' 
+				   		   			    AND GENDER LIKE #searchGender#||'%'  -->
+				   		   			    <isNotEmpty property="coursecode">
+				   		            WHERE COURSECODE LIKE #coursecode#||'%'
+				   		            </isNotEmpty>
+				   		   			) C
+				   		  WHERE A.SURVEYNO=B.SURVEYNO 
+				   		    AND A.REQSEQ = B.REQSEQ 
+				   		    AND B.COURSECODE=A.COURSECODE 
+				   		    AND B.PROFNO = A.PROFNO
+				   		    AND B.SURVEYNO = C.SURVEYNO 
+				   		    AND B.REPLYSEQ= C.REPLYSEQ 				   		    
+				   		 ) TEACHERSCORE        
+			  FROM TST_TEACHERITEM A
+       WHERE  SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq#
+         AND  COURSECODE = #coursecode#
+       ORDER BY REQSEQ
+	</select>
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_TeacherExamList" parameterClass="tst_Satis" resultClass="tst_Satis">
+      SELECT  SURVEYNO,
+              REQSEQ,
+              COURSECODE,
+              PROFNO,
+              EXAMSEQ,
+              EXAMCONTENTS,
+              (SELECT COUNT(B.REPLYSEQ) 
+                 FROM TST_TEACHERRSPT B,
+                      (SELECT SURVEYNO, REPLYSEQ 
+                         FROM TST_RSPTINFO 
+<!--                         WHERE JOBCODE LIKE #searchJob#||'%' 
+                          AND GENDER LIKE #searchGender#||'%'  -->
+				   		   			    <isNotEmpty property="coursecode">
+				   		            WHERE COURSECODE LIKE #coursecode#||'%'
+				   		            </isNotEmpty>
+                       ) C
+                WHERE A.SURVEYNO = B.SURVEYNO 
+                AND A.REQSEQ = B.REQSEQ 
+                AND B.COURSECODE=A.COURSECODE 
+                AND B.PROFNO = A.PROFNO 
+                AND A.EXAMSEQ = B.REPLY 
+    				   	AND B.SURVEYNO = C.SURVEYNO 
+				   		  AND B.REPLYSEQ= C.REPLYSEQ             
+              ) EXAMCNT
+        FROM  (SELECT #surveyno# SURVEYNO, #reqseq# REQSEQ, #coursecode# COURSECODE, #profno# PROFNO, 1 EXAMSEQ, '매우만족' EXAMCONTENTS FROM DUAL
+         			 UNION ALL
+               SELECT #surveyno#, #reqseq#, #coursecode#,#profno#, 2 EXAMSEQ, '만족' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, #coursecode#, #profno#, 3 EXAMSEQ, '보통' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, #coursecode#, #profno#, 4 EXAMSEQ, '불만족' EXAMCONTENTS FROM DUAL
+               UNION ALL
+               SELECT #surveyno#, #reqseq#, #coursecode#, #profno#, 5 EXAMSEQ, '매우불만족' EXAMCONTENTS FROM DUAL
+              ) A                    
+	</select>			
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_SatisList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT
+                    A.COURSECODE,
+                    B.SURVEYNO, 
+                    B.TITLE,
+                   (SELECT  
+                            COUNT(JUMINNO)  
+                      FROM  OPR_CRSSTUDENT  
+                     WHERE  COURSECODE = A.COURSECODE) RSPTCNT,
+                     NVL(B.REPLYCNT,0) REPLYCNT
+              FROM  OPR_LECTURE A, 
+                   (SELECT
+                            A.SURVEYNO, A.TITLE, B.COURSECODE, C.REPLYCNT
+                      FROM  TST_SURVEY A, TST_COURSEMATCH B,
+                            (SELECT  
+                                    B.SURVEYNO, B.COURSECODE, COUNT(REPLYSEQ) AS REPLYCNT 
+                              FROM  (SELECT DISTINCT SURVEYNO, REPLYSEQ FROM TST_COMMRSPT) E, TST_COURSEMATCH B  
+                             WHERE  B.SURVEYNO(+)   = E.SURVEYNO
+                               GROUP BY B.SURVEYNO, B.COURSECODE) C 
+                     WHERE  A.SURVEYNO = B.SURVEYNO
+                            AND B.SURVEYNO = C.SURVEYNO(+)) B
+             WHERE  A.COURSECODE = B.COURSECODE
+               AND  A.COURSECODE LIKE #searchCourseCode#
+          ORDER BY  A.EDUFROM, A.EDUTO, A.COURSENAME
+			<!-- 
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		COURSECODE,
+				   		RSPTCNT   ,
+				   		INSDATE   ,
+				   		INSUSER   
+			  FROM TST_COURSEMATCH
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			-->
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_SatisOfflineList" parameterClass="tst_Satis" resultClass="tst_Satis">
+			SELECT ROWNUM NUM, 
+			       A.STDNO  ,
+			       A.COURSECODE,
+			       A.COURSENAME,
+			       A.SURVEYNO,
+			       A.TITLE,
+			       A.ASSIGNNAME,
+			       NVL(B.JOBNAME,'') JOBNAME,
+			       DECODE(B.RANKNAME, '99급', '기타', NVL(B.RANKNAME,''))  RANKNAME,
+			       NVL(B.GENDER,'') GENDER,
+			       NVL(B.WORKDAY,0) WORKDAY,
+			       ROUND((NVL(B.COMMRSPT,0)+NVL(B.LECTRSPT,0)+NVL(B.TEACHERRSPT,0))/(DECODE(B.COMMRSPT,0,0,1)+DECODE(B.LECTRSPT,0,0,1)+DECODE(B.TEACHERRSPT,0,0,1)),1) TOTRSPT,
+			       NVL(B.COMMRSPT,0) COMMRSPT,
+			       NVL(B.LECTRSPT,0) LECTRSPT,
+			       NVL(B.TEACHERRSPT,0) TEACHERRSPT,
+			       DECODE(NVL(B.STDNO,0),0,'C','M') CHKMOD   
+			  FROM (SELECT B.COURSECODE, A.COURSENAME, C.SURVEYNO, C.TITLE, B.STDNO, B.JUMINNO, B.ASSIGNNAME, B.RANKNAME
+			          FROM OPR_LECTURE A,
+			               OPR_CRSSTUDENT B,
+			               (SELECT COURSECODE, A.SURVEYNO, TITLE
+			                  FROM TST_COURSEMATCH A,
+			                       TST_SURVEY B
+			                 WHERE A.SURVEYNO = B.SURVEYNO
+			                   AND A.COURSECODE LIKE #searchCourseCode#||'%'
+			               ) C
+			         WHERE A.COURSECODE = B.COURSECODE
+			           AND B.COURSECODE = C.COURSECODE
+			           AND B.COURSECODE LIKE #searchCourseCode#||'%'
+			       ) A,
+			       (SELECT A.COURSECODE,
+			               A.STDNO, 
+			               A.JUMINNO, 
+			               A.JOBCODE JOBNAME,
+			               A.RANKCODE||'급' RANKNAME,
+			               DECODE(A.GENDER,'0','남자','여자') GENDER,
+			               A.WORKDAY,
+			               NVL(MAX(E.COMMRSPT),0) COMMRSPT,
+			               DECODE(COUNT(B.REPLY),0,0,(ROUND(SUM(DECODE(B.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(B.REPLY),1))) AS LECTRSPT, 
+			               DECODE(COUNT(C.REPLY),0,0,(ROUND(SUM(DECODE(C.REPLY,'1',5,'2',4,'3',3,'4',2,1))/COUNT(C.REPLY),1))) AS TEACHERRSPT
+			          FROM TST_RSPTINFO A, 
+			               TST_LECTRSPT B,
+			               TST_TEACHERRSPT C,
+			               (SELECT B.SURVEYNO, B.REPLYSEQ, ROUND(SUM((SELECT MAX(EXAMSEQ)+1 FROM TST_SURVITEMEXAM X WHERE X.SURVEYNO = A.SURVEYNO AND X.REQSEQ = A.REQSEQ )-B.REPLY)/COUNT(A.REQSEQ),1) COMMRSPT 
+                        FROM TST_SURVITEM A,
+                             TST_COMMRSPT B,
+                             TST_RSPTINFO C
+                       WHERE B.SURVEYNO =A.SURVEYNO  
+                         AND B.REQSEQ =A.REQSEQ 
+                         AND B.SURVEYNO = C.SURVEYNO
+                         AND B.REPLYSEQ = C.REPLYSEQ 
+                         AND C.COURSECODE LIKE #searchCourseCode#||'%'
+                         AND A.SCOREFLAG = 'Y'
+                       GROUP BY B.SURVEYNO, B.REPLYSEQ                      
+                   ) E
+			         WHERE A.SURVEYNO = B.SURVEYNO(+)
+			           AND A.REPLYSEQ = B.REPLYSEQ(+)
+			           AND A.COURSECODE = B.COURSECODE(+)
+			           AND A.SURVEYNO = C.SURVEYNO(+)
+			           AND A.REPLYSEQ = C.REPLYSEQ(+)
+			           AND A.COURSECODE = C.COURSECODE(+)
+                 AND A.SURVEYNO = E.SURVEYNO(+)
+                 AND A.REPLYSEQ = E.REPLYSEQ(+)
+			           AND A.COURSECODE LIKE #searchCourseCode#||'%'
+			         GROUP BY A.COURSECODE, A.STDNO, A.JUMINNO, A.JOBCODE, A.RANKCODE, A.GENDER, A.WORKDAY
+			       ) B
+			 WHERE A.COURSECODE = B.COURSECODE(+)
+			   AND A.STDNO = B.STDNO(+)
+			 ORDER BY A.STDNO
+	</select>	
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectTst_SatisListCount" parameterClass="tst_Satis" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_COURSEMATCH
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_Satis" parameterClass="tst_Satis">
+		INSERT INTO TST_COURSEMATCH (	
+			   			SURVEYNO  ,	
+			   			COURSECODE,	
+			   			RSPTCNT   ,	
+			   			INSDATE   ,	
+			   			INSUSER   	
+		) VALUES (
+						 
+			   			#surveyno#  ,	
+			   			#coursecode#,	
+			   			#rsptcnt#   ,	
+			   			#insdate#   ,	
+			   			#insuser#   	
+		)
+	</insert>
+	
+	<select id="selectTst_SatisCount" parameterClass="tst_Satis" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_COURSEMATCH
+	</select>
+	
+	<!-- 설문 응답자 수 카운트 -->
+	<select id="selectTst_SatisRsptCount" parameterClass="tst_Satis" resultClass="java.lang.Integer">
+		SELECT COUNT (*) FROM TST_RSPTINFO
+		WHERE SURVEYNO = #surveyno#
+	</select>
+	
+	<!-- 설문 답변자정보 입력 -->
+	<insert id="insertTst_SatisRSPT" parameterClass="tst_Satis">
+		INSERT INTO TST_RSPTINFO (
+		            SURVEYNO  ,
+		            REPLYSEQ  ,
+		            COURSECODE,
+		            RESPDATE 
+		      ) VALUES (
+		            #surveyno# ,
+					#replyseq# ,
+					#coursecode#,
+					(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		            )
+	</insert>
+	
+	<!-- 설문 답변자정보 업데이트 -->
+	<insert id="updateTst_SatisRSPTInfo" parameterClass="tst_Satis">
+		UPDATE TST_RSPTINFO SET
+		            SURVEYNO = #surveyno# ,
+		            REPLYSEQ = #replyseq# ,
+		            COURSECODE = #coursecode#,
+		            RESPDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		 WHERE
+		 	     SURVEYNO = #surveyno# AND
+	             REPLYSEQ = #replyseq# AND
+	             COURSECODE = #coursecode#
+	</insert>
+
+	<!-- 설문 답변정보(OMR Read) 입력 -->
+	<insert id="insertTst_SatisReply" parameterClass="tst_Satis">
+		INSERT INTO TST_COMMRSPT (
+		            SURVEYNO  ,
+		            REPLYSEQ  ,
+		            REQSEQ	,
+		            REPLY
+		      	) VALUES (
+		            #surveyno# ,
+					#replyseq# ,
+					#reqseq#	,
+					#reply#
+		            )
+	</insert>
+	
+	<!-- 설문 답변정보(OMR Read) 업데이트 -->
+	<update id="updateTst_SatisReply" parameterClass="tst_Satis">
+		UPDATE TST_COMMRSPT SET
+			SURVEYNO = #surveyno#,
+			REPLYSEQ = #replyseq#,
+			REQSEQ = #reqseq#,
+			REPLY = #reply#
+		WHERE
+			SURVEYNO = #surveyno#
+			AND REPLYSEQ = #replyseq#
+			AND REQSEQ = #reqseq#
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="updateTst_Satis" parameterClass="tst_Satis">
+		UPDATE TST_COURSEMATCH SET
+			   SURVEYNO   = #surveyno#  ,
+			   COURSECODE = #coursecode#,
+			   RSPTCNT    = #rsptcnt#   ,
+			   INSDATE    = #insdate#   ,
+			   INSUSER    = #insuser#   
+	</update>
+	
+	<!-- 강사만족도 설문정보 삭제 -->
+	<delete id="deleteTst_Teacherrspt" parameterClass="tst_Satis">
+		DELETE FROM TST_TEACHERRSPT WHERE SURVEYNO = #surveyno#
+	</delete>
+	
+	<!-- 강사만족도 설문(과목) 정보 삭제 -->
+	<delete id="deleteTst_Teacheritem" parameterClass="tst_Satis">
+		DELETE FROM TST_TEACHERITEM WHERE SURVEYNO = #surveyno#
+	</delete>
+	
+	<!-- 강사만족도 설보정보 등록 -->
+	<insert id="insertTst_Teacherrspt" parameterClass="tst_Satis">
+		INSERT INTO TST_TEACHERRSPT (
+		             SURVEYNO ,
+		             REQSEQ , 
+		             REPLYSEQ ,
+		             COURSECODE , 
+		             PROFNO ,
+		             REPLY
+			      ) VALUES (
+			      	 #surveyno# ,
+			      	 #reqseq# ,
+			      	 #replyseq# ,
+			      	 #coursecode# ,
+			      	 ( SELECT PROFNO FROM OPR_LECTPROF
+				    	WHERE COURSECODE = #coursecode#
+						AND LECTDATE = (
+						SELECT LECTDATE FROM OPR_TIMETABLE
+						WHERE COURSECODE = #coursecode#
+						AND SUBJSEQ = #subjseq#)
+						AND TIMESEQ = (
+						SELECT TIMESEQ FROM OPR_TIMETABLE
+						WHERE COURSECODE = #coursecode#
+						AND SUBJSEQ = #subjseq#)
+					  ) ,
+					  #reply# 	
+			      )
+	</insert>
+	
+	<!-- 강사만족도 설문(과목) 정보 등록 -->
+	<insert id="insertTst_Teacheritem" parameterClass="tst_Satis">
+		INSERT INTO TST_TEACHERITEM (
+		             SURVEYNO ,
+		             REQSEQ , 
+		             COURSECODE , 
+		             PROFNO ,
+		             SUBJNAME 
+			      ) VALUES (
+			      	 #surveyno# ,
+			      	 #reqseq# ,
+			      	 #coursecode# ,
+			      	 ( SELECT PROFNO FROM OPR_LECTPROF
+				    	WHERE COURSECODE = #coursecode#
+						AND LECTDATE = (
+						SELECT LECTDATE FROM OPR_TIMETABLE
+						WHERE COURSECODE = #coursecode#
+						AND SUBJSEQ = #subjseq#)
+						AND TIMESEQ = (
+						SELECT TIMESEQ FROM OPR_TIMETABLE
+						WHERE COURSECODE = #coursecode#
+						AND SUBJSEQ = #subjseq#)
+					  ) ,
+					  #subjseq# 	
+			      )
+	</insert>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_Satis" parameterClass="tst_Satis">
+
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+		<!--  레코드 삭제 -->
+	<delete id="deleteTst_RsptInfo" parameterClass="tst_Satis">
+		DELETE FROM TST_RSPTINFO
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>		
+	
+		<!--  레코드 삭제 -->
+	<delete id="deleteTst_CommRspt" parameterClass="tst_Satis">
+		DELETE FROM TST_COMMRSPT
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="surveyno">
+				SURVEYNO = #surveyno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="rsptcnt">
+				RSPTCNT = #rsptcnt#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

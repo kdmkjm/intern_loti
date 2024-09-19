@@ -1,0 +1,45 @@
+@charset "euc-kr";
+
+/* base */
+body {
+	font-size:0.75em;BODY
+}
+body, div, dl, dt, dd, ul, ol, li, h1, h2, h3, h4, h5, h6, pre, form, fieldset, p, blockquote, th, td { 
+	padding : 0 ;
+	margin : 0 ; 
+}
+ol, ul, li {  
+	list-style : none ;  
+}
+h1, h2, h3, h4, h5, h6 { 
+	font-weight : normal ; 
+	font-size : 100% ; 
+}
+form, fieldset, img {  
+	border : 0 ; 
+}
+address, caption, em { 
+	font-weight : normal ; 
+	font-style : normal ; 
+}
+
+/* anchor */
+a { 
+	text-decoration : none ; 
+}
+a:link, a:visited { 
+	color : #767676 ; 
+	text-decoration:none; 
+}
+a:hover, a:active {	
+	color:#06c; 
+	text-decoration:underline; 
+}
+
+select, textarea, input {
+	font-family:µ¸À½, Arial, Helvetica; 
+	font-size:9pt;
+	color:#555555;
+	word-break:break-all;
+	ime-mode:active;
+}

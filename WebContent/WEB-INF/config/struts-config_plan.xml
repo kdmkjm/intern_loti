@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="plnEduSurv" type="loti.pln.survey.model.Pln_EduSurv"/>
+    <form-bean name="pln_EduPlan" type="loti.pln.plan.model.Pln_EduPlan"/>
+    <form-bean name="pln_PlanFix" type="loti.pln.fix.model.Pln_PlanFix"/>
+    <form-bean name="crs_Org" type="loti.pln.fix.model.Crs_Org"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+  	<!-- 교육계획 조사서 -->
+    <action path="/plnSurv" name="plnEduSurv" type="loti.pln.survey.action.Pln_EduSurvAction" scope="request" unknown="false" roles="31">
+	      <forward name="move" path="/pln/survey/Pln_EduSurv.jsp"/>
+	      <forward name="list" path="/pln/survey/Pln_EduSurv.jsp"/>
+	      <forward name="copy" path="/plnSurv.act?task=move"/>
+	      <forward name="delete" path="/plnSurv.act?task=move"/>
+	      <forward name="search" path="/pln/survey/Pln_EduSurv_pop.jsp"/>
+	      <forward name="excel" path="/plnSurv.act?task=move"/>
+	      <forward name="excel_view" path="/pln/survey/Pln_EduSurvExcelUp.jsp"/>
+	      <forward name="excel_up" path="/plnSurv.act?task=move"/>
+    </action>
+
+    <!-- 교육계획 계획서 -->
+    <action path="/eduPlan" name="pln_EduPlan" type="loti.pln.plan.action.Pln_EduPlanAction" scope="request" unknown="false" roles="32">
+	      <forward name="move" path="/pln/plan/Pln_EduPlan.jsp"/>
+	      <forward name="list" path="/pln/plan/Pln_EduPlan.jsp"/>
+	      <forward name="insert" path="/eduPlan.act?task=move"/>
+	      <forward name="create" path="/pln/plan/Pln_EduPlanMod.jsp"/>
+	      <forward name="create_cyber" path="/pln/plan/Pln_EduPlanCyberMod.jsp"/>
+	      <forward name="modify" path="/pln/plan/Pln_EduPlanMod.jsp"/>
+	      <forward name="modify_cyber" path="/pln/plan/Pln_EduPlanCyberMod.jsp"/>
+	      <forward name="delete" path="/eduPlan.act?task=move"/>
+	      <forward name="copy_plan" path="/common/dao_result.jsp"/>
+
+    </action>
+
+    <!-- 교육계획 계획서 확정-->
+    <action path="/fixPlan" name="pln_PlanFix" type="loti.pln.fix.action.Pln_PlanFixAction" scope="request" unknown="false" roles="33">
+	      <forward name="move" path="/pln/fix/Pln_PlanFix.jsp"/>
+	      <forward name="list" path="/pln/fix/Pln_PlanFix.jsp"/>
+	      <forward name="fix_plan" path="/fixPlan.act?task=move"/>
+	      <forward name="excel" path="/fixPlan.act?task=move"/>
+
+    </action>
+
+    <!-- 교육계획 계획서 확정-->
+    <action path="/crsOrg" name="crs_Org" type="loti.pln.fix.action.Pln_PlanFixAction" scope="request" unknown="false" roles="62">
+	      <forward name="move" path="/pln/fix/Pln_PlanFix.jsp"/>
+	      <forward name="list" path="/pln/fix/Pln_PlanFix.jsp"/>
+	      <forward name="fix_plan" path="/fixPlan.act?task=move"/>
+	      <forward name="excel" path="/fixPlan.act?task=move"/>
+
+    </action>
+
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

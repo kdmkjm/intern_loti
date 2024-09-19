@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMylc_CertPrt">
+
+	<typeAlias alias="extMylc_CertPrt" type="loti.ext.mylc.cert.model.ExtMylc_CertPrt"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_CertPrtList" parameterClass="extMylc_CertPrt" resultClass="extMylc_CertPrt">
+		SELECT  
+            A.COURSECODE, A.SEQ, A.JUMINNO, A.RANKNAME, A.STDNAME, A.TEAMNO, A.ISFINISH, A.ASSIGNNAME
+      FROM  OPR_CRSSTUDENT A
+		<isNotEmpty prepend="WHERE" property="searchCourseCode">
+     			  A.COURSECODE LIKE #searchCourseCode#
+		</isNotEmpty>
+  ORDER BY	A.STDNO
+	</select>
+</sqlMap>
+
+

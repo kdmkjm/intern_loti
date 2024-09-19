@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="tstScoreForm" type="loti.tst.score.model.Tst_Score">
+    	<form-property name="file" type="org.apache.struts.upload.FormFile"/>
+    </form-bean>	
+    <form-bean name="tstSubjectForm" type="loti.tst.score.model.Tst_Subject"/>
+    <form-bean name="tstQuestionForm" type="loti.tst.score.model.Tst_Question">
+    	<form-property name="file" type="org.apache.struts.upload.FormFile"/>
+    </form-bean>
+    <form-bean name="tstSurveyForm" type="loti.tst.survey.model.Tst_Survey">
+    <!-- 
+    	<form-property name="scoreflag_array" type="java.lang.String[]"/>
+    	<form-property name="etcflag_array" type="java.lang.String[]"/>
+    	-->
+    </form-bean>
+    <form-bean name="tstSatisForm" type="loti.tst.satis.model.Tst_Satis">
+    	<form-property name="satisfile" type="org.apache.struts.upload.FormFile"/>
+    </form-bean>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+    <!-- 성적관리 -->
+    <action path="/tstScore" name="tstScoreForm" type="loti.tst.score.action.Tst_ScoreAction" scope="request" unknown="false" roles="47">
+    		<forward name="list" 			path="/tstSubject.act?task=list" redirect="true"/>
+    		<forward name="scorelist" 		path="/test/score/Tst_ScoreMgmt.jsp"/>
+    		<forward name="updatescoreform" path="/test/score/Tst_ScoreUpdate.jsp"/>
+    		<forward name="uploadomrform" 	path="/test/score/Tst_ScoreOMRUpload.jsp"></forward>
+    		<forward name="exceldown"		path="/test/score/Tst_ScoreExcel.jsp"/>
+    </action> 
+    
+    <!-- 성적관리 - 과목관리 -->
+    <action path="/tstSubject" name="tstSubjectForm" type="loti.tst.score.action.Tst_SubjectAction" scope="request" unknown="false">
+			<forward name="list" 				path="/test/subject/Tst_SubjectList.jsp"/>
+			<forward name="masterlist"			path="/test/subject/Tst_SubjectMasterMgmt.jsp"/>
+			<forward name="insertmasterform"	path="/test/subject/Tst_InsertSubjectMaster.jsp"/>
+			<forward name="updatemasterform"	path="/test/subject/Tst_UpdateSubjectMaster.jsp"/>
+			<forward name="subjectmasterinfo"	path="/test/subject/Tst_SubjectMasterInfo.jsp"/>
+			<forward name="subjectinfo" 		path="/test/subject/Tst_SubjectInfo.jsp"/>
+    		<forward name="updatesubjinfoform"	path="/test/subject/Tst_UpdateSubject.jsp"/>
+    		<forward name="insertSubjectForm"	path="/test/subject/Tst_InsertSubject.jsp"/>
+    		<forward name="evaldone" 			path="/tstScore.act?task=scorelist"/>
+    </action>
+    
+    <!-- 성적관리 - 문항관리 -->
+	<action path="/tstQuestion" name="tstQuestionForm" type="loti.tst.score.action.Tst_QuestionAction" scope="request" unknown="false">
+			<forward name="list" 			path="/test/question/Tst_QuestionMgmt.jsp"/>
+			<forward name="updatepopup"		path="/test/question/Tst_QuestionPopup.jsp"/>
+	</action>
+	
+    
+    <!-- 설문관리 -->
+    <action path="/tstSurvey" name="tstSurveyForm" type="loti.tst.survey.action.Tst_SurveyAction" scope="request" unknown="false" roles="48">
+	      <forward name="list" 					path="/test/survey/Tst_SurveyCreate.jsp"/>
+	      <forward name="create" 				path="/test/survey/Tst_SurveyNew.jsp"/>
+	      <forward name="insertForm"			path="/test/survey/Tst_SurveyNew.jsp"/>
+	      <forward name="view"					path="/tstSurvey.act?task=create"/>
+	      <forward name="preview" 				path="/test/survey/Tst_SurveyPreview.jsp"/>
+	      <forward name="selection" 			path="/test/survey/Selection.jsp"/>
+	      <forward name="selectServItemFromBank" path="/test/survey/Tst_SurveyItemList.jsp"/>
+	      <forward name="modifySurvItemBank"	path="/test/survey/Tst_SurveyItemBankMgmt.jsp"/>
+	      <forward name="surveyItemBankStat"	path="/test/survey/Tst_SurveyItemBankStat.jsp"/>
+	      <forward name="surveyItemBankStatForPrint" path="/test/survey/Tst_SurveyItemBankStatForPrint.jsp"/>
+	      <forward name="surveyItemBankStatExcel" path="/test/survey/Tst_SurveyItemBankStatExcel.jsp"/>
+	      <forward name="profList" path="/test/survey/Tst_SurveyProfList.jsp"/>
+    </action>  
+    
+    <!-- 만족도관리 -->
+    <action path="/tstSatis" name="tstSatisForm" type="loti.tst.satis.action.Tst_SatisAction" scope="request" unknown="false" roles="49,129"> 
+	      <forward name="info" 				path="/test/satis/Tst_SatisMgmt.jsp"/>
+	      <forward name="result" 			path="/test/satis/Tst_SatisResult.jsp"/>
+	      <forward name="excel" 			path="/test/satis/Tst_SatisResultExcel.jsp"/>
+	      <forward name="oprList" 			path="/test/satis/Tst_SatisList.jsp"/>
+	      <forward name="preview" 			path="/test/survey/Tst_SurveyPreview.jsp"/>
+	      <forward name="uploadOMRPopup"	path="/test/survey/Tst_SurveyOMRupload.jsp"/>
+    </action>
+
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor" multipartClass="org.apache.struts.upload.DiskMultipartRequestHandler"/>
+</struts-config>

@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysAgent">
+
+<typeAlias alias="sysAgent" type="loti.sys.agent.model.SysAgent"/>
+
+	<!-- Agent 조회 [sysAgent] -->
+	<select id="selectSysAgentList" parameterClass="sysAgent" resultClass="sysAgent">
+ 			SELECT A.P_ID AS P_ID, 
+						 A.P_SEQ AS P_SEQ, 
+						 A.P_TYPE AS P_TYPE, 
+						 B.NAME AS P_TYPENM,
+						 A.P_T1 AS P_T1, 
+						 A.P_T2 AS P_T2, 
+						 A.P_T3 AS P_T3, 
+						 A.P_T4 AS P_T4, 
+						 A.P_T5 AS P_T5, 
+						 A.P_T6 AS P_T6, 
+						 DECODE(A.P_USE,'00001','시작','중지')  AS P_USE,
+						 A.DB_PASS AS DB_PASS
+				FROM AGENT_DTL A, SYS_SYSTEMCODE B
+				WHERE B.CODEDIV='00025' AND A.P_TYPE=B.CODE 
+			  AND A.P_ID = #p_id# 
+				ORDER BY A.P_SEQ 
+	</select>
+	
+	<!-- Agent RunTime MAX SEQ  -->
+	<select id="selectSys_SysAgentCount" parameterClass="sysAgent" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(P_SEQ),0)+1 AS MAX_SEQ 
+		FROM AGENT_DTL 
+		WHERE P_ID = #p_id# 
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- SysAgent(Agent Runtime) 등록 [sysAgent] -->
+	<insert id="insertSysAgent" parameterClass="sysAgent">
+			INSERT INTO AGENT_DTL(
+							P_ID			,
+							P_SEQ			,
+							P_TYPE		,
+							P_T1			,
+							P_T2			,
+							P_T3			,
+							P_T4			,
+							P_T5			,
+							P_T6			,
+							P_USE			,
+							DB_PASS		,
+							MADE_MAN	,
+							MADE_DT
+			) VALUES (
+						#p_id#			,
+						#p_seq#			,
+						#p_type#		,
+						#p_t1#			,
+						#p_t2#			,
+						#p_t3#			,
+						#p_t4#			,
+						#p_t5#			,
+						#p_t6#			,
+						#p_use#			,
+						#db_pass#		,
+						#made_man#	,
+						TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+			)
+	</insert>
+	
+	<!-- SysAgent(Agent Runtime) 상세조회  [sysAgent] -->
+	<select id="infoSysAgent" parameterClass="sysAgent" resultClass="sysAgent">
+ 			SELECT P_ID		, 
+ 						 P_SEQ	, 
+ 						 P_TYPE	,
+ 						 P_T1		, 
+ 						 P_T2		, 
+ 						 P_T3		, 
+ 						 P_T4		, 
+ 						 P_T5		, 
+ 						 P_T6		,
+ 						 P_USE	, 
+ 						 DB_PASS
+				FROM AGENT_DTL
+				WHERE P_ID= #p_id#
+				AND P_SEQ = #p_seq#
+				ORDER BY P_SEQ 
+	</select>
+	
+	<!-- SysAgent(Agent Runtime) 수정  [sysAgent] -->
+	<update id="modifySysAgent"  parameterClass="sysAgent">
+		UPDATE AGENT_DTL SET
+			 P_TYPE		= #p_type#		,
+			 P_T1			= #p_t1#			, 	
+			 P_T2			= #p_t2#			,	 
+			 P_T3			= #p_t3#			, 
+			 P_T4			= #p_t4#			, 
+			 P_T5			= #p_t5#			, 
+			 P_T6			= #p_t6#			,
+			 P_USE		= #p_use#			,
+			 DB_PASS	= #db_pass#		, 
+			 MADE_MAN	= #made_man#	, 
+			 MADE_DT  = TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS')
+		WHERE P_ID= #p_id#
+		AND P_SEQ = #p_seq#
+	</update>
+	
+	<!--  SysAgent(Agent Runtime) 삭제 [sysAgent] -->
+	<delete id="deleteSysAgent" parameterClass="sysAgent">
+		DELETE 
+		FROM AGENT_DTL 
+		WHERE  P_ID = #p_id# 
+		AND  	 P_SEQ = #p_seq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+</sqlMap>
+	

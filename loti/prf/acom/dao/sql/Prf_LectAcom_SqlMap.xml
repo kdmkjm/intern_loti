@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_LectAcom">
+
+	<typeAlias alias="prf_LectAcom" 		type="loti.prf.acom.model.Prf_LectAcom"/>
+	<typeAlias alias="prf_LectAcomDetl" type="loti.prf.acom.model.Prf_LectAcomDetl"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPrf_LectAcom" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT     
+						PLA.YEAR     ,
+						PLA.ISSUESEQ ,
+						TO_CHAR(TO_DATE(PLA.ISSUEDATE,'YYYYMMDD'), 'YYYY-MM-DD') ISSUEDATE,
+						PLA.PROFNO   ,
+						PPS.PROFNAME ,
+						PPS.PROFBIRTH  ,
+						PLA.ASSIGN   ,
+						PLA.POSITION 
+			FROM	PRF_LECTACOMS PLA,
+						(SELECT  PROFNAME, PROFESSORNO,
+										 '19'||SUBSTR(JUMINNO,1,2)||'.'||SUBSTR(JUMINNO,3,2)||'.'||SUBSTR(JUMINNO,5,2) PROFBIRTH
+			         FROM  PRF_PROFESSOR) PPS
+		 WHERE  PLA.PROFNO = PPS.PROFESSORNO
+		 	 AND	YEAR 			= #year# 
+		   AND	ISSUESEQ  = #issueSeq#
+	</select>
+
+	<!-- Prf_LectAcomDetl 기본조회쿼리 -->
+	<select id="selectPrf_LectAcomDetlList" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT 
+						YEAR, ISSUESEQ, ITEMSEQ, LECTYEAR, COURSECODE, COURSENAME, SUBJSEQ, SUBJNAME, 
+						TO_CHAR(TO_DATE(LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE, LECTTIME, LECTHOUR
+			FROM  PRF_LECTACOMSDETL
+     WHERE  YEAR 			= #year# 
+  		 AND	ISSUESEQ  = #issueSeq#
+  ORDER BY  ITEMSEQ
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPrf_LectAcomList" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT     
+            A.YEAR, A.ISSUESEQ ,
+            TO_CHAR(TO_DATE(A.ISSUEDATE,'YYYYMMDD'), 'YYYY-MM-DD') ISSUEDATE,
+            A.PROFNO, B.PROFNAME, A.ASSIGN, A.POSITION 
+      FROM  PRF_LECTACOMS A,
+           (SELECT
+                    PROFNAME, PROFESSORNO
+              FROM  PRF_PROFESSOR) B
+     WHERE  A.PROFNO = B.PROFESSORNO
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			B.$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="searchKeywordYear">
+				<isNotEmpty prepend="AND" property="searchColumnYear">
+			A.$searchColumnYear$ like '%' || #searchKeywordYear# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+  ORDER BY  A.ISSUESEQ DESC  
+	</select>
+
+	<!-- 강의실적세부 목록조회쿼리 -->
+	<select id="selectPrf_LectAcomSearchList" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT  
+            C.COURSECODE, 
+            B.COURSENAME || '(' || TO_NUMBER(SUBSTR(C.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            SUBSTR(C.LECTDATE, 1, 4) YEAR, C.PROFNO, 
+            TO_CHAR(TO_DATE(C.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE, 
+            C.PROFNAME, A.PROFASSIGN ASSIGN, A.FROMTIME || '~' || A.TOTIME LECTTIME, A.SUBJNAME, A.EDUHOUR, A.SUBJSEQ
+      FROM  OPR_LECTPROF C,
+           (SELECT  
+                    D.COURSECODE, D.TIMESEQ, D.LECTDATE, D.FROMTIME, 
+                    LPAD(TO_NUMBER(SUBSTR(D.TOTIME,1,2))-1,2,'0') || ':50' TOTIME, 
+                    D.PROFNAME, D.PROFASSIGN, D.SUBJSEQ,
+                    E.SUBJNAME, TO_NUMBER(SUBSTR(D.TOTIME, 0, 2))-TO_NUMBER(SUBSTR(D.FROMTIME, 0, 2)) EDUHOUR
+              FROM  OPR_TIMETABLE D, OPR_SUBJECT E
+             WHERE  D.COURSECODE = E.COURSECODE
+               AND  D.SUBJSEQ = E.SUBJSEQ) A,
+           (SELECT
+                    COURSECODE, COURSENAME, EDUTO
+              FROM  OPR_LECTURE) B
+     WHERE  C.COURSECODE = A.COURSECODE
+       AND  C.COURSECODE = B.COURSECODE
+       AND  C.LECTDATE   = A.LECTDATE
+       AND  C.TIMESEQ    = A.TIMESEQ
+       AND  C.LECTUREFLAG LIKE 'Y'
+			 <isNotEmpty property="searchCode">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like #searchCode# 
+				</isNotEmpty>
+			</isNotEmpty>
+ UNION ALL  
+    SELECT  
+            ' ' COURSECODE, A.COURSENAME, SUBSTR(A.LECTDATE,0,4) YEAR, A.PROFESSORNO,  
+            TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD'),'YYYY-MM-DD') LECTDATE,
+            B.PROFNAME, B.WORKPLACE ASSIGN, A.FROMTIME || '~' || A.TOTIME LECTTIME, A.SUBJNAME, 
+            A.LECTTIME EDUHOUR,
+            <!--  TO_NUMBER(SUBSTR(LPAD(ROUND(REPLACE(A.TOTIME,':','')-REPLACE(A.FROMTIME,':','')+49,-2),4,0),0,2)) EDUHOUR,-->
+            0 SUBJSEQ
+      FROM  PRF_LECTHIST A, 
+           (SELECT  
+                    PROFESSORNO, PROFNAME, WORKPLACE
+              FROM  PRF_PROFESSOR 
+             WHERE  PROFESSORNO like #searchCode#) B
+     WHERE  A.PROFESSORNO = B.PROFESSORNO
+	ORDER BY  LECTDATE DESC, LECTTIME
+	</select>
+
+	<!-- 강사목록조회쿼리 -->
+	<select id="selectPrf_LectProfList" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT  
+			      PROFESSORNO PROFNO, PROFNAME, WORKPLACE ASSIGN, WORKPOS POSITION
+			FROM  PRF_PROFESSOR
+		 WHERE	NVL(DELYN,'N') != 'Y'
+			<isNotEmpty prepend="AND" property="searchKeyword">
+					 (PROFNAME LIKE '%' || #searchKeyword# || '%'
+        OR  WORKPLACE LIKE '%' || #searchKeyword# || '%')
+			</isNotEmpty>
+  ORDER BY  PROFNAME
+	</select>
+
+	<!-- 강사세부조회쿼리 -->
+	<select id="selectPrf_LectProfSearch" parameterClass="prf_LectAcom" resultClass="prf_LectAcom">
+		SELECT  
+			      PROFESSORNO PROFNO, PROFNAME, WORKPLACE ASSIGN, WORKPOS POSITION, 
+			      19||SUBSTR(JUMINNO,1,2) || '.' || SUBSTR(JUMINNO,3,2) || '.' || SUBSTR(JUMINNO,5,2) PROFBIRTH
+			FROM  PRF_PROFESSOR
+			<isNotEmpty property="searchCode">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+						PROFESSORNO like #searchCode# 
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPrf_LectAcomListCount" parameterClass="prf_LectAcom" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PRF_LECTACOMS
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_LectAcomCount" parameterClass="prf_LectAcom" resultClass="java.lang.Integer">
+		SELECT 	COUNT(*) as CNT
+		  FROM 	PRF_LECTACOMSDETL
+		 WHERE	YEAR 			= #year#  
+		   AND	ISSUESEQ  = #issueSeq#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+		<!-- PRF_LECTACOMSDETL 테이블 기본키 최대값  -->
+	<select id="selectPrf_LectAcomDetlMax" parameterClass="prf_LectAcom" resultClass="java.lang.Integer">
+		SELECT	NVL(MAX(ISSUESEQ),0)+1 MAX
+			FROM	PRF_LECTACOMSDETL
+		 WHERE	YEAR = to_char(to_date(sysdate), 'YYYY')
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPrf_LectAcom" parameterClass="prf_LectAcom">
+		INSERT INTO PRF_LECTACOMS (	
+			   			YEAR     ,	
+			   			ISSUESEQ ,	
+			   			ISSUEDATE,	
+			   			PROFNO   ,	
+			   			ASSIGN   ,	
+			   			POSITION 	
+		) VALUES (
+						 
+			   			#year#     ,	
+			   			#issueSeq# ,	
+			   			to_char(to_date(sysdate), 'YYYYMMDD'),	
+			   			#profNo#   ,	
+			   			#asSign#   ,	
+			   			#position# 	
+		)
+	</insert>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPrf_LectAcomDetl" parameterClass="prf_LectAcomDetl">
+		INSERT INTO PRF_LECTACOMSDETL (	
+			   			YEAR      ,	
+			   			ISSUESEQ  ,	
+			   			ITEMSEQ   ,	
+			   			LECTYEAR  ,	
+			   			COURSECODE,	
+			   			COURSENAME,	
+			   			SUBJSEQ   ,	
+			   			SUBJNAME  ,	
+			   			LECTDATE  ,	
+			   			LECTTIME  ,	
+			   			LECTHOUR  	
+		) VALUES (
+						 
+			   			#year#      ,	
+			   			#issueSeq#  ,	
+			   			#itemSeq#   ,	
+			   			#lectYear#  ,	
+			   			#courseCode#,	
+			   			#courseName#,	
+			   			#subjSeq#   ,	
+			   			#subjName#  ,	
+			   			#lectDate#  ,	
+			   			#lectTime#  ,	
+			   			#lectHour#  	
+		)
+
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updatePrf_LectAcom" parameterClass="prf_LectAcom">
+		UPDATE PRF_LECTACOMS SET
+			   YEAR      = #year#     ,
+			   ISSUESEQ  = #issueSeq# ,
+			   ISSUEDATE = #issueDate#,
+			   PROFNO    = #profNo#   ,
+			   ASSIGN    = #asSign#   ,
+			   POSITION  = #position# 
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePrf_LectAcom" parameterClass="prf_LectAcom">
+		DELETE	FROM PRF_LECTACOMS
+		 WHERE	YEAR 			= #year#  
+		   AND	ISSUESEQ  = #issueSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePrf_LectAcomDetl" parameterClass="prf_LectAcom">
+		DELETE	FROM PRF_LECTACOMSDETL
+		 WHERE	YEAR 			= #year#  
+		   AND	ISSUESEQ  = #issueSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="year">
+				YEAR = #year#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="issueseq">
+				ISSUESEQ = #issueseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="issuedate">
+				ISSUEDATE = #issuedate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profno">
+				PROFNO = #profno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="assign">
+				ASSIGN = #assign#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="position">
+				POSITION = #position#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

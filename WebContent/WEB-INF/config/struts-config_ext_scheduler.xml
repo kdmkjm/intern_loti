@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="sForm" type="ext.ehojo.scheduler.EhojoForm">
+    </form-bean>	
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+    <action path="/ext/ehojo/refreshData" name="sForm" type="ext.ehojo.scheduler.EhojoAction" scope="request" unknown="false">
+    </action> 
+    
+
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor" multipartClass="org.apache.struts.upload.DiskMultipartRequestHandler"/>
+  <plug-in className="com.jgsullivan.struts.plugins.QuartzPlugIn">
+      <set-property value="/WEB-INF/config/quartz-config.xml" property="configPath"/>
+  </plug-in>
+</struts-config>

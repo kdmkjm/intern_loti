@@ -1,0 +1,27 @@
+	<html>
+	<head>
+	<script type="text/javascript" src="/magicsso/js/ext-all.js"></script>
+	<script type="text/javascript" src="/magicsso/js/deployJava.js" charset="utf-8"></script>
+	<script type="text/javascript" src="/magicsso/js/MagicPass.js" charset="utf-8"></script>
+	<script type="text/javascript" src="/magicsso/js/Logout.js"  charset="utf-8"></script>
+	<script type="text/javascript">
+	
+	Ext.onReady(function() {
+
+		Ext.get('logout').on('click', function() { 
+			var logout = new Logout("test","");
+			MagicPass.job("매직패스 로그아웃", function(){ 
+				logout.start();
+			}()); 
+			
+			//location.href = "<c:url value="/uat/uia/actionLogout.do" />";
+		});
+	});
+	</script>
+	</head>
+	<body>
+	<input type="button" value="로그아웃" onclick="logout();return false;"></input>
+	</body>
+	</html>
+	
+	

@@ -1,0 +1,408 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscLib">
+
+	<typeAlias alias="rscLib" 		type="loti.rsc.lib.model.RscLib"/>
+	<typeAlias alias="rscLibLend" type="loti.rsc.lib.model.RscLib_Lend"/>
+
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectRscLib" parameterClass="rscLib" resultClass="rscLib">
+		SELECT   
+            BOOKCODE, BOOKNAME, BOOKTYPE1, BOOKTYPE2, BOOKTYPE3, BOOKGUBN, PUBLISHER, AUTHOR,
+            PUBDATE, BUYAMOUNT, BUYDATE, BUYORGAN, REQNO, NVL(ISUSE, 'Y') ISUSE,
+           (SELECT
+                    NVL(RETNDATE, 0)
+              FROM  RSC_LIBLEND
+             WHERE  LENDNO = 
+                   (SELECT   
+                            MAX (LENDNO)
+                      FROM  RSC_LIBLEND
+                     WHERE  BOOKCODE = #bookCode#)) RETNDATE,
+           (SELECT
+                    COUNT(*)
+              FROM  RSC_LIBLEND
+             WHERE  RETNDATE IS NULL
+               AND  LENDNO = 
+                   (SELECT   
+                            MAX (LENDNO) LENDNO
+                      FROM  RSC_LIBLEND
+                     WHERE  BOOKCODE = #bookCode#)) NUM
+      FROM  RSC_LIBBOOKS
+     WHERE  BOOKCODE = #bookCode#   
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectRscLibList" parameterClass="rscLib" resultClass="rscLib">
+		SELECT  
+            A.BOOKCODE, A.REQNO, A.BOOKTYPE1, A.BOOKGUBN, A.BOOKNAME, A.PUBLISHER, A.AUTHOR,
+            B.LENDNO, B.LENDUSERNAME, B.LENDDATE, B.RETNPLANDATE, B.RETNDATE,
+            DECODE(NVL(ISUSE,'Y'), 'N', '사용불가', DECODE(NVL(ISLENT,'대출가능'), '대출가능', '대출가능', '대출중')) ISLENT
+      FROM  RSC_LIBBOOKS A, 
+                       (SELECT 
+                                LENDNO, BOOKCODE, LENDUSERNAME,
+                                TO_CHAR (TO_DATE (LENDDATE,'YYYYMMDD'), 'YYYY-MM-DD') LENDDATE, 
+                                TO_CHAR (TO_DATE (RETNPLANDATE,'YYYYMMDD'), 'YYYY-MM-DD') RETNPLANDATE,
+                                TO_CHAR (TO_DATE (RETNDATE,'YYYYMMDD'), 'YYYY-MM-DD') RETNDATE,
+                                DECODE(NVL(RETNDATE,'0'), '0', '대출중', '대출가능') ISLENT
+                          FROM  RSC_LIBLEND 
+                         WHERE  LENDNO IN 
+                                       (SELECT  MAX (A.LENDNO)
+																		      FROM  RSC_LIBLEND A,
+																		           (SELECT
+																		                    BOOKNAME, BOOKCODE
+																		              FROM  RSC_LIBBOOKS
+																									<isNotEmpty prepend="WHERE" property="searchKeywordBookName">
+																											BOOKNAME like '%' || #searchKeywordBookName# || '%'
+																									</isNotEmpty>
+																		             ) B
+																		     WHERE  A.BOOKCODE = B.BOOKCODE
+																				<isNotEmpty prepend="AND" property="searchKeywordUserName">
+																						A.LENDUSERNAME like '%' || #searchKeywordUserName# || '%'
+																				</isNotEmpty>	
+																		  GROUP BY  A.BOOKCODE)) B,
+                       (SELECT  
+                                CODE, NAME
+                          FROM  SYS_SYSTEMCODE 
+                         WHERE  CODEDIV = '00016') C_TYPE,
+                       (SELECT  
+                                CODE, NAME
+                          FROM  SYS_SYSTEMCODE 
+                         WHERE  CODEDIV = '00017') C_GUBN
+     WHERE  A.BOOKCODE 	= B.BOOKCODE(+)
+       AND  A.BOOKTYPE1 = C_TYPE.CODE(+)
+       AND  A.BOOKGUBN 	= C_GUBN.CODE(+) 
+		 <isNotEmpty property="searchKeywordBookType1">
+				<isNotEmpty prepend="AND" property="searchColumnBookType1">
+			A.$searchColumnBookType1$ like '%' || #searchKeywordBookType1# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="searchKeywordBookName">
+				<isNotEmpty prepend="AND" property="searchColumnBookName">
+			A.$searchColumnBookName$ like '%' || #searchKeywordBookName# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="searchKeywordPublisher">
+				<isNotEmpty prepend="AND" property="searchColumnPublisher">
+			A.$searchColumnPublisher$ like '%' || #searchKeywordPublisher# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="searchKeywordAuthor">
+				<isNotEmpty prepend="AND" property="searchColumnAuthor">
+			A.$searchColumnAuthor$ like '%' || #searchKeywordAuthor# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty property="searchKeywordUserName">
+				<isNotEmpty prepend="AND" property="searchColumnUserName">
+			B.$searchColumnUserName$ like '%' || #searchKeywordUserName# || '%'
+				</isNotEmpty>
+			</isNotEmpty>	
+			<isNotEmpty property="searchKeywordReqNo">
+				<isNotEmpty prepend="AND" property="searchColumnReqNo">
+			A.$searchColumnReqNo$ like '%' || #searchKeywordReqNo# || '%'
+				</isNotEmpty>
+			</isNotEmpty>	
+  		ORDER BY  A.BOOKCODE
+	</select>
+	
+	<!-- 사용자 도서 검색화면에서 도서를 검색한다. -->
+	<select id="selectRscLib_UserSearch" parameterClass="rscLib" resultClass="rscLib">
+		SELECT  
+            A.BOOKNAME, A.PUBLISHER, A.AUTHOR, B.RETNPLANDATE,
+            DECODE(NVL(ISUSE,'Y'), 'N', '사용불가', DECODE(NVL(ISLENT,'대출가능'), '대출가능', '대출가능', '대출중')) ISLENT
+      FROM  RSC_LIBBOOKS A, 
+           (SELECT 
+                    LENDNO, BOOKCODE,
+                    TO_CHAR (TO_DATE (LENDDATE,'YYYYMMDD'), 'YYYY-MM-DD') LENDDATE, 
+                    TO_CHAR (TO_DATE (RETNPLANDATE,'YYYYMMDD'), 'YYYY-MM-DD') RETNPLANDATE,
+                    TO_CHAR (TO_DATE (RETNDATE,'YYYYMMDD'), 'YYYY-MM-DD') RETNDATE,
+                    DECODE(NVL(RETNDATE,'0'), '0', '대출중', '대출가능') ISLENT
+              FROM  RSC_LIBLEND 
+             WHERE  LENDNO IN 
+                           (SELECT  
+                           					MAX (A.LENDNO)
+                              FROM  RSC_LIBLEND A,
+                                   (SELECT
+                                            BOOKNAME, BOOKCODE
+                                      FROM  RSC_LIBBOOKS
+																<isNotEmpty prepend="WHERE" property="searchBookName">
+																		BOOKNAME like '%' || #searchBookName# || '%'
+																</isNotEmpty>
+											             ) B
+											     WHERE  A.BOOKCODE = B.BOOKCODE
+											  	GROUP BY  A.BOOKCODE
+											  	  )
+					) B,
+         (SELECT  
+                  CODE, NAME
+            FROM  SYS_SYSTEMCODE 
+           WHERE  CODEDIV = '00016') C_TYPE
+     WHERE  A.BOOKCODE 	= B.BOOKCODE(+)
+       AND  A.BOOKTYPE1 = C_TYPE.CODE(+)
+       AND	NVL(A.ISUSE,'Y') NOT LIKE 'N'
+		<isNotEmpty property="searchBookType">
+			 AND	A.BOOKTYPE1 like #searchBookType#
+		</isNotEmpty>
+		<isNotEmpty property="searchBookName">
+			 AND	A.BOOKNAME like '%' || #searchBookName# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchPublisher">
+			 AND	A.PUBLISHER like '%' || #searchPublisher# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchAuthor">
+			 AND	A.AUTHOR like '%' || #searchAuthor# || '%'
+		</isNotEmpty>
+  ORDER BY  A.BOOKCODE
+	</select>
+	
+	
+	
+	
+	<!-- 대출현황목록조회쿼리 -->
+	<select id="selectRscLibLendStatus" parameterClass="rscLib" resultClass="rscLib">
+	SELECT  
+            A.BOOKCODE, A.BOOKNAME, C_TYPE.NAME BOOKTYPE1, A.AUTHOR, A.PUBLISHER,
+            B.LENDDATE, B.RETNDATE, B.LENDUSERNAME, B.LENDUSERPHONE,  
+            DECODE(NVL(B.RETNDATE,'0'),'0','대출중','반납완료') ISLENT 
+      FROM  RSC_LIBBOOKS A, 
+           (SELECT
+                    BOOKCODE, LENDUSERNAME, LENDUSERPHONE, 
+                    TO_CHAR (TO_DATE (LENDDATE,'YYYYMMDD'), 'YYYY-MM-DD') LENDDATE,
+                    TO_CHAR (TO_DATE (RETNDATE,'YYYYMMDD'), 'YYYY-MM-DD') RETNDATE
+              FROM  RSC_LIBLEND C,
+                   (SELECT  
+                            MAX(LENDNO) LENDNO           
+                      FROM  RSC_LIBLEND
+                  GROUP BY  BOOKCODE
+                   ) D
+             WHERE  C.LENDNO = D.LENDNO) B,   
+           (SELECT  
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00016') C_TYPE
+     WHERE  A.BOOKCODE = B.BOOKCODE
+       AND  A.BOOKTYPE1 = C_TYPE.CODE(+)
+	<isNotEmpty property="searchKeywordIsLent">
+		<isEqual property="searchKeywordIsLent" compareValue="trueLend">
+			 AND	B.RETNDATE IS NOT NULL
+		</isEqual>
+		<isEqual property="searchKeywordIsLent" compareValue="ingLend">
+			 AND	B.RETNDATE IS NULL
+		</isEqual>
+		<isEqual property="searchKeywordIsLent" compareValue="noRetn">
+			 AND	B.LENDDATE <![CDATA[<=]]> TO_CHAR(TO_DATE(sysdate)-14, 'YYYY-MM-DD') AND  B.RETNDATE IS NULL
+		</isEqual>
+	</isNotEmpty>
+	<isNotEmpty property="searchKeywordLendFromDate">
+			 AND	B.LENDDATE between #searchKeywordLendFromDate# AND #searchKeywordLendToDate# 
+	</isNotEmpty>
+	ORDER BY  B.LENDDATE
+	</select>
+		
+		<!-- 팝업 목록조회쿼리 -->
+	<select id="selectRscLibCateStatus" parameterClass="rscLib" resultClass="rscLib">
+		SELECT 
+            DECODE(NVL(A.BOOKTYPE1, '분류없음'), '분류없음', '분류없음', B.NAME) BOOKTYPE1,
+            COUNT(*) CNT
+      FROM  RSC_LIBBOOKS A, 
+           (SELECT  
+                    CODEDIV, CODE, NAME, DISPORDER
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV LIKE '00016'
+               AND  CODE NOT LIKE '00000' 
+           ) B
+     WHERE  A.BOOKTYPE1 = B.CODE(+)
+  GROUP BY  A.BOOKTYPE1, B.NAME, B.DISPORDER
+  ORDER BY  B.DISPORDER
+	</select>
+		
+		<!-- 팝업 목록조회쿼리 -->
+	<select id="selectRscLibPopUpGetUser" parameterClass="rscLib" resultClass="rscLib">
+		SELECT  
+            A.JUMINNO, A.USERNAME, A.CELLPHONE,
+            B.SIMPLENAME
+      FROM  CMN_PUBWORKER A,CMN_ORGANMAP B
+     WHERE  A.ORGANCODE = B.ORGANCODE
+		<isNotEmpty property="searchKeywordUserName">
+       AND (A.USERNAME   LIKE '%' ||  #searchKeywordUserName# || '%'
+        OR  B.SIMPLENAME LIKE '%' ||  #searchKeywordUserName# || '%')
+		</isNotEmpty>
+	ORDER BY	A.USERNAME
+	</select>
+	
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectRscLibListCount" parameterClass="rscLib" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_LIBBOOKS
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectRscLibCount" parameterClass="rscLib" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_LIBBOOKS
+		WHERE BOOKCODE = #bookCode#  
+		
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+		<!-- 삭제시 해당도서 대출이력 정보 조회 -->
+	<select id="selectRscLibLendCount" parameterClass="rscLib" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_LIBLEND
+		WHERE BOOKCODE = #bookCode#  
+	</select>
+
+
+		<!-- 수정시 해당도서가 대출중인지 조회 -->
+	<select id="selectRscLibLendRetnData" parameterClass="rscLib" resultClass="java.lang.String">
+		SELECT  
+            NVL(RETNDATE,0) RETNDATE
+      FROM  RSC_LIBLEND 
+     WHERE  BOOKCODE = #bookCode# 
+       AND  LENDDATE = (SELECT 
+		                            MAX(LENDDATE) 
+		                      FROM  RSC_LIBLEND)  
+	</select>
+
+	<!-- 최대값 구하기[RSC_LIBBOOKS]  -->
+	<select id="selectRscLibListMax" parameterClass="rscLib" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(BOOKCODE),0)+1
+		FROM RSC_LIBBOOKS
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+		<!-- 최대값 구하기 [RSC_LIBLEND] -->
+	<select id="selectRscLibLendMax" parameterClass="rscLib" resultClass="java.lang.String">
+		SELECT 
+            NVL(MAX(LENDNO),0)+1 CNT 
+      FROM  RSC_LIBLEND
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertRscLib" parameterClass="rscLib">
+		INSERT INTO RSC_LIBBOOKS (	
+			   			BOOKCODE ,	
+			   			BOOKNAME ,	
+			   			BOOKTYPE1,	
+			   			BOOKTYPE2,	
+			   			BOOKTYPE3,	
+			   			BOOKGUBN ,	
+			   			PUBLISHER,	
+			   			AUTHOR   ,	
+			   			PUBDATE  ,	
+			   			BUYAMOUNT,	
+			   			BUYDATE  ,	
+			   			BUYORGAN ,	
+			   			REQNO    ,	
+			   			ISUSE    	
+		) VALUES (
+						 
+			   			#bookCode# ,	
+			   			#bookName# ,	
+			   			#bookType1#,	
+			   			#bookType2#,	
+			   			#bookType3#,	
+			   			#bookGubn# ,	
+			   			#publisher#,	
+			   			#author#   ,	
+			   			#pubDate#  ,	
+			   			#buyAmount#,	
+			   			#buyDate#  ,	
+			   			#buyOrgan# ,	
+			   			#reqNo# 	 ,	
+			   			#isUse#      	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateRscLib" parameterClass="rscLib">
+		UPDATE RSC_LIBBOOKS SET
+			   BOOKNAME  = #bookName# ,
+			   BOOKTYPE1 = #bookType1#,
+			   BOOKTYPE2 = #bookType2#,
+			   BOOKTYPE3 = #bookType3#,
+			   BOOKGUBN  = #bookGubn# ,
+			   PUBLISHER = #publisher#,
+			   AUTHOR    = #author#   ,
+			   PUBDATE   = #pubDate#  ,
+			   BUYAMOUNT = #buyAmount#,
+			   BUYDATE   = #buyDate#  ,
+			   BUYORGAN  = #buyOrgan# ,
+			   REQNO     = #reqNo# 		,
+			   ISUSE     = #isUse# 
+		WHERE BOOKCODE = #bookCode#    
+	</update>
+	
+	<!-- 대출전 사용유무 Y/N 값 조회 -->
+	<select id="selectRscLibLendCheckIsUse" parameterClass="rscLibLend" resultClass="java.lang.String">
+			SELECT 	
+				   		NVL(ISUSE,'Y') ISUSE     
+			  FROM RSC_LIBBOOKS
+			WHERE BOOKCODE = #bookCode#  
+	</select>
+	
+	<!--  대출하기 -->
+	<insert id="insertRscLibLend" parameterClass="rscLibLend">
+		INSERT INTO RSC_LIBLEND (	
+							LENDNO,
+			   			BOOKCODE ,
+			   			LENDDATE,
+			   			LENDUSER,
+			   			LENDUSERNAME,
+			   			LENDUSERPHONE,
+			   			RETNPLANDATE
+	) VALUES (
+							#lendNo# ,
+			   			#bookCode# ,	
+			   			TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD'),
+			   			#lendUser#,
+			   			#lendUserName#,
+			   			#lendUserPhone#,
+			   			TO_CHAR(TO_DATE(SYSDATE+10), 'YYYYMMDD')
+		)
+	</insert> 
+
+
+	<!--  반납하기  -->
+	<update id="updateRscLibLend" parameterClass="rscLibLend">
+		UPDATE  RSC_LIBLEND SET
+            RETNDATE = TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD')
+     WHERE  LENDNO = (SELECT  MAX(LENDNO)
+                        FROM  RSC_LIBLEND
+                       WHERE  BOOKCODE = #bookCode#)  
+	</update>  
+	
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscLib" parameterClass="rscLib">
+		DELETE FROM RSC_LIBBOOKS
+		WHERE BOOKCODE = #bookCode#  
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+
+
+	<!--  대출시 중복불가위한 삭제 -->
+	<delete id="deleteRscLibLend" parameterClass="rscLibLend">
+		DELETE	FROM RSC_LIBLEND
+		 WHERE	BOOKCODE = #bookCode#  
+			 AND	LENDDATE = TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD')
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+</sqlMap>
+

@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/tstScore.do" location="950,350" dimension="228,96" />
+  <StrutsActivity path="/tstSubject.do" location="1550,750" dimension="248,96" />
+  <StrutsActivity path="/tstQuestion.do" location="350,1250" dimension="107,66" />
+  <StrutsActivity path="/tstSurvey.do" location="650,50" dimension="240,96" />
+  <StrutsActivity path="/tstSatis.do" location="1250,50" dimension="218,96" />
+  <StrutsActivity path="/tstSubject.act" location="1550,950" dimension="108,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreUpdate.jsp" location="1550,750" dimension="199,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreOMRUpload.jsp" location="1550,350" dimension="226,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreMgmt.jsp" location="350,50" dimension="194,51" />
+  <StrutsActivity path="/test/subject/Tst_SubjectList.jsp" location="1550,1150" dimension="199,51" />
+  <StrutsActivity path="/tstScore.act" location="950,1150" dimension="98,51" />
+  <StrutsActivity path="/test/subject/Tst_SubjectMasterMgmt.jsp" location="50,1450" dimension="250,51" />
+  <StrutsActivity path="/test/subject/Tst_SubjectMasterInfo.jsp" location="1250,1450" dimension="238,51" />
+  <StrutsActivity path="/test/subject/Tst_UpdateSubjectMaster.jsp" location="350,1450" dimension="255,51" />
+  <StrutsActivity path="/test/subject/Tst_InsertSubject.jsp" location="1850,850" dimension="210,51" />
+  <StrutsActivity path="/test/subject/Tst_SubjectInfo.jsp" location="1850,1050" dimension="202,51" />
+  <StrutsActivity path="/test/subject/Tst_InsertSubjectMaster.jsp" location="1850,250" dimension="246,51" />
+  <StrutsActivity path="/test/subject/Selection.jsp" location="1850,450" dimension="170,51" />
+  <StrutsActivity path="/test/subject/CheckDup.jsp" location="1850,1250" dimension="177,51" />
+  <StrutsActivity path="/test/subject/Tst_UpdateSubject.jsp" location="50,1250" dimension="219,51" />
+  <StrutsActivity path="/test/question/Tst_QuestionMgmt.jsp" location="650,1250" dimension="230,51" />
+  <StrutsActivity path="/test/question/Tst_QuestionPopup.jsp" location="1850,1450" dimension="232,51" />
+  <StrutsActivity path="/tstSurvey.act" location="650,350" dimension="104,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyCreate.jsp" location="50,350" dimension="207,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyNew.jsp" location="350,350" dimension="197,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyPreview.jsp" location="950,750" dimension="214,51" />
+  <StrutsActivity path="/test/survey/Selection.jsp" location="1250,1250" dimension="166,51" />
+  <StrutsActivity path="/test/satis/Tst_SatisResultExcel.jsp" location="1250,850" dimension="210,51" />
+  <StrutsActivity path="/test/satis/Tst_SatisMgmt.jsp" location="1250,250" dimension="184,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyOMRupload.jsp" location="1550,1350" dimension="237,51" />
+  <StrutsActivity path="/test/satis/Tst_SatisResult.jsp" location="350,950" dimension="183,51" />
+  <StrutsActivity path="/test/satis/Tst_SatisList.jsp" location="650,950" dimension="169,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreMod.jsp" location="50,650" dimension="186,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreStatis.jsp" location="1550,1550" dimension="190,51" />
+  <StrutsActivity path="/test/score/Selection.jsp" location="950,1550" dimension="160,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyPopup.jsp" location="1250,650" dimension="208,51" />
+  <StrutsActivity path="/test/survey/Tst_SurveyItemList.jsp" location="950,1350" dimension="215,51" />
+  <StrutsActivity path="/test/satis/Tst_SatisOffline.jsp" location="50,950" dimension="187,51" />
+  <StrutsActivity path="/test/score/Tst_QuestionMgmt.jsp" location="1550,550" dimension="212,51" />
+  <StrutsActivity path="/test/score/Tst_SubjectList.jsp" location="950,950" dimension="189,51" />
+  <StrutsActivity path="/test/score/Tst_UpdateSubject.jsp" location="1550,150" dimension="209,51" />
+  <StrutsActivity path="/test/score/Tst_TeamScoreMod.jsp" location="950,50" dimension="215,51" />
+  <StrutsActivity path="test/satis/Tst_SatisResult.jsp" location="1250,450" dimension="178,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListRcv.jsp" location="0,196" dimension="208,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListInsert.jsp" location="308,196" dimension="218,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListXlsUp.jsp" location="626,196" dimension="219,51" />
+  <StrutsActivity path="/opr/fix/Opr_StudentFix.jsp" location="0,1072" dimension="177,51" />
+  <StrutsActivity path="/oprStudentFix.act" location="277,1072" dimension="130,51" />
+  <StrutsActivity path="/opr/fix/Opr_StudentSelect.jsp" location="507,1072" dimension="194,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentMgmt.jsp" location="0,488" dimension="222,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentHistory.jsp" location="322,488" dimension="227,51" />
+  <StrutsActivity path="/oprStudent.act" location="649,488" dimension="115,51" />
+  <StrutsActivity path="/opr/attend/Opr_AttendMgmt.jsp" location="0,780" dimension="210,51" />
+  <StrutsActivity path="/opr/attend/Opr_AttendMgmtDetail.jsp" location="310,780" dimension="241,51" />
+  <StrutsActivity path="/oprAttend.act" location="651,780" dimension="109,51" />
+  <StrutsActivity path="/tst/score/Tst_ScoreMgmt.jsp" location="950,550" dimension="188,51" />
+  <StrutsActivity path="/test/survey/Tst_surveyNew.jsp" location="350,650" dimension="195,51" />
+  <StrutsActivity path="/tstSurveyForm.act" location="650,650" dimension="132,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreList.jsp" location="1250,1050" dimension="179,51" />
+  <StrutsActivity path="/test/satis/Tst_SurveyOMRupload.jsp" location="1850,650" dimension="226,51" />
+  <StrutsActivity path="/test/score/Tst_ScoreExcel.jsp" />
+  <StrutsTransition id="/tstSubject.do,subjectinfo,/test/subject/Tst_SubjectInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1714,846" />
+      <AbsolutePoint location="1714,1075" />
+      <AbsolutePoint location="1850,1075" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,list,/test/survey/Tst_SurveyCreate.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstScore.do,updatescoreform,/test/score/Tst_ScoreUpdate.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1064,398" />
+      <AbsolutePoint location="1649,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,preview,/test/survey/Tst_SurveyPreview.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="860,146" />
+      <AbsolutePoint location="860,765" />
+      <AbsolutePoint location="950,765" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,insertForm,/test/survey/Tst_SurveyNew.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,86" />
+      <AbsolutePoint location="566,86" />
+      <AbsolutePoint location="566,375" />
+      <AbsolutePoint location="547,375" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,excel,/test/satis/Tst_SatisResultExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1468,98" />
+      <AbsolutePoint location="1543,98" />
+      <AbsolutePoint location="1543,875" />
+      <AbsolutePoint location="1460,875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstScore.do,uploadomrform,/test/score/Tst_ScoreOMRUpload.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1064,398" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstScore.do,scorelist,/test/score/Tst_ScoreMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1064,350" />
+      <AbsolutePoint location="1064,165" />
+      <AbsolutePoint location="447,165" />
+      <AbsolutePoint location="447,101" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstScore.do,exceldown,/test/score/Tst_ScoreExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1064,398" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,result,/test/satis/Tst_SatisResult.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,86" />
+      <AbsolutePoint location="1223,86" />
+      <AbsolutePoint location="1223,865" />
+      <AbsolutePoint location="441,865" />
+      <AbsolutePoint location="441,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,evaldone,/tstScore.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1674,798" />
+      <AbsolutePoint location="999,1175" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,create,/test/survey/Tst_SurveyNew.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="770,50" />
+      <AbsolutePoint location="770,-75" />
+      <AbsolutePoint location="292,-75" />
+      <AbsolutePoint location="292,375" />
+      <AbsolutePoint location="350,375" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,selection,/test/survey/Selection.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="890,86" />
+      <AbsolutePoint location="935,86" />
+      <AbsolutePoint location="935,1275" />
+      <AbsolutePoint location="1250,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,updatemasterform,/test/subject/Tst_UpdateSubjectMaster.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1798,805" />
+      <AbsolutePoint location="2241,805" />
+      <AbsolutePoint location="2241,1666" />
+      <AbsolutePoint location="477,1666" />
+      <AbsolutePoint location="477,1501" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,info,/test/satis/Tst_SatisMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1359,146" />
+      <AbsolutePoint location="1359,250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,masterlist,/test/subject/Tst_SubjectMasterMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,816" />
+      <AbsolutePoint location="905,816" />
+      <AbsolutePoint location="905,1576" />
+      <AbsolutePoint location="175,1576" />
+      <AbsolutePoint location="175,1501" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,insertSubjectForm,/test/subject/Tst_InsertSubject.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1674,798" />
+      <AbsolutePoint location="1955,875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,subjectmasterinfo,/test/subject/Tst_SubjectMasterInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1798,805" />
+      <AbsolutePoint location="1813,805" />
+      <AbsolutePoint location="1813,1475" />
+      <AbsolutePoint location="1488,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstQuestion.do,updatepopup,/test/question/Tst_QuestionPopup.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="403,1316" />
+      <AbsolutePoint location="403,1416" />
+      <AbsolutePoint location="1966,1416" />
+      <AbsolutePoint location="1966,1450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstQuestion.do,list,/test/question/Tst_QuestionMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="403,1283" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,selection,/test/subject/Selection.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1674,798" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstScore.do,list,/tstSubject.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1178,416" />
+      <AbsolutePoint location="1483,416" />
+      <AbsolutePoint location="1483,975" />
+      <AbsolutePoint location="1550,975" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,list,/test/subject/Tst_SubjectList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1684,846" />
+      <AbsolutePoint location="1684,1150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,uploadOMRPopup,/test/survey/Tst_SurveyOMRupload.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1359,98" />
+      <AbsolutePoint location="1668,1375" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,checkdup,/test/subject/CheckDup.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1798,768" />
+      <AbsolutePoint location="2151,768" />
+      <AbsolutePoint location="2151,1275" />
+      <AbsolutePoint location="2027,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,insertmasterform,/test/subject/Tst_InsertSubjectMaster.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1674,798" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,preview,/test/survey/Tst_SurveyPreview.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,56" />
+      <AbsolutePoint location="1193,56" />
+      <AbsolutePoint location="1193,775" />
+      <AbsolutePoint location="1164,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSubject.do,updatesubjinfoform,/test/subject/Tst_UpdateSubject.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1643,846" />
+      <AbsolutePoint location="1643,916" />
+      <AbsolutePoint location="252,916" />
+      <AbsolutePoint location="252,1250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSatis.do,oprList,/test/satis/Tst_SatisList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,116" />
+      <AbsolutePoint location="995,116" />
+      <AbsolutePoint location="995,316" />
+      <AbsolutePoint location="800,316" />
+      <AbsolutePoint location="800,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/tstSurvey.do,view,/tstSurvey.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,116" />
+      <AbsolutePoint location="596,116" />
+      <AbsolutePoint location="596,375" />
+      <AbsolutePoint location="650,375" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

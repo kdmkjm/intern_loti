@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="mainMenuForm" 			type="loti.cmn.menu.model.MainMenu"/>
+    <form-bean name="extMainBeginForm" 	type="loti.ext.main.begn.model.ExtMain_Begin"/>
+    <form-bean name="svcStdPortalForm" 	type="loti.svc.center.model.Svc_StdPortal"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+  	<!-- 시스템 메뉴관리 -->
+    <action path="/mainMenu" name="mainMenuForm" type="loti.cmn.menu.action.MainMenuAction" scope="request" unknown="false">
+	      <forward name="top_list" path="/include/common_top_menu.jsp"/>
+	      <forward name="left_list" path="/include/leftMenu.jsp"/>
+    </action>
+    
+  	<!-- 메인화면 -->
+    <action path="/extMainBegin" name="extMainBeginForm" type="loti.ext.main.begn.action.ExtMain_BeginAction" scope="request" unknown="false">
+	      <forward name="list" 					path="/ext/main/begn/centents.jsp"/>
+	      <forward name="left_list" 		path="/ext/main/begn/left.jsp"/>
+	      <forward name="eduMonthInfo" 	path="/ext/main/begn/eduInfo.jsp"/>
+	      <forward name="eduCrsInfo" 		path="/ext/main/begn/crsInfo.jsp"/>
+	      <forward name="eduIngInfo" 		path="/ext/main/begn/ingInfo.jsp"/>
+	      <forward name="privacyPolicy"		path="/ext/main/begn/privacyPolicy.jsp"/>
+	  </action>
+	  
+  	<!-- 교육장 배치도 -->
+  	<action path="/extRoomMap" type="loti.ext.room.map.action.extRoomMapAction" scope="request" unknown="false">
+  			<forward name="list"	path="/ext/room/map/ExtRoom_RoomMap.jsp"/>
+		</action>
+    
+  	<!-- 찾아오시는 길 -->
+  	<action path="/extFindRoad" type="loti.ext.find.road.action.ExtFindRoadAction" scope="request" unknown="false">
+  			<forward name="list"	path="/ext/find/road/ExtFind_FindRoad.jsp"/>
+		</action>
+    
+  	<!-- 진행중인 과정 -->
+    <action path="/svcStdPortal" name="svcStdPortalForm" type="loti.svc.center.action.Svc_StdPortalAction" scope="request" unknown="false">
+	      <forward name="list" 		path="/svc/center/Svc_StdPortal.jsp"/>
+	      <forward name="jiphap" 	path="/svc/center/Svc_StdPortal_Jiphap.jsp"/>
+	      <forward name="cyber" 	path="/svc/center/Svc_StdPortal_Cyber.jsp"/>
+	  </action>
+	  
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ehojo">
+	
+	<statement id="preprocess" parameterClass="java.lang.String">
+	    <![CDATA[
+	    TRUNCATE TABLE $table$
+	    ]]>
+	</statement>
+	<statement id="copy" parameterClass="java.lang.String">
+	    <![CDATA[
+	    INSERT INTO $table$
+	    SELECT * FROM $table$@LFIS
+	    ]]>
+	</statement>
+<!-- 	<delete id="preprocess" parameterClass="java.util.Map">
+	    DELETE FROM E$table$
+	</delete>
+	<insert id="copy" parameterClass="java.util.Map">
+	    INSERT INTO E$table$
+	    SELECT * FROM V$table$@LFIS
+	</insert> -->
+</sqlMap>
+

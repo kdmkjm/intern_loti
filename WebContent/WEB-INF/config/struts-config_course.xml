@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="crs_Org" type="loti.crs.org.model.Crs_Org"/>
+    <form-bean name="crs_TimeTblDayForm" type="loti.crs.timetbl.model.Crs_TimeTblDay"/>
+    <form-bean name="crs_LectureMgmtForm" type="loti.crs.prof.model.Crs_LectureMgmt"/>
+    <form-bean name="crs_CostCalcForm" type="loti.crs.cost.model.Crs_CostCalc"/>
+    <form-bean name="crs_CyberCostCalcForm" type="loti.crs.cost.model.Crs_CyberCostCalc"/>
+    <form-bean name="crs_CostBudgetForm" type="loti.crs.cost.model.Crs_CostBudget"/>  
+    <form-bean name="crs_CostDivideForm" type="loti.crs.costdiv.model.Crs_CostDivide"/>  
+    <form-bean name="crs_Course" type="loti.crs.req.model.Crs_Course"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+  	<!-- 과정 편성 -->
+    <action path="/crsOrg" name="crs_Org" type="loti.crs.org.action.Crs_OrgAction" scope="request" unknown="false" roles="62">
+	      <forward name="move" path="/crs/org/Crs_Org.jsp"/>
+	      <forward name="list" path="/crs/org/Crs_Org.jsp"/>
+	      <forward name="create" path="/crs/org/Crs_OrgMod.jsp"/>
+	      <forward name="create_cyber" path="/crs/org/Crs_OrgCyberMod.jsp"/>
+	      <forward name="modify" path="/crs/org/Crs_OrgMod.jsp"/>
+	      <forward name="modify_cyber" path="/crs/org/Crs_OrgCyberMod.jsp"/>
+	      <forward name="fix_course" path="/crsOrg.act?task=move"/>
+	      <forward name="time_mod" path="/crs/org/Crs_TimeTblMod.jsp"/>
+	      <forward name="search_time" path="/crs/org/Crs_TimeTblMod.jsp"/>
+	      <forward name="chk_lect" path="/common/dao_result.jsp"/>
+	      <forward name="delete" path="/crsOrg.act?task=move"/>
+    </action>
+
+      <!-- 교육과정 조회(내부) 편성 -->
+    <action path="/crsCourse" name="crs_Course" type="loti.crs.req.action.Crs_CourseAction" scope="request" unknown="false" roles="63">
+	      <forward name="move" path="/crs/req/Crs_CourseList.jsp"/>
+	      <forward name="list" path="/crs/req/Crs_CourseList.jsp"/>
+    </action>
+
+  	<!-- 시간표조회 -->
+    <action path="/crsTimeTblDay" name="crs_TimeTblDayForm" type="loti.crs.timetbl.action.Crs_TimeTblDayAction" scope="request" unknown="false" roles="35">
+	      <forward name="list" path="/crs/timetbl/Crs_TimeTblDay.jsp"/>
+	      <forward name="excel" path="/crs/timetbl/Crs_TimeTblDayExcel.jsp"/>
+	      <forward name="monthlist" path="/crs/timetbl/Crs_TimeTblMonth.jsp"/>
+	      <forward name="AddTimeTbl" path="/crs/timetbl/Crs_AddTimeTbl.jsp"/>
+	      <forward name="chk_lect" path="/common/dao_result.jsp"/>
+    </action>
+
+  	<!-- 시간표조회 과정&기간 -->
+    <action path="/crsTimeTblCourseAndDay" name="crs_TimeTblDayForm" type="loti.crs.timetbl.action.Crs_TimeTblCourseAndDayAction" scope="request" unknown="false" roles="132">
+	      <forward name="list" 		path="/crs/timetbl/Crs_TimeTblCourseAndDay.jsp"/>
+	      <forward name="course" 	path="/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp"/>
+	      <forward name="day" 		path="/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp"/>
+    </action>
+    
+   	<!-- 일일시간표 조회 -->
+    <action path="/crsTimeTblOneDay" name="crs_TimeTblDayForm" type="loti.crs.timetbl.action.Crs_TimeTblOneDayAction" scope="request" unknown="false" roles="153">
+	      <forward name="list" 		path="/crs/timetbl/Crs_TimeTblOneDay.jsp"/>
+    </action>
+
+  	<!-- 출강관리 -->
+    <action path="/crsLectureMgmt" name="crs_LectureMgmtForm" type="loti.crs.prof.action.Crs_LectureMgmtAction" scope="request" unknown="false" roles="98">
+	      <forward name="list" path="/crs/prof/Crs_LectureMgmt.jsp"/>
+	      <forward name="setprof" path="/crs/org/Crs_SetProf.jsp"/>
+	      <forward name="frame" path="/crs/org/Crs_SetProf_Frame.jsp"/>
+	      <forward name="excel" path="/crsLectureMgmt.act?task=list"/>
+    </action>
+
+    <!-- 교육비계산 -->
+    <action path="/crsCostCalc" name="crs_CostCalcForm" type="loti.crs.cost.action.Crs_CostCalcAction" scope="request" unknown="false" roles="106,108">
+	      <forward name="list" path="/crs/cost/Crs_CostCalc.jsp"/>
+	      <forward name="info" path="/crs/cost/Crs_CostCalcInfo.jsp"/>
+	      <forward name="create" path="/crs/cost/Crs_CostCalcMod.jsp"/>
+	      <forward name="modify" path="/crs/cost/Crs_CostCalcMod.jsp"/>
+	      <forward name="course" path="/crs/cost/Crs_CostCourse.jsp"/>
+    </action>
+    
+    <!-- 사이버교육비계산 -->
+    <action path="/crsCyberCostCalc" name="crs_CyberCostCalcForm" type="loti.crs.cost.action.Crs_CyberCostCalcAction" scope="request" unknown="false" roles="107">
+	      <forward name="list" path="/crs/cost/Crs_CyberCostCalc.jsp"/>
+	      <forward name="info" path="/crs/cost/Crs_CyberCostCalcInfo.jsp"/>
+	      <forward name="create" path="/crs/cost/Crs_CyberCostCalcMod.jsp"/>
+	      <forward name="modify" path="/crs/cost/Crs_CyberCostCalcMod.jsp"/>
+    </action>    
+
+		<!--  예산등록  -->
+    <action path="/crsCostBudget" name="crs_CostBudgetForm" type="loti.crs.cost.action.Crs_CostBudgetAction" scope="request" unknown="false" roles="109">
+	      <forward name="info" path="/crs/cost/Crs_CostBudget.jsp"/>
+    </action>
+    
+		<!--  교육비분할  -->
+    <action path="/crsCostDivide" name="crs_CostDivideForm" type="loti.crs.costdiv.action.Crs_CostDivideAction" scope="request" unknown="false" roles="105">
+	      <forward name="list" path="/crs/costdiv/Crs_CostDivide.jsp"/>
+	      <forward name="excel" path="/crs/costdiv/Crs_CostDivideExcel.jsp"/>
+    </action>    
+
+  </action-mappings>
+	<controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

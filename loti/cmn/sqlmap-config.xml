@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<settings cacheModelsEnabled="true" enhancementEnabled="true"
+              maxSessions="64" maxTransactions="8" maxRequests="128"
+              useStatementNamespaces="true"/>
+
+	<!-- JNDI Resource -->
+	<transactionManager type="JDBC">
+		<dataSource type="JNDI">
+			<property name="DataSource" value="java:comp/env/loti"/>
+			<!-- <property name="DataSource" value="loti"/> -->
+		</dataSource>
+	</transactionManager>
+
+	<!-- ==========Framework Configuration Section============= -->
+	<!-- #############		메　　인			############# -->
+	<sqlMap resource="loti/ext/main/begn/dao/sql/ExtMain_Begin_SqlMap.xml" />	
+	<sqlMap resource="loti/onnara/dao/sql/Onnara_db_SqlMap.xml" />
+	<!--		진행중인과정			-->
+	<sqlMap resource="loti/svc/center/dao/sql/Svc_StdPortal_SqlMap.xml" />
+		
+	<!-- #############		시 스 템			############# -->
+	<sqlMap resource="loti/sys/test/dao/sql/SysMenu_SqlMap.xml" />
+	<sqlMap resource="loti/sys/menu/dao/sql/SysMenu_SqlMap.xml" />
+	<sqlMap resource="loti/sys/user/dao/sql/SysUser_SqlMap.xml" />
+	<sqlMap resource="loti/sys/user/dao/sql/SysGroup_SqlMap.xml" />
+	<sqlMap resource="loti/sys/org/dao/sql/SysOrg_SqlMap.xml" />
+	<sqlMap resource="loti/sys/code/dao/sql/SysCode_SqlMap.xml" />
+	<sqlMap resource="loti/sys/agent/dao/sql/SysAgent_SqlMap.xml" />
+	<sqlMap resource="loti/sys/loti/dao/sql/SysLotiSchedule_SqlMap.xml" />
+	<sqlMap resource="loti/sys/adm/dao/sql/SysAdmLogin_SqlMap.xml"/>
+	
+	<!-- #############		공용모듈			############# -->
+	<sqlMap resource="loti/cmn/menu/dao/sql/MainMenu_SqlMap.xml" />
+	<sqlMap resource="loti/cmn/code/dao/sql/ComCode_SqlMap.xml" />
+	
+	
+	<!-- #############		공용SMS/EMAIL모듈			############# -->
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupSendSMS_SqlMap.xml" />
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupSendEMail_SqlMap.xml" />
+	<!--		과정 조회 팝업 화면			-->	
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupCourse_SqlMap.xml" />	
+	<!--		사용자 조회 팝업 화면			-->	
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupUser_SqlMap.xml" />	
+	<!--		강사 조회 팝업 화면			-->	
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupProf_SqlMap.xml" />	
+	<!--		과정 상세 보기 팝업 화면			-->	
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupCourseInfo_SqlMap.xml" />	
+	<!--		직급&직렬 팝업 화면			-->	
+	<sqlMap resource="loti/cmn/common/dao/sql/Cmn_PopupRankJob_SqlMap.xml" />	
+
+
+	<!-- #############		교육계획			############# -->
+	<sqlMap resource="loti/pln/survey/dao/sql/Pln_EduSurv_SqlMap.xml" />
+	<sqlMap resource="loti/pln/plan/dao/sql/Pln_EduPlan_SqlMap.xml" />
+	<sqlMap resource="loti/pln/fix/dao/sql/Pln_PlanFix_SqlMap.xml" />
+	<sqlMap resource="loti/crs/org/dao/sql/Crs_Org_SqlMap.xml" />
+	<sqlMap resource="loti/crs/req/dao/sql/Crs_Course_SqlMap.xml" />
+
+
+	<!-- #############		교육시간표			############# -->
+	<sqlMap resource="loti/crs/timetbl/dao/sql/Crs_TimeTblDay_SqlMap.xml" />
+
+
+	<!-- #############		과정운영			############# -->
+	<!--		출강관리			-->
+	<sqlMap resource="loti/crs/prof/dao/sql/Crs_LectureMgmt_SqlMap.xml" />
+	<!--		교육비관리		-->
+	<sqlMap resource="loti/crs/cost/dao/sql/Crs_CostCalc_SqlMap.xml" />
+	<!--		사이버교육비관리		-->
+	<sqlMap resource="loti/crs/cost/dao/sql/Crs_CyberCostCalc_SqlMap.xml" />	
+	<!--		예산관리			-->
+	<sqlMap resource="loti/crs/cost/dao/sql/Crs_CostBudget_SqlMap.xml" />	
+	<!--		교육비분할		-->
+	<sqlMap resource="loti/crs/costdiv/dao/sql/Crs_CostDivide_SqlMap.xml" />	
+	<!--		교육생수신관리		-->
+	<sqlMap resource="loti/opr/recv/dao/sql/Opr_StudentListRcv_SqlMap.xml" />	
+	<!--		교육생확정관리		-->
+	<sqlMap resource="loti/opr/fix/dao/sql/Opr_StudentFix_SqlMap.xml" />
+	<!--		교육생관리		-->
+	<sqlMap resource="loti/opr/student/dao/sql/Opr_Student_SqlMap.xml" />
+	<!--		근태관리		-->
+	<sqlMap resource="loti/opr/attend/dao/sql/Opr_Attend_SqlMap.xml" />
+	<!--		이수관리		-->
+	<sqlMap resource="loti/opr/pass/dao/sql/Opr_Pass_SqlMap.xml" />
+	<!--		이수실적조회		-->
+	<sqlMap resource="loti/opr/acom/dao/sql/Opr_PassAcom_SqlMap.xml" />
+	<!--		교육생검색		-->
+	<sqlMap resource="loti/opr/search/dao/sql/Opr_StudentSearch_SqlMap.xml" />
+	<!--		교육생현황통계		-->
+	<sqlMap resource="loti/opr/stats/dao/sql/Opr_Stats_SqlMap.xml" />
+	<!--		교육신청자 현황		-->
+	<sqlMap resource="loti/opr/orgstd/dao/sql/Opr_OrgStd_SqlMap.xml" />
+
+
+	<!-- #############		지원관리			############# -->
+	<!--		교재관리		-->
+	<sqlMap resource="loti/rsc/book/dao/sql/RscBook_SqlMap.xml" />
+	<!--		기자재관리		-->
+	<sqlMap resource="loti/rsc/inst/dao/sql/RscInst_SqlMap.xml" />
+	<!--		도서관리		-->
+	<sqlMap resource="loti/rsc/lib/dao/sql/RscLib_SqlMap.xml" />
+	<!--		교육장관리		-->
+	<sqlMap resource="loti/rsc/room/dao/sql/RscRoom_SqlMap.xml" />
+	<!--		SMS발송현황 관리		-->
+	<sqlMap resource="loti/rsc/smsstatus/dao/sql/RscSMSStatusList_SqlMap.xml" />
+	<!--		증명서인쇄		-->
+	<sqlMap resource="loti/ext/mylc/cert/dao/sql/ExtMylc_CertPrt_SqlMap.xml" />
+
+	<!-- #############		외부사용자			############# -->
+	<sqlMap resource="loti/ext/crs/survplan/dao/sql/ExtCrs_SurvEduPlan_SqlMap.xml" />
+	<!--		교육장대여신청		-->
+	<sqlMap resource="loti/ext/mylc/room/dao/sql/ExtMylc_RoomReq_SqlMap.xml" />
+	<sqlMap resource="loti/ext/mylc/atnd/dao/sql/ExtMylc_LectureList_SqlMap.xml" />
+	<sqlMap resource="loti/ext/crs/month/dao/sql/ExtCrs_MonthPlan_SqlMap.xml" />
+	<!--		개인정보수정		-->
+	<sqlMap resource="loti/ext/main/prsn/dao/sql/ExtMain_MyInfo_SqlMap.xml" />
+
+
+	<!-- #############		과정관리			############# -->
+	<sqlMap resource="loti/ext/crs/course/dao/sql/ExtCrs_Course_SqlMap.xml" />
+
+
+	<!-- #############		게시판			############# -->
+	<!--		Q&A			-->
+	<sqlMap resource="loti/svc/ref/qna/dao/sql/Svc_BoardQNA_SqlMap.xml" />
+	<!--		자료실			-->
+	<sqlMap resource="loti/svc/ref/morgue/dao/sql/Svc_BoardMorgue_SqlMap.xml" />
+	<!--		교육후기			-->
+	<sqlMap resource="loti/svc/ref/afnote/dao/sql/Svc_BoardAfNote_SqlMap.xml" />
+	<!--		과정요청			-->
+	<sqlMap resource="loti/ext/crs/req/dao/sql/ExtCrs_ReqCrs_SqlMap.xml" />
+	<!--		설문조사			-->
+	<sqlMap resource="loti/ext/mylc/survey/dao/sql/ExtMylc_Survey_SqlMap.xml" />	
+<!-- ADD Start:2012/11/08:yunsh -->
+	<!--		공지사항			-->
+	<sqlMap resource="loti/svc/ref/notice/dao/sql/Svc_BoardNotice_SqlMap.xml" />
+<!-- ADD End:2012/11/08:yunsh -->
+	
+	<!-- #############		SMS/EMAIL			############# -->
+	<sqlMap resource="loti/svc/sms/dao/sql/Svc_SMSSend_SqlMap.xml" />
+
+
+	<!-- #############		강사관리			############# -->
+	<!--		강사정보			-->
+	<sqlMap resource="loti/prf/baseinfo/dao/sql/Prf_ProfInfo_SqlMap.xml" />
+	<!--    강사만족도       -->
+	<sqlMap resource="loti/prf/baseinfo/dao/sql/Prf_ProfSatis_SqlMap.xml" />
+	<!--		강사수당			-->
+	<sqlMap resource="loti/prf/pay/dao/sql/Prf_Pay_SqlMap.xml" />
+	<sqlMap resource="loti/prf/weekpay/dao/sql/Prf_WeekPay_SqlMap.xml" />
+	<!--		지급기준			-->
+	<sqlMap resource="loti/prf/payrule/dao/sql/Prf_PayStandard_SqlMap.xml" />
+	<!--		강의실적확인			-->
+	<sqlMap resource="loti/prf/acom/dao/sql/Prf_LectAcom_SqlMap.xml" />
+	
+	
+	<!-- #############		성적관리			############# -->
+	<sqlMap resource="loti/tst/score/dao/sql/Tst_Score_SqlMap.xml" />
+	
+	<!-- #############		설문관리			############# -->
+	<sqlMap resource="loti/tst/survey/dao/sql/Tst_Survey_SqlMap.xml" />	
+	
+	<!-- #############		만족도관리			############# -->
+	<sqlMap resource="loti/tst/satis/dao/sql/Tst_Satis_SqlMap.xml" />		
+	
+	<sqlMap resource="loti/insarang/dao/sql/Infovil_Organ_SqlMap.xml"/>	
+
+	<!-- ####### e-hojo 예산정보 연계 ##############-->
+	<sqlMap resource="ext/ehojo/scheduler/Ehojo_SqlMap.xml"/>
+</sqlMapConfig>

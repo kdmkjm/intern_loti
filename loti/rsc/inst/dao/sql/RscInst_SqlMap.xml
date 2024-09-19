@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscInst">
+
+	<typeAlias alias="rscInst" type="loti.rsc.inst.model.RscInst"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectRscInst" parameterClass="rscInst" resultClass="rscInst">
+			SELECT 	
+				   		FACSNO   ,
+				   		FACSNAME ,
+				   		FACSTYPE ,
+				   		COUNT    ,
+				   		SPEC     ,
+				   		UNIT     ,
+				   		MANUFACT ,
+				   		BUYDATE  ,
+				   		BUYAMOUNT,
+				   		AS_CORP  ,
+				   		AS_PHONE ,
+				   		AS_LOG   ,
+				   		PLACE    ,
+				   		PURPOSE  ,
+				   		sys.NAME FACSTYPENAME
+			  FROM RSC_FACSILITY fac, (SELECT	CODE, NAME
+			  						   FROM		SYS_SYSTEMCODE 
+			  						   WHERE	CODEDIV = '00013') sys
+			  WHERE		fac.FACSTYPE = sys.CODE
+			  AND		FACSNO    = #facsNo# 
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectRscInstList" parameterClass="rscInst" resultClass="rscInst">
+			SELECT 	
+				   		FACSNO   ,
+				   		sys.NAME FACSTYPE ,
+				   		FACSNAME ,
+				   		COUNT    ,
+				   		SPEC     ,
+				   		UNIT     ,
+				   		MANUFACT ,
+				   		BUYDATE  ,
+				   		BUYAMOUNT,
+				   		AS_CORP  ,
+				   		AS_PHONE ,
+				   		AS_LOG   ,
+				   		PLACE    ,
+				   		PURPOSE
+			  FROM 	RSC_FACSILITY fac, 
+			  		 (SELECT
+			  		 					CODE, NAME
+			  				FROM	SYS_SYSTEMCODE 
+			  			 WHERE	CODEDIV = '00013') sys
+			  WHERE		fac.FACSTYPE = sys.CODE
+			 			<isNotEmpty prepend="AND" property="searchFacsType">
+			  				FACSTYPE = #searchFacsType#
+			 			</isNotEmpty>
+			  ORDER BY	FACSNO
+	</select>
+
+	<!-- 세부 통계 목록조회쿼리 -->
+	<select id="selectRscInstDetlList" parameterClass="rscInst" resultClass="rscInst">
+		SELECT
+            MAX(B.NAME) FACSNAME, A.FACSTYPE, SUM(A.COUNT) COUNT, MAX(A.PURPOSE) PURPOSE,
+            SUBSTR(XMLAGG(XMLELEMENT("NM",', '||A.PLACE)ORDER BY A.PLACE).EXTRACT('//text()'),2) PLACE
+      FROM  RSC_FACSILITY A, 
+           (SELECT
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00013') B
+     WHERE  A.FACSTYPE = B.CODE
+  GROUP BY  A.FACSTYPE
+  ORDER BY  A.FACSTYPE
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectRscInstListCount" parameterClass="rscInst" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_FACSILITY
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectRscInstCount" parameterClass="rscInst" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_FACSILITY
+		WHERE FACSNO = #facsNo#
+	</select>
+
+	<!-- 최대값 구하기  -->
+	<select id="selectRscInstListMax" parameterClass="rscInst" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(FACSNO),0) 
+		FROM RSC_FACSILITY
+	</select>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertRscInst" parameterClass="rscInst">
+		INSERT INTO RSC_FACSILITY (	
+			   			FACSNO   ,	
+			   			FACSTYPE ,	
+			   			FACSNAME ,	
+			   			COUNT    ,	
+			   			SPEC     ,	
+			   			UNIT     ,	
+			   			MANUFACT ,	
+			   			BUYDATE  ,	
+			   			BUYAMOUNT,	
+			   			AS_CORP  ,	
+			   			AS_PHONE ,	
+			   			AS_LOG   ,	
+			   			PLACE    ,
+			   			PURPOSE 	
+		) VALUES (
+						 
+			   			#facsNo#   ,	
+			   			#facsType# ,	
+			   			#facsName# ,	
+			   			#count#    ,	
+			   			#spec#     ,	
+			   			#unit#     ,	
+			   			#manuFact# ,	
+			   			#buyDate#  ,	
+			   			#buyAmount#,	
+			   			#as_Corp#   ,	
+			   			#as_Phone#  ,	
+			   			#as_Log#    ,	
+			   			#place#     ,	
+			   			#purpose#    	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateRscInst" parameterClass="rscInst">
+		UPDATE RSC_FACSILITY SET
+			   FACSNO    = #facsNo#   ,
+			   FACSTYPE  = #facsType# ,
+			   FACSNAME  = #facsName# ,
+			   COUNT     = #count#    ,
+			   SPEC      = #spec#     ,
+			   UNIT      = #unit#     ,
+			   MANUFACT  = #manuFact# ,
+			   BUYDATE   = #buyDate#  ,
+			   BUYAMOUNT = #buyAmount#,
+			   AS_CORP   = #as_Corp#  ,
+			   AS_PHONE  = #as_Phone# ,
+			   AS_LOG    = #as_Log#   ,
+			   PLACE     = #place#    ,
+			   PURPOSE   = #purpose#    
+			   WHERE FACSNO = #facsNo#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscInst" parameterClass="rscInst">
+		DELETE FROM RSC_FACSILITY
+		WHERE		FACSNO    = #facsNo# 
+	</delete>
+</sqlMap>
+
+

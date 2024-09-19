@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="extCrs_SurvEduPlanForm" 	type="loti.ext.crs.survplan.model.ExtCrs_SurvEduPlan"/>
+    <form-bean name="extMylcRoomForm" 				type="loti.ext.mylc.room.model.ExtMylc_RoomReq"/>
+    <form-bean name="extBordQNAForm" 					type="loti.svc.ref.qna.model.Svc_BoardQNA"/>
+    <form-bean name="extBordMorgueForm" 			type="loti.svc.ref.morgue.model.Svc_BoardMorgue"/>
+    <form-bean name="extBordAfNoteForm" 			type="loti.svc.ref.afnote.model.Svc_BoardAfNote"/>
+    <form-bean name="extCrs_ReqCrsForm" 			type="loti.ext.crs.req.model.ExtCrs_ReqCrs"/>
+    <form-bean name="extCrs_CourseFrom" 			type="loti.ext.crs.course.model.ExtCrs_Course"/>
+    <form-bean name="extCrs_MonthPlan" 				type="loti.ext.crs.month.model.ExtCrs_MonthPlan"/>
+    <form-bean name="extMylcLectureForm" 			type="loti.ext.mylc.atnd.model.ExtMylc_LectureList"/>
+    <form-bean name="extMainPrsnForm" 				type="loti.ext.main.prsn.model.ExtMain_MyInfo"/>
+    <form-bean name="extMylcSurveyForm"       type="loti.ext.mylc.survey.model.ExtMylc_Survey"/>
+    <form-bean name="extMylcResearchForm"     type="loti.ext.mylc.survey.model.ExtMylc_Research"/>
+<!-- ADD Start:2012/11/08:yunsh -->
+    <form-bean name="extBordNoticeForm" 			type="loti.svc.ref.notice.model.Svc_BoardNotice">
+    	<!-- <form-property name="file" type="org.apache.struts.upload.FormFile" ></form-property> -->
+    </form-bean>
+<!-- ADD End:2012/11/08:yunsh -->
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+ 	 <!-- 조사서 등록 -->
+    <action path="/crsSurv" name="extCrs_SurvEduPlanForm" type="loti.ext.crs.survplan.action.ExtCrs_SurvEduPlanAction" scope="request" unknown="false" roles="61">
+      	<forward name="move" path="/ext/crs/survplan/ExtCrs_SurvEduPlan.jsp"/>
+	      <forward name="list" path="/ext/crs/survplan/ExtCrs_SurvEduPlan.jsp"/>
+	      <forward name="insert" path="/crsSurv.act?task=move"/>
+	      <forward name="excel" path="/crsSurv.act?task=move"/>
+	      <forward name="excel_view" path="/ext/crs/survplan/ExtCrs_SurvEduPlanExcelUp.jsp"/>
+	      <forward name="excel_up" path="/crsSurv.act?task=move"/>
+    </action>
+
+    <!-- 월별 교육과정 검색 -->
+    <action path="/crsMonth" name="extCrs_MonthPlan" type="loti.ext.crs.month.action.ExtCrs_MonthPlanAction" scope="request" unknown="false" roles="64,65">
+    	  <forward name="move" path="/ext/crs/month/ExtCrs_MonthPlan.jsp"/>
+    	  <forward name="list" path="/ext/crs/month/ExtCrs_PlanList.jsp"/>
+    	  <forward name="move_ance" path="/ext/crs/month/ExtCrs_AnceEduCrs.jsp"/>
+    	  <forward name="list_ance" path="/ext/crs/month/ExtCrs_PlanList.jsp"/>
+    </action>
+
+    <!-- 교육장 대여 신청 -->
+    <action path="/extMylcRoom" name="extMylcRoomForm" type="loti.ext.mylc.room.action.ExtMylc_RoomReqAction" scope="request" unknown="false" roles="86,140,141,142">
+	      <forward name="lentInfo"	path="/ext/mylc/room/ExtMylc_RoomReqInfo.jsp"/> <!-- 시설대여안내 -->
+	      <forward name="list"   	path="/ext/mylc/room/ExtMylc_RoomReq.jsp"/> <!-- 시설현황 -->
+	      <!-- 사용안함.
+	      <forward name="month"  	path="/ext/mylc/room/ExtMylc_RoomReqMonth.jsp"/>
+	      <forward name="info"   	path="/ext/mylc/room/ExtMylc_RoomReqQry.jsp"/>
+	      <forward name="insert" 	path="/extMylcRoom.act?task=list"/>
+	      <forward name="modify" 	path="/ext/mylc/room/ExtMylc_RoomReqMod.jsp"/>
+	      <forward name="update" 	path="/extMylcRoom.act?task=list"/>
+	      <forward name="create" 	path="/ext/mylc/room/ExtMylc_RoomReqMod.jsp"/>
+	      <forward name="delete" 	path="/extMylcRoom.act?task=list"/>
+	       -->
+    </action>
+
+<!-- ADD Start:2012/11/08:yunsh -->
+    <!-- 공지사항 게시판 -->
+    <action path="/extBordNotice" name="extBordNoticeForm" type="loti.svc.ref.notice.action.Svc_BoardNoticeAction" scope="request" unknown="false" roles="137" >
+	      <forward name="list"   	path="/ext/bord/notice/ExtBord_Notice.jsp"/>
+	      <forward name="info"   	path="/ext/bord/notice/ExtBord_NoticeQry.jsp"/>
+	      <forward name="insert" 	path="/extBordNotice.act?task=list"/>
+	      <forward name="modify" 	path="/ext/bord/notice/ExtBord_NoticeMod.jsp"/>
+	      <forward name="update" 	path="/extBordNotice.act?task=list"/>
+	      <forward name="create" 	path="/ext/bord/notice/ExtBord_NoticeMod.jsp"/>
+	      <forward name="delete" 	path="/extBordNotice.act?task=list"/>
+    </action>
+<!-- ADD End:2012/11/08:yunsh -->
+
+    <!-- Q&A 게시판 -->
+    <action path="/extBordQNA" name="extBordQNAForm" type="loti.svc.ref.qna.action.Svc_BoardQNAAction" scope="request" unknown="false" roles="79">
+	      <forward name="list"   	path="/ext/bord/qna/ExtBord_QNA.jsp"/>
+	      <forward name="info"   	path="/ext/bord/qna/ExtBord_QNAQry.jsp"/>
+	      <forward name="insert" 	path="/extBordQNA.act?task=list"/>
+	      <forward name="modify" 	path="/ext/bord/qna/ExtBord_QNAMod.jsp"/>
+	      <forward name="update" 	path="/extBordQNA.act?task=list"/>
+	      <forward name="create" 	path="/ext/bord/qna/ExtBord_QNAMod.jsp"/>
+	      <forward name="delete" 	path="/extBordQNA.act?task=list"/>
+	      <forward name="reply" 	path="/ext/bord/qna/ExtBord_QNAMod.jsp"/>
+    </action>
+
+    <!-- 자료실 게시판 -->
+    <action path="/extBordMorgue" name="extBordMorgueForm" type="loti.svc.ref.morgue.action.Svc_BoardMorgueAction" scope="request" unknown="false" roles="80">
+	      <forward name="list"   	path="/ext/bord/data/ExtBord_Morgue.jsp"/>
+	      <forward name="info"   	path="/ext/bord/data/ExtBord_MorgueQry.jsp"/>
+	      <forward name="insert" 	path="/extBordMorgue.act?task=list"/>
+	      <forward name="modify" 	path="/ext/bord/data/ExtBord_MorgueMod.jsp"/>
+	      <forward name="update" 	path="/extBordMorgue.act?task=list"/>
+	      <forward name="create" 	path="/ext/bord/data/ExtBord_MorgueMod.jsp"/>
+	      <forward name="delete" 	path="/extBordMorgue.act?task=list"/>
+    </action>
+
+    <!-- 교육후기 게시판 -->
+    <action path="/extBordAfNote" name="extBordAfNoteForm" type="loti.svc.ref.afnote.action.Svc_BoardAfNoteAction" scope="request" unknown="false" roles="81">
+	      <forward name="list"   	path="/ext/bord/afnote/ExtBord_AfNote.jsp"/>
+	      <forward name="info"   	path="/ext/bord/afnote/ExtBord_AfNoteQry.jsp"/>
+	      <forward name="insert" 	path="/extBordAfNote.act?task=list"/>
+	      <forward name="modify" 	path="/ext/bord/afnote/ExtBord_AfNoteMod.jsp"/>
+	      <forward name="update" 	path="/extBordAfNote.act?task=list"/>
+	      <forward name="create" 	path="/ext/bord/afnote/ExtBord_AfNoteMod.jsp"/>
+	      <forward name="delete" 	path="/extBordAfNote.act?task=list"/>
+    </action>
+
+    <!-- 과정요청 게시판 -->
+    <action path="/extCrs_ReqCrs" name="extCrs_ReqCrsForm" type="loti.ext.crs.req.action.ExtCrs_ReqCrsAction" scope="request" unknown="false" roles="83">
+	      <forward name="list"   	path="/ext/crs/req/ExtCrs_ReqCrs.jsp"/>
+	      <forward name="info"   	path="/ext/crs/req/ExtCrs_ReqCrsQry.jsp"/>
+	      <forward name="insert" 	path="/extCrs_ReqCrs.act?task=list"/>
+	      <forward name="modify" 	path="/ext/crs/req/ExtCrs_ReqCrsMod.jsp"/>
+	      <forward name="update" 	path="/extCrs_ReqCrs.act?task=list"/>
+	      <forward name="create" 	path="/ext/crs/req/ExtCrs_ReqCrsMod.jsp"/>
+	      <forward name="delete" 	path="/extCrs_ReqCrs.act?task=list"/>
+	      <forward name="reco" 		path="/ext/crs/req/ExtCrs_ReqCrsQry.jsp"/>
+	      <forward name="reply"		path="/ext/crs/req/ExtCrs_ReqCrsMod.jsp"/>
+    </action>
+
+    <!-- 다운로드 -->
+    <action path="/downLoad" type="fw.nexti.util.DownloadAction" scope="request" unknown="false">
+    </action>
+
+    <!-- 과정조회 -->
+    <action path="/extCrsCourse" name="extCrs_CourseFrom" type="loti.ext.crs.course.action.ExtCrs_CourseAction" scope="request" unknown="false" roles="87">
+	      <forward name="list" path="/ext/crs/course/ExtCrs_CourseList.jsp"/>
+	      <forward name="info" path="/ext/crs/course/Crs_CourseQry.jsp"/>
+	      <forward name="cyberinfo" path="/ext/crs/course/Crs_CourseCyberQry.jsp"/>
+    </action>
+
+    <!-- 수강내역 -->
+    <action path="/extMylcLecture" name="extMylcLectureForm" type="loti.ext.mylc.atnd.action.ExtMylc_LectureListAction" scope="request" unknown="false">
+	      <forward name="list"   	path="/ext/mylc/atnd/ExtMylc_LectureList.jsp"/>
+	      <forward name="info"   	path="/ext/mylc/atnd/ExtMylc_LectureList.jsp"/>
+	      <forward name="insert" 	path="/extMylcLecture.act?task=list"/>
+	      <forward name="modify" 	path="/ext/mylc/atnd/ExtMylc_LectureList.jsp"/>
+	      <forward name="update" 	path="/extMylcLecture.act?task=list"/>
+	      <forward name="create" 	path="/ext/mylc/atnd/ExtMylc_LectureList.jsp"/>
+	      <forward name="delete" 	path="/extMylcLecture.act?task=list"/>
+	      <forward name="scorelist"	path="/ext/mylc/atnd/ExtMylc_ScoreList.jsp"/>
+    </action>
+
+    <!-- 개인정보수정 -->
+    <action path="/extMainPrsn" name="extMainPrsnForm" type="loti.ext.main.prsn.action.ExtMain_MyInfoAction" scope="request" unknown="false" roles="66">
+	      <forward name="list"   	path="/ext/main/prsn/ExtMain_MyInfo.jsp"/>
+	      <forward name="info"   	path="/ext/main/prsn/ExtMain_MyInfo.jsp"/>
+	      <forward name="detail" 	path="/ext/main/prsn/ExtMain_MyInfo.jsp"/>
+	      <forward name="third" 	path="/ext/main/prsn/ExtMain_MyInfo.jsp"/>
+	      <forward name="insert" 	path="/extMainPrsn.act?task=list"/>
+	      <forward name="modify" 	path="/extMainPrsn.act?task=list"/>
+    </action>
+    
+    <!-- 설문조사 -->
+    <action path="/extMylcSurvey" name="extMylcSurveyForm" type="loti.ext.mylc.survey.action.ExtMylc_SurveyAction" scope="request" unknown="false" roles="82">
+	      <forward name="list"   	path="/ext/mylc/survey/ExtMylc_Survey.jsp"/>
+	      <forward name="info"   	path="/ext/mylc/survey/ExtMylc_SatisReply.jsp"/>
+    </action>    
+    
+    <!-- 설문조사 -->
+    <action path="/extMylcResearchList" name="extMylcResearchForm" type="loti.ext.mylc.survey.action.ExtMylc_ResearchListAction" scope="request" unknown="false" roles="82">
+	      <forward name="list"   	path="/ext/mylc/survey/ExtMylc_Research.jsp"/>
+    </action>  
+ 	</action-mappings>
+
+ 	<controller processorClass="fw.nexti.common.NewRequestProcessor" multipartClass="org.apache.struts.upload.DiskMultipartRequestHandler"/>
+</struts-config>

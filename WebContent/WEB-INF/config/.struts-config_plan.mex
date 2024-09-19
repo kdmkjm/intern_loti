@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/plnSurv.do" location="72,342" dimension="254,96" />
+  <StrutsActivity path="/eduPlan.do" location="498,0" dimension="242,96" />
+  <StrutsActivity path="/fixPlan.do" location="0,684" dimension="227,96" />
+  <StrutsActivity path="/crsOrg.do" location="327,684" dimension="227,96" />
+  <StrutsActivity path="/plnSurv.act" location="0,588" dimension="96,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurv_pop.jsp" location="196,588" dimension="207,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurv.jsp" location="503,588" dimension="181,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurvExcelUp.jsp" location="784,588" dimension="223,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlan.jsp" location="0,246" dimension="169,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlanMod.jsp" location="269,246" dimension="194,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlanCyberMod.jsp" location="563,246" dimension="225,51" />
+  <StrutsActivity path="/eduPlan.act" location="888,246" dimension="98,51" />
+  <StrutsActivity path="/common/dao_result.jsp" location="1086,246" dimension="162,51" />
+  <StrutsActivity path="/fixPlan.act" location="51,930" dimension="91,51" />
+  <StrutsActivity path="/pln/fix/Pln_PlanFix.jsp" location="372,930" dimension="154,51" />
+  <StrutsTransition id="/crsOrg.do,list,/pln/fix/Pln_PlanFix.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="468,780" />
+      <AbsolutePoint location="468,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,fix_plan,/fixPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="412,780" />
+      <AbsolutePoint location="412,900" />
+      <AbsolutePoint location="130,900" />
+      <AbsolutePoint location="130,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,copy,/plnSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="120,438" />
+      <AbsolutePoint location="120,498" />
+      <AbsolutePoint location="36,498" />
+      <AbsolutePoint location="36,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,delete,/plnSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="151,438" />
+      <AbsolutePoint location="151,528" />
+      <AbsolutePoint location="60,528" />
+      <AbsolutePoint location="60,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,excel_up,/plnSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="183,438" />
+      <AbsolutePoint location="183,558" />
+      <AbsolutePoint location="84,558" />
+      <AbsolutePoint location="84,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,insert,/eduPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="699,96" />
+      <AbsolutePoint location="699,156" />
+      <AbsolutePoint location="961,156" />
+      <AbsolutePoint location="961,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,excel,/fixPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="355,780" />
+      <AbsolutePoint location="355,870" />
+      <AbsolutePoint location="107,870" />
+      <AbsolutePoint location="107,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,modify_cyber,/pln/plan/Pln_EduPlanCyberMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="619,96" />
+      <AbsolutePoint location="619,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,move,/pln/fix/Pln_PlanFix.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="525,780" />
+      <AbsolutePoint location="525,810" />
+      <AbsolutePoint location="507,810" />
+      <AbsolutePoint location="507,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,search,/pln/survey/Pln_EduSurv_pop.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="215,438" />
+      <AbsolutePoint location="215,558" />
+      <AbsolutePoint location="299,558" />
+      <AbsolutePoint location="299,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,list,/pln/plan/Pln_EduPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="511,96" />
+      <AbsolutePoint location="511,126" />
+      <AbsolutePoint location="42,126" />
+      <AbsolutePoint location="42,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,list,/pln/survey/Pln_EduSurv.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="247,438" />
+      <AbsolutePoint location="247,528" />
+      <AbsolutePoint location="548,528" />
+      <AbsolutePoint location="548,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,create_cyber,/pln/plan/Pln_EduPlanCyberMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="646,96" />
+      <AbsolutePoint location="646,216" />
+      <AbsolutePoint location="731,216" />
+      <AbsolutePoint location="731,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/fixPlan.do,fix_plan,/fixPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="85,780" />
+      <AbsolutePoint location="85,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,delete,/eduPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="673,96" />
+      <AbsolutePoint location="673,186" />
+      <AbsolutePoint location="912,186" />
+      <AbsolutePoint location="912,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,excel,/plnSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="88,438" />
+      <AbsolutePoint location="88,468" />
+      <AbsolutePoint location="12,468" />
+      <AbsolutePoint location="12,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,create,/pln/plan/Pln_EduPlanMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="592,96" />
+      <AbsolutePoint location="592,216" />
+      <AbsolutePoint location="414,216" />
+      <AbsolutePoint location="414,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,move,/pln/survey/Pln_EduSurv.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="278,438" />
+      <AbsolutePoint location="278,498" />
+      <AbsolutePoint location="638,498" />
+      <AbsolutePoint location="638,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,copy_plan,/common/dao_result.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="726,96" />
+      <AbsolutePoint location="726,126" />
+      <AbsolutePoint location="1167,126" />
+      <AbsolutePoint location="1167,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/fixPlan.do,move,/pln/fix/Pln_PlanFix.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="198,780" />
+      <AbsolutePoint location="198,810" />
+      <AbsolutePoint location="430,810" />
+      <AbsolutePoint location="430,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,modify,/pln/plan/Pln_EduPlanMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="565,96" />
+      <AbsolutePoint location="565,186" />
+      <AbsolutePoint location="317,186" />
+      <AbsolutePoint location="317,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/fixPlan.do,excel,/fixPlan.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="28,780" />
+      <AbsolutePoint location="28,810" />
+      <AbsolutePoint location="62,810" />
+      <AbsolutePoint location="62,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/plnSurv.do,excel_view,/pln/survey/Pln_EduSurvExcelUp.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="310,438" />
+      <AbsolutePoint location="310,468" />
+      <AbsolutePoint location="895,468" />
+      <AbsolutePoint location="895,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/fixPlan.do,list,/pln/fix/Pln_PlanFix.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="141,780" />
+      <AbsolutePoint location="141,840" />
+      <AbsolutePoint location="391,840" />
+      <AbsolutePoint location="391,930" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/eduPlan.do,move,/pln/plan/Pln_EduPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="538,96" />
+      <AbsolutePoint location="538,156" />
+      <AbsolutePoint location="126,156" />
+      <AbsolutePoint location="126,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

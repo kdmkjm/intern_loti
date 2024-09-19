@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtCrs_MonthPlan">
+
+	<typeAlias alias="extCrs_MonthPlan" type="loti.ext.crs.month.model.ExtCrs_MonthPlan"/>
+
+	<!-- 월별 교육과정 조회쿼리 -->
+	<select id="selectExtCrs_MonthPlanList" parameterClass="extCrs_MonthPlan" resultClass="extCrs_MonthPlan">
+		SELECT     
+            ROWNUM NUM,
+            COURSECODE    ,
+            YEAR          ,
+            COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+            EDUCOUNT      ,
+            CRSTYPE1         ,
+            EDUTARGET,
+            TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'MM.DD') EDUFROMTO,
+            CASE WHEN CRSTYPE1 = '00003' 
+                 THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','-')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+                 ELSE '-' END REQFROMTO ,
+            BASEYYMM      ,
+            DAYCOUNT  EDUDAY,
+           (SELECT NAME FROM  SYS_SYSTEMCODE WHERE  CODEDIV LIKE '00021' AND  CODE NOT LIKE '00000' AND  CODE = A.LECROOMNO) LECROOMNO,
+           (SELECT USERNAME FROM CMN_PUBWORKER WHERE JUMINNO = A.CHARGER) CHARGER
+      FROM  OPR_LECTURE A
+     WHERE (SUBSTR(EDUFROM, 0, 6) LIKE #baseYYMM# AND CRSTYPE1 NOT LIKE '00003') 
+        OR (BASEYYMM LIKE #baseYYMM# AND CRSTYPE1 LIKE '00003') 
+  ORDER BY  EDUFROM, EDUTO, COURSENAME		  
+	</select>
+
+	<!-- 과정별 교육과정 조회쿼리 -->
+	<select id="selectExtCrs_AncePlanList" parameterClass="extCrs_MonthPlan" resultClass="extCrs_MonthPlan">
+		SELECT     
+            ROWNUM NUM,
+            COURSECODE    ,
+            YEAR          ,
+            COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+            EDUCOUNT      ,
+            CRSTYPE1         ,
+            EDUTARGET,
+            TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'MM.DD') EDUFROMTO,
+            CASE WHEN CRSTYPE1 = '00003' 
+                 THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','-')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+                 ELSE '-' END REQFROMTO ,
+            BASEYYMM      ,
+            DAYCOUNT  EDUDAY,
+            B.NAME LECROOMNO,
+            C.USERNAME CHARGER
+      FROM  OPR_LECTURE A, 
+           (SELECT 
+                    CODE, CODEDIV, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV LIKE '00021'
+               AND  CODE NOT LIKE '00000'
+           ) B,
+           (SELECT
+                    JUMINNO, USERNAME
+              FROM  CMN_PUBWORKER
+             WHERE  ISADMIN LIKE 'Y'
+                OR  ISEDUCHARGER LIKE 'Y'
+           ) C
+     WHERE  A.LECROOMNO = B.CODE(+)
+       AND  A.CHARGER = C.JUMINNO(+)
+       AND  YEAR = #year#
+	  		 <isEqual property="crsType1" compareValue="00001">
+				   AND (CRSTYPE1 LIKE '00001'   OR   CRSTYPE1 LIKE '00004')   
+				 </isEqual>
+				 <isEqual property="crsType1" compareValue="00002">
+				   AND	CRSTYPE1 LIKE '00002'   
+				   AND  CRSTYPE2 NOT LIKE '00004' 
+				   AND	CRSTYPE2 NOT LIKE '00005' 
+				 </isEqual>
+				 <isEqual property="crsType1" compareValue="00003">
+				   AND	CRSTYPE1 LIKE '00002'   
+				   AND  CRSTYPE2 LIKE '00004'   
+				 </isEqual>
+				 <isEqual property="crsType1" compareValue="00004">
+				   AND	CRSTYPE1 LIKE '00002'   
+				   AND  CRSTYPE2 LIKE '00005'   
+				 </isEqual>
+				 <isEqual property="crsType1" compareValue="00005">
+				   AND	CRSTYPE1 LIKE '00003'   
+				 </isEqual>
+			ORDER BY	EDUFROM, EDUTO, COURSENAME
+	</select>
+</sqlMap>
+
+

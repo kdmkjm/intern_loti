@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="TestMenu">
+
+	<typeAlias alias="testMenu" type="loti.sys.test.model.SysMenu"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysMenu" parameterClass="testMenu" resultClass="testMenu">
+			SELECT
+				   		MENUNO   ,
+				   		PARENT   ,
+				   		MENUNAME ,
+				   		PROGNAME ,
+				   		EXECPATH ,
+				   		PROGID   ,
+				   		PARMS    ,
+				   		ICONPATH ,
+				   		MENUTYPE ,
+				   		EXECTYPE ,
+				   		DISPORDER,
+				   		USE
+			  FROM TEST_MENUINFO
+			  <isNotEmpty prepend="WHERE" property="menuNo">
+				MENUNO = #menuNo#
+			  </isNotEmpty>
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSysMenuList" parameterClass="testMenu" resultClass="testMenu">
+			SELECT
+				   		MENUNO   ,
+				   		PARENT   ,
+				   		MENUNAME ,
+				   		PROGNAME ,
+				   		EXECPATH ,
+				   		PROGID   ,
+				   		PARMS    ,
+				   		ICONPATH ,
+				   		MENUTYPE ,
+				   		EXECTYPE ,
+				   		DISPORDER,
+				   		USE
+			  FROM TEST_MENUINFO
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!--  페이징용 레코드 수 Count -->
+	<select id="selectSysMenuListCount" parameterClass="testMenu" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TEST_MENUINFO
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+		</isNotEmpty>
+
+	</select>
+
+	<!--  입력/수정 구분용 레코드 수 Count -->
+	<select id="selectSysMenuCount" parameterClass="testMenu" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TEST_MENUINFO
+		WHERE MENUNO = #oldMenuNo#
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSysMenu" parameterClass="testMenu">
+		INSERT INTO TEST_MENUINFO (
+			   			MENUNO   ,
+			   			PARENT   ,
+			   			MENUNAME ,
+			   			PROGNAME ,
+			   			EXECPATH ,
+			   			PROGID   ,
+			   			PARMS    ,
+			   			ICONPATH ,
+			   			MENUTYPE ,
+			   			EXECTYPE ,
+			   			DISPORDER,
+			   			USE
+		) VALUES (
+						#menuNo#   ,
+			   			#parent#   ,
+			   			#menuName# ,
+			   			#progName# ,
+			   			#execPath# ,
+			   			#progId#   ,
+			   			#parms#    ,
+			   			#iconPath# ,
+			   			#menuType# ,
+			   			#execType# ,
+			   			#dispOrder#,
+			   			#use#
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSysMenu" parameterClass="testMenu">
+		UPDATE TEST_MENUINFO SET
+			   MENUNO    = #menuNo#   ,
+			   PARENT    = #parent#   ,
+			   MENUNAME  = #menuName# ,
+			   PROGNAME  = #progName# ,
+			   EXECPATH  = #execPath# ,
+			   PROGID    = #progId#   ,
+			   PARMS     = #parms#    ,
+			   ICONPATH  = #iconPath# ,
+			   MENUTYPE  = #menuType# ,
+			   EXECTYPE  = #execType# ,
+			   DISPORDER = #dispOrder#,
+			   USE       = #use#
+			<isNotEmpty prepend="WHERE" property="oldMenuNo">
+				MENUNO = #oldMenuNo#
+			</isNotEmpty>
+			<isEmpty prepend="WHERE" property="oldMenuNo">
+				MENUNO = #menuNo#
+			</isEmpty>
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSysMenu" parameterClass="testMenu">
+		DELETE FROM TEST_MENUINFO
+		<isNotEmpty prepend="WHERE" property="menuNo">
+				MENUNO = #menuNo#
+		</isNotEmpty>
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="menuno">
+				MENUNO = #menuno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parent">
+				PARENT = #parent#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menuname">
+				MENUNAME = #menuname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progname">
+				PROGNAME = #progname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="execpath">
+				EXECPATH = #execpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progid">
+				PROGID = #progid#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parms">
+				PARMS = #parms#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="iconpath">
+				ICONPATH = #iconpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menutype">
+				MENUTYPE = #menutype#
+				</isNotEmpty>
+
+
+				<isNotEmpty prepend="AND" property="exectype">
+				EXECTYPE = #exectype#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="disporder">
+				DISPORDER = #disporder#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="use">
+				USE = #use#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

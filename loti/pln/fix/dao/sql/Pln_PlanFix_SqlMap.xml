@@ -1,0 +1,475 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Pln_PlanFix">
+
+	<typeAlias alias="pln_PlanFix" type="loti.pln.fix.model.Pln_PlanFix"/>
+	<typeAlias alias="oc_DataBean" type="loti.insarang.conn.OC_DataBean"/>
+	<typeAlias alias="fileDataBean" type="loti.insarang.conn.FileDataBean"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPln_PlanFix" parameterClass="pln_PlanFix" resultClass="pln_PlanFix">
+			SELECT
+				   		APPLYYEAR     ,
+				   		CRSCLUMPCODE  ,
+				   		CRSTYPE1      ,
+				   		CRSTYPE2      ,
+				   		CRSTYPE3      ,
+				   		CRSCLUMPNAME  ,
+				   		EDUTARGET     ,
+				   		CHARGER       ,
+				   		INSUSER       ,
+				   		INSDATE       ,
+				   		UPDUSER       ,
+				   		EDUOBJECTIVES ,
+				   		UPDDATE       ,
+				   		EDUWAY        ,
+				   		CHPTCOUNT     ,
+				   		APVHOUR       ,
+				   		CYBERPRGSRATE ,
+				   		CYBERMINHOUR  ,
+				   		CYBERFINBASE  ,
+				   		CYBERFINNOTICE,
+				   		OPRDEPART     ,
+				   		OPRDEPTTELNO  ,
+				   		SENDER        ,
+				   		SENDDATE
+			  FROM PLN_EDUPLAN
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPln_PlanFixList" parameterClass="pln_PlanFix" resultClass="pln_PlanFix">
+		SELECT 	
+            A.CRSCLUMPCODE,
+            CRSCLUMPNAME  ,
+            EDUTARGET     ,
+            B.STDNUMBER	  ,
+            A.DAYCOUNT 	  ,
+            B.COURSECOUNT ,
+            DECODE(CRSTYPE1,'00003','Y','N') ISCYBER
+      FROM  PLN_EDUPLAN A,
+				   (SELECT 
+		                    CRSCLUMPCODE,
+		                    MAX(TO_DATE(EDUTO,'YYYYMMDD') - TO_DATE(EDUFROM,'YYYYMMDD') + 1) DAYCOUNT, 
+		                    SUM(EDUCOUNT) STDNUMBER , 
+		                    COUNT(CRSCLUMPCODE) COURSECOUNT
+				      FROM  PLN_COURSETURN
+			      GROUP BY  CRSCLUMPCODE
+				   ) B
+	   WHERE  A.CRSCLUMPCODE = B.CRSCLUMPCODE(+)
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="selPlanYear">
+				APPLYYEAR = #selPlanYear#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType1">
+				CRSTYPE1 = #crsType1#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType2">
+				CRSTYPE2 = #crsType2#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType3">
+				CRSTYPE3 = #crsType3#
+			</isNotEmpty>
+			ORDER BY CRSCLUMPNAME
+	</select>
+
+
+	<!-- 엑셀 다운로드 목록조회쿼리  -->
+	<select id="selectPln_PlanFixListExcel" parameterClass="pln_PlanFix" resultClass="pln_PlanFix">
+
+               SELECT       APPLYYEAR       COL_A,
+                            CRSCLUMPCODE    COL_B,
+                            CRSCLUMPNAME    COL_C,
+                            EDUTARGET       COL_D,
+                            DAYCOUNT        COL_E,
+                            COURSECOUNT     COL_F,
+                            STDNUMBER       COL_G
+               FROM (
+                       SELECT       0          NUM,
+                                    '적용년도'  APPLYYEAR,
+                                    '과정코드'  CRSCLUMPCODE,
+                                    '과정명'    CRSCLUMPNAME,
+                                    '교육대상'  EDUTARGET,
+                                    '일수'      DAYCOUNT,
+                                    '회수'      COURSECOUNT,
+                                    '교육인원'  STDNUMBER
+
+                       FROM        DUAL
+                       UNION
+                       SELECT ROWNUM NUM, C.*
+                       FROM (
+                               SELECT APPLYYEAR     ,
+                                      A.CRSCLUMPCODE  ,
+                                      CRSCLUMPNAME  ,
+                                      EDUTARGET     ,
+                                      TO_CHAR(A.DAYCOUNT)         DAYCOUNT,
+                                      TO_CHAR(B.COURSECOUNT)    COURSECOUNT,
+                                      TO_CHAR(B.STDNUMBER)         STDNUMBER 
+                                 FROM PLN_EDUPLAN A,
+                                      (
+	                                      SELECT CRSCLUMPCODE,
+	                                        		 SUM(TO_DATE(EDUTO,'YYYYMMDD') - TO_DATE(EDUFROM,'YYYYMMDD') + 1) DAYCOUNT, 
+	                                        		 SUM(EDUCOUNT) STDNUMBER , 
+	                                        		 COUNT(CRSCLUMPCODE) COURSECOUNT
+	                                        FROM PLN_COURSETURN
+	                                       GROUP BY CRSCLUMPCODE
+                                      ) B
+                              WHERE A.CRSCLUMPCODE = B.CRSCLUMPCODE(+)
+                              AND APPLYYEAR = #selPlanYear#
+                              ORDER BY CRSCLUMPNAME
+                            ) C
+                      )
+                      ORDER BY NUM
+	</select>
+	
+		<!-- 목록조회쿼리 -->
+	<select id="selectPln_PlanFixSendList" parameterClass="pln_PlanFix" resultClass="oc_DataBean">
+			SELECT A.CRSCLUMPCODE||LPAD(A.TURNNO,2,'0') COURSECODE,
+			       B.CRSCLUMPNAME COURSENAME,
+			       C.EDUGBN,
+			       A.EDUFROM,
+			       A.EDUTO,
+			       ((SELECT SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) FROM PLN_SUBJECT D WHERE A.CRSCLUMPCODE = D.CRSCLUMPCODE)*60) EDUHOUR,
+			       B.EDUCOST,
+			       A.EDUCOUNT,
+			       B.STAYFLAG,
+			       B.LUNCHFLAG,
+			       TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') SENDDATE,
+			       B.EDUTARGET,
+			       C.EDUTYPE,
+			       DECODE(B.CRSTYPE1,'00003' ,'2', '1') EDUMETHOD
+			  FROM PLN_COURSETURN A,
+			       PLN_EDUPLAN B,
+			       (SELECT TYPE1, MAX(EDUGBN) EDUGBN, MAX(EDUTYPE) EDUTYPE FROM CMN_COURSETYPE GROUP BY TYPE1) C
+			 WHERE A.CRSCLUMPCODE = B.CRSCLUMPCODE
+			   AND B.CRSTYPE1 = C.TYPE1
+			<isNotEmpty prepend="AND" property="selPlanYear">
+				B.APPLYYEAR = #selPlanYear#
+			</isNotEmpty>
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPln_PlanFixListCount" parameterClass="pln_PlanFix" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PLN_EDUPLAN
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPln_PlanFixCount" parameterClass="pln_PlanFix" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM 	PLN_EDUPLAN
+		WHERE 	APPLYYEAR = #selPlanYear#
+		AND 	SENDDATE IS NOT NULL
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	
+	<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE       
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD') 
+		)
+	</insert>
+
+
+	<!-- 인사행정 전송파일 정보 기록 (적용년도 기준) -->
+	<update id="updatePln_PlanFix" parameterClass="pln_PlanFix">
+		UPDATE PLN_EDUPLAN SET
+			   SENDDATE      	= 	TO_CHAR(SYSDATE,'YYYYMMDD')       ,
+			   SENDER			=	#sender#
+		WHERE APPLYYEAR 		= 	#applyYear#
+	</update>
+	
+	<!--  확정 계획서 과정마스터 저장 -->
+	<update id="updateOpr_Lecture" parameterClass="pln_PlanFix">
+		INSERT INTO OPR_LECTURE
+		(
+		        COURSECODE,
+		        YEAR,
+		        COURSENAME,
+		        CRSTYPE1,
+		        CRSTYPE2,
+		        CRSTYPE3,
+		        EDUOBJECTIVES,
+		        EDUWAY,
+		        EDUTARGET,
+		        EDUCOUNT,
+		        CHARGER,
+		        LECROOMNO,
+		        EDUFROM,
+		        EDUTO,
+		        REQFROM,
+		        REQTO,
+		        CHPTCOUNT,
+		        APVHOUR,
+		        CYBERPRGSRATE,
+		        CYBERMINHOUR,
+		        CYBERFINBASE,
+		        CYBERFINNOTICE,
+		        OPRDEPART,
+		        OPRDEPTTELNO,
+		        INSUSER,
+		        INSDATE,
+		        UPDUSER,
+		        UPDDATE,
+		        MODIFYFLAG,
+		        BASEYYMM,
+		        DAYCOUNT,
+		        TERMDESC
+		)
+       SELECT P.CRSCLUMPCODE || LPAD(C.TURNNO,2,'0') || '000' COURSECODE,
+              P.APPLYYEAR YEAR,
+              P.CRSCLUMPNAME COURSENAME,
+              P.CRSTYPE1,
+              P.CRSTYPE2,
+              P.CRSTYPE3,
+              P.EDUOBJECTIVES,
+              P.EDUWAY,
+              P.EDUTARGET,
+              C.EDUCOUNT,
+              P.CHARGER,
+              C.LECROOMNO,
+              C.EDUFROM,
+              C.EDUTO,
+              C.REQFROM,
+              C.REQTO,
+              P.CHPTCOUNT,
+              P.APVHOUR,
+              P.CYBERPRGSRATE,
+              P.CYBERMINHOUR,
+              P.CYBERFINBASE,
+              P.CYBERFINNOTICE,
+              P.OPRDEPART,
+              P.OPRDEPTTELNO,
+              #sender#,
+              TO_CHAR(SYSDATE,'YYYYMMDD'),
+              #sender#,
+              TO_CHAR(SYSDATE,'YYYYMMDD'),
+              '',
+              C.APPLYYYMM,
+              P.DAYCOUNT,
+              C.TERMDESC
+         FROM PLN_EDUPLAN P, PLN_COURSETURN C
+        WHERE P.CRSCLUMPCODE = C.CRSCLUMPCODE(+)
+          AND APPLYYEAR = #applyYear#
+
+	</update>
+
+	<!--  과정 마스터  삭제 -->
+	<delete id="deleteOpr_Lecture" parameterClass="pln_PlanFix">
+		DELETE 	FROM OPR_LECTURE
+		WHERE	YEAR = #applyYear#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  확정 계획서 과목  저장 -->
+	<update id="updateOpr_Subject" parameterClass="pln_PlanFix">
+				INSERT INTO OPR_SUBJECT
+				SELECT  B.COURSECODE    ,
+				        P.SUBJSEQ       ,
+				        P.SUBJNAME      ,
+				        P.SUBJTYPE      ,
+				        P.LECHOUR       ,
+				        P.PATHOUR    		,
+				        P.ETCHOUR				,
+				        P.EDUCONTENTS   ,
+				        P.ORD
+				FROM PLN_SUBJECT P ,(
+				                    SELECT COURSECODE , SUBSTR(COURSECODE,0,10) CRSCLUMPCODE
+				                    FROM OPR_LECTURE
+				                    WHERE YEAR = #applyYear#
+				                    ) B
+				WHERE P.CRSCLUMPCODE = B.CRSCLUMPCODE
+	</update>
+
+	<!--  확정 계획서 과목  저장[OPR_LECSUBJECT] -->
+	<update id="updateOpr_LecSubject" parameterClass="pln_PlanFix">
+				INSERT INTO OPR_LECSUBJECT
+				SELECT  B.COURSECODE    ,
+				        P.SUBJSEQ       ,
+				        P.SUBJNAME      ,
+				        P.SUBJTYPE      ,
+				        P.LECHOUR       ,
+				        P.PATHOUR    		,
+				        P.ETCHOUR				,
+				        P.EDUCONTENTS   ,
+				        P.ORD
+				FROM PLN_SUBJECT P ,(
+				                    SELECT COURSECODE , SUBSTR(COURSECODE,0,10) CRSCLUMPCODE
+				                    FROM OPR_LECTURE
+				                    WHERE YEAR = #applyYear#
+				                    ) B
+				WHERE P.CRSCLUMPCODE = B.CRSCLUMPCODE
+	</update>
+	
+	<!--  확정 계획서 과목 삭제 -->
+	<delete id="deleteOpr_Subject" parameterClass="pln_PlanFix">
+		DELETE FROM OPR_SUBJECT
+		WHERE SUBSTR(COURSECODE,4,4) = #applyYear#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  확정 계획서 과목 삭제[OPR_LECSUBJECT] -->
+	<delete id="deleteOpr_LecSubject" parameterClass="pln_PlanFix">
+		DELETE FROM OPR_LECSUBJECT
+		WHERE SUBSTR(COURSECODE,4,4) = #applyYear#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  확정 계획서 시간표 삭제 -->
+	<delete id="deleteOpr_TimeTable" parameterClass="pln_PlanFix">
+		DELETE FROM OPR_TIMETABLE
+		WHERE SUBSTR(COURSECODE,4,4) = #applyYear#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!--  레코드 삭제 -->
+	<delete id="deletePln_PlanFix" parameterClass="pln_PlanFix">
+		DELETE FROM PLN_EDUPLAN
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="applyyear">
+				APPLYYEAR = #applyyear#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crsclumpcode">
+				CRSCLUMPCODE = #crsclumpcode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype1">
+				CRSTYPE1 = #crstype1#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype2">
+				CRSTYPE2 = #crstype2#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype3">
+				CRSTYPE3 = #crstype3#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crsclumpname">
+				CRSCLUMPNAME = #crsclumpname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="edutarget">
+				EDUTARGET = #edutarget#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="charger">
+				CHARGER = #charger#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upduser">
+				UPDUSER = #upduser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduobjectives">
+				EDUOBJECTIVES = #eduobjectives#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upddate">
+				UPDDATE = #upddate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduway">
+				EDUWAY = #eduway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="chptcount">
+				CHPTCOUNT = #chptcount#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="apvhour">
+				APVHOUR = #apvhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberprgsrate">
+				CYBERPRGSRATE = #cyberprgsrate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberminhour">
+				CYBERMINHOUR = #cyberminhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinbase">
+				CYBERFINBASE = #cyberfinbase#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinnotice">
+				CYBERFINNOTICE = #cyberfinnotice#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepart">
+				OPRDEPART = #oprdepart#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepttelno">
+				OPRDEPTTELNO = #oprdepttelno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="sender">
+				SENDER = #sender#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="senddate">
+				SENDDATE = #senddate#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

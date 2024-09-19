@@ -1,0 +1,2178 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_ProfInfo">
+
+	<typeAlias alias="prf_ProfInfo" 	type="loti.prf.baseinfo.model.Prf_ProfInfo"/>
+	<typeAlias alias="prf_ProfCareer" type="loti.prf.baseinfo.model.Prf_ProfCareer"/>
+	<typeAlias alias="prf_ProfSchool" type="loti.prf.baseinfo.model.Prf_ProfSchool"/>
+	<typeAlias alias="prf_ProfThesis" type="loti.prf.baseinfo.model.Prf_ProfThesis"/>
+
+	<typeAlias alias="Crs_Course" type="loti.crs.req.model.Crs_Course"/>
+	<typeAlias alias="Crs_TimeTblCourse" type="loti.crs.timetbl.model.Crs_TimeTblCourse"/>
+
+
+	<!-- 기본정보조회쿼리 [prf_ProfInfo] -->
+	<select id="selectPrf_ProfInfo" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT
+			PROFESSORNO
+			, LECTURETYPE
+			, PROFNAME
+			, PROFNAME2
+			, JUMINNO
+			, EMAIL
+			, HOME_PHONE
+			, CELLPHONE
+			, HOME_ZIPCODE
+			, HOME_ADDRESS
+			, BANKCODE
+			, ACCOUNTNO
+			, WORKPLACE
+			, WORKPOS
+			, ISINNERPROF
+			, PROFLEVEL
+			, WORK_PHONE
+			, WORK_FAX
+			, WORK_ZIPCODE
+			, WORK_ADDRESS
+			, PROFINTROFILE
+			, SUBSTR(PROFINTROFILE , 17, LENGTH(PROFINTROFILE)) REALFILENAME
+			, SUBSTR(PROFINTROFILE , INSTR(PROFINTROFILE , '.' , -1) + 1) REALFILETYPE
+			, REMARKS
+			, INSUSER
+			, RENEWUSER
+			, JOBCODE
+			, TO_CHAR(TO_DATE(INSDATE ,'YYYYMMDD') , 'YYYY-MM-DD') INSDATE
+			, TO_CHAR(TO_DATE(RENEWDATE ,'YYYYMMDD') , 'YYYY-MM-DD') RENEWDATE
+			, DELYN
+			, INFODELYN
+			, GENDER
+			, SCHOOLNAME
+			, SPECIALITY
+			, DEGREE DEGREEE
+			, AREACODE
+			, PROFTYPE
+			, INCOMETYPE
+			, CORPORATENUMBER
+			, profho
+			, career
+			, teach
+		FROM PRF_PROFESSOR
+		WHERE PROFESSORNO = #professorNo#
+	</select>
+
+	<!-- 학력조회쿼리 [prf_ProfSchool] -->
+	<select id="selectPrf_ProfSchoolList" parameterClass="prf_ProfInfo" resultClass="prf_ProfSchool">
+			SELECT
+			        P_SL.PROFESSORNO,
+			        P_SL.SEQNO,
+			        P_SL.YEAR,
+			        P_SL.SCHOOLNAME,
+			        P_SL.SPECIALTY,
+			        P_SL.DEGREE
+			FROM    PRF_SCHOOLLOG P_SL,
+			        PRF_PROFESSOR P_PROF
+			WHERE   P_SL.PROFESSORNO = P_PROF.PROFESSORNO
+			AND   P_SL.PROFESSORNO   = #professorNo#
+	</select>
+
+	<!-- 경력조회쿼리 [prf_ProfCareer] -->
+	<select id="selectPrf_ProfCareerList" parameterClass="prf_ProfInfo" resultClass="prf_ProfCareer">
+			SELECT
+					    P.PROFESSORNO,
+					    P.SEQNO,
+					    P.FROMDATE  ,
+					    P.ORGANNAME,
+					    P.POSITION
+			FROM		PRF_CAREER P
+			WHERE		P.PROFESSORNO   = #professorNo#
+	</select>
+
+	<!-- 논저조회쿼리 [prf_ProfThesis] -->
+	<select id="selectPrf_ProfThesisList" parameterClass="prf_ProfInfo" resultClass="prf_ProfThesis">
+		SELECT
+		        P.PROFESSORNO,
+		        P.SEQNO,
+		        P.THESIS
+		FROM    PRF_THESIS P
+		WHERE	P.PROFESSORNO   = #professorNo#
+	</select>
+
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPrf_ProfInfoList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT
+			PROFESSORNO
+			, PROFNAME
+			, JUMINNO
+			, EMAIL
+			, CELLPHONE
+			, LECTURETYPE
+			, WORKPLACE
+			, WORKPOS
+			, C.NAME JOBCODE
+			, D.NAME AREACODE
+			, PROFINTROFILE
+			, SUBSTR(PROFINTROFILE , 17 , LENGTH(PROFINTROFILE)) REALFILENAME
+			, LOWER(SUBSTR(PROFINTROFILE , INSTR(PROFINTROFILE , '.' , -1) + 1)) REALFILETYPE
+			, (SELECT NVL(COUNT(*),0) FROM PRF_LECTHIST WHERE PROFESSORNO = P.PROFESSORNO)
+				+ (SELECT NVL(COUNT(*),0) FROM OPR_LECTPROF WHERE PROFNO = P.PROFESSORNO) LECTCOUNT
+      FROM  PRF_PROFESSOR P,
+           (SELECT  CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00031') C,
+             
+           <!-- (SELECT  CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00032') D -->
+             (SELECT areano   AS CODE
+                   , areaname AS NAME
+                FROM PRF_AREA) D
+     WHERE
+     	NVL(P.DELYN,'N') LIKE 'N'
+     	AND p.jobcode = c.code(+)
+     	AND p.areacode = d.code(+)
+		<isNotEmpty property="searchName">
+			 AND P.PROFNAME like '%' || #searchName# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchAreaCode">
+			AND P.AREACODE = #searchAreaCode#
+		</isNotEmpty>
+		<isNotEmpty property="searchProfLevel">
+			 AND P.PROFLEVEL like '%' || #searchProfLevel# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchGradeCode">
+			 AND P.JOBCODE like '%' || #searchGradeCode# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchCellPhone">
+			 AND REPLACE(P.CELLPHONE, '-', '') LIKE '%' || #searchCellPhone# || '%'
+		</isNotEmpty>
+		<isNotEmpty property="searchCourseName">
+			AND P.PROFESSORNO IN (
+				SELECT PROFNO
+				  FROM OPR_LECTPROF P, OPR_LECTURE L
+				 WHERE P.COURSECODE = L.COURSECODE
+				   AND P.LECTUREFLAG = 'Y'
+				   AND L.COURSENAME LIKE '%'||#searchCourseName#||'%'
+				UNION ALL
+				SELECT PROFESSORNO
+				  FROM PRF_LECTHIST
+				 WHERE COURSENAME LIKE '%'||#searchCourseName#||'%')
+		</isNotEmpty>
+		<isNotEmpty property="searchSubjName">
+			AND P.PROFESSORNO IN (
+				SELECT PROFNO
+				  FROM OPR_LECTPROF P, OPR_TIMETABLE T, OPR_SUBJECT S
+				 WHERE P.COURSECODE = T.COURSECODE
+				   AND P.LECTDATE = T.LECTDATE
+				   AND P.TIMESEQ = T.TIMESEQ
+				   AND T.COURSECODE LIKE S.COURSECODE || '%'
+				   AND T.SUBJSEQ = S.SUBJSEQ
+				   AND P.LECTUREFLAG = 'Y'
+				   AND S.SUBJNAME LIKE '%' || #searchSubjName# || '%'
+				UNION ALL
+				SELECT PROFESSORNO
+				  FROM PRF_LECTHIST
+				 WHERE  SUBJNAME LIKE '%' || #searchSubjName# || '%')
+		</isNotEmpty>
+		<isNotEmpty property="searchFromDate">
+		<![CDATA[
+			AND P.PROFESSORNO IN (
+				SELECT PROFNO
+				  FROM OPR_LECTPROF
+				 WHERE TO_DATE(LECTDATE, 'YYYYMMDD') <= TO_DATE(#searchFromDate#, 'YYYY-MM')
+				   AND LECTUREFLAG = 'Y'
+				UNION ALL
+				SELECT PROFESSORNO
+				  FROM PRF_LECTHIST
+				 WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') >= TO_DATE(#searchFromDate#,'YYYY-MM')
+				)
+		]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchToDate">
+		<![CDATA[
+			AND P.PROFESSORNO IN (
+				SELECT PROFNO
+				  FROM OPR_LECTPROF
+				 WHERE TO_DATE(LECTDATE, 'YYYYMMDD') <= TO_DATE(#searchToDate#, 'YYYY-MM')
+				UNION ALL
+				SELECT PROFESSORNO
+				  FROM PRF_LECTHIST
+				 WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') <= TO_DATE(#searchToDate#,'YYYY-MM')
+				)
+		]]>
+		</isNotEmpty>
+		<isNotEmpty property="searchLecType">
+			AND P.PROFTYPE = #searchLecType#
+		</isNotEmpty>
+		ORDER BY	PROFNAME
+	</select>
+
+
+	<!-- 강사 등급별 목록 조회 -->
+	<select id="selectPrf_ProfGradeList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+    SELECT
+            A.PROFLEVEL,
+            A.LEVELNAME,
+            DECODE(A.STDHOUR, '', '', A.STDHOUR||'시간'||TO_CHAR(A.BASEPAY, '999,999'))||'원' PRICE1,
+            DECODE(A.STDHOUR, '', '', A.STDHOUR||'시간 초과시간당'||TO_CHAR(A.EXCEEDPAY, '999,999')||'원') PRICE2,
+            B.COUNTPROF,
+            B.LECTHOUR,
+            B.LECTPAY/1000 LECTPAY
+      FROM  PRF_PAYTABLE A,
+           (SELECT
+                    PROFLEVEL,
+                    COUNT(PROFLEVEL) COUNTPROF,
+                    SUM(LECTHOUR) LECTHOUR,
+                    SUM(LECTPAY) LECTPAY
+              FROM  PRF_LECTPAY
+             WHERE  LECTDATE BETWEEN REPLACE(#searchFromDate#, '-', '') AND REPLACE(#searchToDate#, '-', '')
+          GROUP BY  PROFLEVEL) B
+     WHERE  A.PROFLEVEL = B.PROFLEVEL
+  ORDER BY  DISPORDER
+	</select>
+
+
+	<!-- 강사 등급별 목록 합계 조회 -->
+	<select id="selectPrf_ProfGradeTotalList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT
+				COUNT(PROFLEVEL) COUNTPROF,
+				SUM(LECTHOUR) LECTHOUR,
+				SUM(LECTPAY)/1000 LECTPAY
+			FROM  PRF_LECTPAY
+		 WHERE  LECTDATE BETWEEN REPLACE(#searchFromDate#, '-', '') AND REPLACE(#searchToDate#, '-', '')
+	</select>
+
+
+	<!-- 강사 출강정보 목록 조회 -->
+	<select id="selectPrf_LectureInfoList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		<!-- SELECT PROFESSORNO, COURSENAME, COURSECODE, LECTDATE, SUBJNAME, FROMTIME, TOTIME, LECTTIME LECTIME, LECTPAY, LECTURETYPE
+		FROM PRF_LECTHIST
+		WHERE PROFESSORNO = #professorNo#
+		ORDER BY LECTDATE DESC, COURSECODE -->
+        SELECT
+                D.PROFESSORNO
+                , D.PROFNAME
+                , D.WORKPLACE
+                , D.LECTDATE
+                , D.TOTIME
+                , D.FROMTIME
+                , D.LECTIME
+                , A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME
+                , D.TIMESUBJECT AS SUBJNAME
+                , A.COURSECODE
+          FROM  OPR_LECTURE A,
+               (SELECT
+                        B.COURSECODE
+                        , B.PROFNO PROFESSORNO
+                        , B.PROFNAME
+                        , B.PROFASSIGN WORKPLACE
+                        , B.LECTUREFLAG
+                        , TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE
+                        , C.TOTIME
+                        , C.FROMTIME
+                        , C.LECTIME
+                        , C.SUBJSEQ
+                        , C.TIMESUBJECT
+                        , C.TIMESEQ
+                  FROM  OPR_LECTPROF B,
+                       (SELECT
+                                TOTIME
+                                , FROMTIME
+                                , COURSECODE
+                                , LECTDATE
+                                , TIMESEQ
+                                , SUBJSEQ
+                                , TIMESUBJECT
+                                , TO_NUMBER(SUBSTR(LPAD(ROUND(REPLACE(TOTIME,':','')-REPLACE(FROMTIME,':','')+49,-2),4,0),0,2)) LECTIME
+                          FROM  OPR_TIMETABLE) C
+                 WHERE  B.COURSECODE    = C.COURSECODE
+                   AND  B.LECTDATE      = C.LECTDATE
+                   AND  B.TIMESEQ       = C.TIMESEQ
+                   AND  B.PROFNO        = #professorNo#) D
+         WHERE  A.COURSECODE    = D.COURSECODE
+           AND  D.LECTUREFLAG LIKE 'Y'
+           
+           <isNotEmpty property="searchFromDate">
+           		<![CDATA[
+           			AND TO_DATE(SUBSTR(D.LECTDATE,0,7),'YYYY-MM') >= TO_DATE(#searchFromDate#,'YYYY-MM')
+           		]]>
+           </isNotEmpty>
+           
+           <isNotEmpty property="searchToDate">
+           		<![CDATA[
+           			AND TO_DATE(SUBSTR(D.LECTDATE,0,7),'YYYY-MM') <= TO_DATE(#searchToDate#,'YYYY-MM')
+           		]]>	
+           </isNotEmpty>
+     UNION ALL
+        SELECT
+                A.PROFESSORNO
+                , B.PROFNAME
+                , B.WORKPLACE
+                , TO_CHAR(TO_DATE(A.LECTDATE,'YYYY-MM-DD'),'YYYY-MM-DD') LECTDATE
+                , A.TOTIME
+                , A.FROMTIME
+                , A.LECTTIME LECTIME
+                , A.COURSENAME
+                , A.SUBJNAME
+                , A.COURSECODE
+          FROM  PRF_LECTHIST A,
+               (SELECT
+                        PROFESSORNO, PROFNAME, WORKPLACE
+                  FROM  PRF_PROFESSOR
+                 WHERE  PROFESSORNO = #professorNo#) B
+         WHERE  A.PROFESSORNO = B.PROFESSORNO
+           <isNotEmpty property="searchFromDate">
+           		<![CDATA[
+           			AND TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') >= TO_DATE(#searchFromDate#,'YYYY-MM')
+           		]]>
+           </isNotEmpty>
+           
+           <isNotEmpty property="searchToDate">
+           		<![CDATA[
+           			AND TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') <= TO_DATE(#searchToDate#,'YYYY-MM')
+           		]]>	
+           </isNotEmpty>        
+      ORDER BY  LECTDATE DESC, FROMTIME
+
+	</select>
+
+	<!-- 엑셀 다운용 강사 출강 내역 조회쿼리 -->
+	<select id="selectPrf_LectureInfoExcel" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+        SELECT
+            LECTDATE    COL_A   ,
+            COURSENAME  COL_B   ,
+            SUBJNAME    COL_C   ,
+            LECTIME     COL_D
+        FROM
+            (SELECT
+                       0            NUM,
+                       '성명'        LECTDATE,
+                       PROFNAME     COURSENAME,
+                       ''           SUBJNAME,
+                       ''           LECTIME
+                 FROM  PRF_PROFESSOR
+                WHERE  PROFESSORNO = #professorNo#
+             GROUP BY  PROFNAME
+            UNION ALL
+               SELECT
+                       1           NUM,
+                       '날짜'      LECTDATE,
+                       '과정'      COURSENAME,
+                       '과목'      SUBJNAME,
+                       '시간'      LECTIME
+                 FROM  DUAL
+            UNION ALL
+               SELECT
+                       ROWNUM+1 NUM , A.*
+                 FROM
+                      (SELECT
+                               LP.LECTDATE  ,
+                               L.COURSENAME || '(' || TO_NUMBER(SUBSTR(L.COURSECODE, 11, 2)) || '기)' COURSENAME,
+                               T.TIMESUBJECT AS SUBJNAME,
+                               TO_CHAR(SUBSTR(T.TOTIME, 1, 2) - SUBSTR(T.FROMTIME, 1, 2)) LECTIME
+                         FROM  OPR_LECTPROF LP, OPR_LECTURE L, OPR_SUBJECT S, OPR_TIMETABLE T
+                        WHERE  LP.COURSECODE   = L.COURSECODE
+                          AND  L.COURSECODE    = S.COURSECODE
+                          AND  LP.COURSECODE   = T.COURSECODE
+                          AND  S.SUBJSEQ		= T.SUBJSEQ
+                          AND  LP.LECTDATE		= T.LECTDATE
+                          AND  LP.TIMESEQ		= T.TIMESEQ
+                          AND  LP.LECTUREFLAG  = 'Y'
+                          AND  LP.PROFNO		= #professorNo#
+                     ORDER BY  LECTDATE DESC) A
+            UNION ALL
+               SELECT
+                       ROWNUM+1 NUM , A.*
+                 FROM
+                      (SELECT
+                               LECTDATE  ,
+                               COURSENAME,
+                               SUBJNAME,
+                               TO_CHAR(LECTTIME) LECTIME
+                         FROM  PRF_LECTHIST
+                        WHERE  PROFESSORNO = #professorNo#
+                     ORDER BY  LECTDATE DESC) A
+            )
+        ORDER BY NUM
+	</select>
+
+
+	<!-- 해당년도 강사자료 엑셀 다운로드 -->
+	<select id="selectPrf_ProfInfoExcel" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT
+            COURSENAME  COL_A,
+            SUBJNAME    COL_B,
+            LECTDATE    COL_C,
+            PROFNAME    COL_D,
+            JUMINNO     COL_E,
+            WORKPLACE   COL_F,
+            WORKPOS     COL_G,
+            JOBCODE     COL_H,
+            LECTTIME    COL_J,
+            LECTHOUR    COL_I,
+            LEVELNAME   COL_K,
+            LECTPAY     COL_L,
+            TRAVEL      COL_M,
+            MSCTFEE     COL_N,
+            INCOMETAX   COL_O,
+            INHABTAX    COL_P
+      FROM
+           (SELECT
+                    0           NUM,
+                    '강의일'    LECTDATE,
+                    '과정명'    COURSENAME,
+                    '강사명'    PROFNAME,
+                    '주민번호'  JUMINNO,
+                    '소속'      WORKPLACE,
+                    '직위'      WORKPOS,
+                    '직업군'    JOBCODE,
+                    '교과목'    SUBJNAME,
+                    '강의시간'  LECTTIME,
+                    '시간'      LECTHOUR,
+                    '급수'      LEVELNAME,
+                    '강사수당'  LECTPAY,
+                    '여비'      TRAVEL,
+                    '원고료'    MSCTFEE,
+                    '소득세'    INCOMETAX,
+                    '주민세'    INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    ROWNUM NUM, A.*
+              FROM
+                   (SELECT
+                            <isEqual property="excelDownYear" compareValue="">
+                            TO_CHAR(TO_DATE(LH.LECTDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+                            </isEqual>
+                            <isNotEqual property="excelDownYear" compareValue="">
+                            TO_CHAR(TO_DATE(LH.LECTDATE,'YYYY-MM-DD'), 'MM"월 "DD"일"') LECTDATE,
+                            </isNotEqual>
+                            LH.COURSENAME
+                            , P.PROFNAME
+                            , P.JUMINNO
+                            , P.WORKPLACE
+                            , P.WORKPOS
+                            , ' ' JOBCODE
+                            , LH.SUBJNAME
+                            , TO_CHAR(LH.LECTTIME) LECTTIME
+                            , TO_CHAR(TO_NUMBER(SUBSTR(LPAD(ROUND(REPLACE(LH.TOTIME,':','')-REPLACE(LH.FROMTIME,':','')+49,-2),4,0),0,2))) LECTHOUR
+                            , PT.LEVELNAME
+                            , TO_CHAR(LH.LECTPAY, '999 ,999 ,999') LECTPAY
+                            , ' ' TRAVEL
+                            , ' ' MSCTFEE
+                            , ' ' INCOMETAX
+                            , ' ' INHABTAX
+                      FROM  PRF_LECTHIST LH, PRF_PROFESSOR P,
+                            (SELECT  PROFLEVEL, LEVELNAME
+                               FROM  PRF_PAYTABLE) PT
+                     WHERE  LH.PROFESSORNO(+) = P.PROFESSORNO
+                       AND  P.PROFLEVEL = PT.PROFLEVEL(+)
+                       <isNotEqual property="excelDownYear" compareValue="">
+                       AND  SUBSTR(LH.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                       </isNotEqual>
+                  ORDER BY  LH.LECTDATE, LH.COURSENAME, P.PROFNAME) A
+         UNION ALL
+            SELECT
+                    ROWNUM NUM, A.*
+              FROM
+                   (SELECT  DISTINCT
+                            <isEqual property="excelDownYear" compareValue="">
+                            TO_CHAR(TO_DATE(A.LECTDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+                            </isEqual>
+                            <isNotEqual property="excelDownYear" compareValue="">
+                            TO_CHAR(TO_DATE(A.LECTDATE,'YYYY-MM-DD'), 'MM"월 "DD"일"') LECTDATE,
+                            </isNotEqual>
+                            E.COURSENAME, A.PROFNAME, D.JUMINNO,
+                            A.PROFASSIGN, D.WORKPOS, G.NAME JOBCODE,
+                            SUBJNAME, H.LECTTIME, TO_CHAR(B.LECTHOUR) LECTHOUR, F.LEVELNAME,
+                            TO_CHAR(B.LECTPAY, '999,999,999') LECTPAY,
+                            TO_CHAR(B.TRAVEL, '999,999,999') TRAVEL,
+                            TO_CHAR(B.MSCTFEE, '999,999,999') MSCTFEE,
+                            TO_CHAR(B.INCOMETAX, '999,999,999') INCOMETAX,
+                            TO_CHAR(B.INHABTAX, '999,999,999') INHABTAX
+                      FROM  OPR_LECTPROF A,
+                           (SELECT
+                                    COURSECODE, LECTDATE, PROFNO, LECTHOUR, LECTPAY, TRAVEL, MSCTFEE, INCOMETAX, INHABTAX
+                              FROM  PRF_LECTPAY
+                           <isNotEqual property="excelDownYear" compareValue="">
+                             WHERE  YEAR LIKE #excelDownYear#||'%'
+                           </isNotEqual>
+                            ) B,
+                           (SELECT
+                                    A.COURSECODE, A.LECTDATE, PROFNO, SUBSTR(XMLAGG(XMLELEMENT("NM",', '||SUBJNAME)ORDER BY SUBJNAME).EXTRACT('//text()'),3) SUBJNAME
+                              FROM  OPR_LECTPROF A, OPR_TIMETABLE B, OPR_SUBJECT C
+                             WHERE  A.COURSECODE = B.COURSECODE
+                               AND  A.LECTDATE   = B.LECTDATE
+                               AND  A.TIMESEQ    = B.TIMESEQ
+                               AND  B.COURSECODE = C.COURSECODE
+                               AND  B.SUBJSEQ    = C.SUBJSEQ
+                               <isNotEqual property="excelDownYear" compareValue="">
+                               AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  SUBSTR(B.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  SUBSTR(C.COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%'
+                               </isNotEqual>
+                          GROUP BY  A.COURSECODE, A.LECTDATE, PROFNO) C,
+                           (SELECT
+                                    PROFESSORNO, JUMINNO, WORKPOS, JOBCODE
+                              FROM  PRF_PROFESSOR) D,
+                           (SELECT
+                                    COURSECODE, COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME
+                              FROM  OPR_LECTURE
+                            <isNotEqual property="excelDownYear" compareValue="">
+                             WHERE  YEAR LIKE #excelDownYear#||'%'
+                            </isNotEqual>
+                            ) E,
+                           (SELECT  PROFLEVEL, LEVELNAME
+                              FROM  PRF_PAYTABLE ) F,
+                           (SELECT
+                                    CODE, NAME
+                              FROM  SYS_SYSTEMCODE
+                             WHERE  CODEDIV LIKE '00031') G,
+                           (SELECT
+                                    A.COURSECODE, A.LECTDATE, PROFNO, SUBSTR(XMLAGG(XMLELEMENT("NM",', '||B.FROMTIME||' ~ '||B.TOTIME)ORDER BY B.FROMTIME||' ~ '||B.TOTIME).EXTRACT('//text()'),3) LECTTIME
+                              FROM  OPR_LECTPROF A, OPR_TIMETABLE B
+                             WHERE  A.COURSECODE = B.COURSECODE
+                               AND  A.LECTDATE   = B.LECTDATE
+                               AND  A.TIMESEQ    = B.TIMESEQ
+                               <isNotEqual property="excelDownYear" compareValue="">
+                               AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  SUBSTR(B.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               </isNotEqual>
+                          GROUP BY  A.COURSECODE, A.LECTDATE, PROFNO) H
+                     WHERE  A.COURSECODE = B.COURSECODE(+)
+                       AND  A.LECTDATE   = B.LECTDATE(+)
+                       AND  A.PROFNO     = B.PROFNO(+)
+                       AND  C.COURSECODE = A.COURSECODE
+                       AND  C.LECTDATE   = A.LECTDATE
+                       AND  C.PROFNO     = A.PROFNO
+                       AND  H.COURSECODE = A.COURSECODE
+                       AND  H.LECTDATE   = A.LECTDATE
+                       AND  H.PROFNO     = A.PROFNO
+                       AND  D.PROFESSORNO = A.PROFNO(+)
+                       AND  E.COURSECODE = A.COURSECODE
+                       AND  F.PROFLEVEL  = A.PROFLEVEL
+                       AND  D.JOBCODE    = G.CODE
+                       AND  A.LECTUREFLAG LIKE 'Y'
+                       <isNotEqual property="excelDownYear" compareValue="">
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                       </isNotEqual>
+                  ORDER BY  LECTDATE, COURSENAME, PROFNAME ) A
+          )
+
+<!--SELECT
+            PROFNAME    COL_A   ,
+            WORKPLACE   COL_B   ,
+            WORKPOS     COL_C   ,
+            LECTDATE    COL_D   ,
+            COURSENAME  COL_E   ,
+            SUBJNAME    COL_F   ,
+            LECTIME     COL_G   ,
+            PROFLEVEL   COL_H   ,
+            LECTPAY     COL_I   ,
+            TRAVEL      COL_J
+      FROM
+           (SELECT
+                    1           NUM        ,
+                    '강사명'    PROFNAME   ,
+                    '소속'      WORKPLACE  ,
+                    '직위'      WORKPOS    ,
+                    '강의일'    LECTDATE   ,
+                    '과정명'    COURSENAME ,
+                    '교과목'    SUBJNAME   ,
+                    '시간'      LECTIME    ,
+                    '급수'      PROFLEVEL  ,
+                    '강사수당'  LECTPAY    ,
+                    '여비'      TRAVEL
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    ROWNUM+1 NUM, A.*
+              FROM
+                   (SELECT
+                            B.PROFNAME, B.WORKPLACE, B.WORKPOS,
+                            TO_CHAR(TO_DATE(A.LECTDATE), 'MM"월 "DD"일"') LECTDATE,
+                            A.COURSENAME, A.SUBJNAME,
+                            TO_CHAR(TO_NUMBER(SUBSTR(LPAD(ROUND(REPLACE(A.TOTIME,':','')-REPLACE(A.FROMTIME,':','')+49,-2),4,0),0,2))) LECTHOUR,
+                            (SELECT LEVELNAME FROM PRF_PAYTABLE WHERE PROFLEVEL = B.PROFLEVEL) PROFLEVEL,
+                            TO_CHAR(A.LECTPAY, '999,999,999') LECTPAY,
+                            ' ' TRAVEL
+                      FROM  PRF_LECTHIST A, PRF_PROFESSOR B
+                     WHERE  A.PROFESSORNO = B.PROFESSORNO
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#
+                  ORDER BY  A.LECTDATE                   ) A
+
+         UNION ALL
+            SELECT
+                    ROWNUM+1 NUM, A.*
+              FROM
+                   (SELECT  DISTINCT
+                            A.PROFNAME, A.PROFASSIGN,
+                           (SELECT WORKPOS FROM PRF_PROFESSOR WHERE PROFESSORNO = A.PROFNO) WORKPOS,
+                            TO_CHAR(TO_DATE(A.LECTDATE), 'MM"월 "DD"일"') LECTDATE,
+                           (SELECT COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' FROM OPR_LECTURE WHERE COURSECODE = A.COURSECODE) COURSENAME,
+                           (SELECT
+                                    SUBSTR(XMLAGG(XMLELEMENT("NM",', '||SUBJNAME)ORDER BY SUBJNAME).EXTRACT('//text()'),3) SUBJNAME
+                              FROM
+                                   (SELECT
+                                            A.COURSECODE, A.LECTDATE, PROFNO, SUBJNAME
+                                      FROM  OPR_LECTPROF A, OPR_TIMETABLE B, OPR_SUBJECT C
+                                     WHERE  A.COURSECODE = B.COURSECODE
+                                       AND  A.LECTDATE   = B.LECTDATE
+                                       AND  A.TIMESEQ    = B.TIMESEQ
+                                       AND  B.COURSECODE = C.COURSECODE
+                                       AND  B.SUBJSEQ    = C.SUBJSEQ
+                                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#
+                                  GROUP BY  A.COURSECODE, A.LECTDATE, PROFNO, SUBJNAME
+                                   ) C
+                             WHERE  COURSECODE = A.COURSECODE
+                               AND  LECTDATE   = A.LECTDATE
+                               AND  PROFNO     = A.PROFNO
+                           ) SUBJNAME,
+                            TO_CHAR(DECODE(NVL(B.LECTHOUR, '99'), '99',
+                               (SELECT SUBSTR(TOTIME, 1, 2)-SUBSTR(FROMTIME, 1, 2) FROM OPR_TIMETABLE WHERE COURSECODE = A.COURSECODE AND LECTDATE = A.LECTDATE AND TIMESEQ = A.TIMESEQ),
+                                B.LECTHOUR)) LECTHOUR,
+                           (SELECT LEVELNAME FROM PRF_PAYTABLE WHERE PROFLEVEL = A.PROFLEVEL) PROFLEVEL,
+                            TO_CHAR(B.LECTPAY, '999,999,999') LECTPAY,
+                            TO_CHAR(B.TRAVEL, '999,999,999') TRAVEL
+                      FROM  OPR_LECTPROF A,
+                           (SELECT
+                                    COURSECODE, LECTDATE, PROFNO, LECTHOUR, LECTPAY, TRAVEL
+                              FROM  PRF_LECTPAY
+                             WHERE  YEAR LIKE #excelDownYear# ) B
+                     WHERE  A.COURSECODE = B.COURSECODE(+)
+                       AND  A.LECTDATE   = B.LECTDATE(+)
+                       AND  A.PROFNO     = B.PROFNO(+)
+                       AND  A.LECTUREFLAG LIKE 'Y'
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#
+                  ORDER BY  LECTDATE, COURSENAME, PROFNAME ) A
+          )-->
+
+	</select>
+
+
+	<!-- 해당년도 강사집계 엑셀 다운로드 -->
+	<select id="selectPrf_ProfTotalExcel" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+	SELECT
+            PROFNAME   COL_A,
+            JUMINNO    COL_B,
+            WORKPLACE  COL_C,
+            WORKPOS    COL_D,
+            LECTTYPE   COL_E,
+            JOBCODE    COL_F,
+            CELLPHONE  COL_G,
+            LECTCNT    COL_H,
+            LECTTIME   COL_I,
+            LECTDATE   COL_J,
+            COURSENAME COL_K,
+            SUBJNAME   COL_L,
+            LEVELNAME  COL_M,
+            TEACHRSPT  COL_N,
+            LECTPAY    COL_O,
+            TRAVEL     COL_P,
+            MSCTFEE    COL_Q,
+            INCOMETAX  COL_R,
+            INHABTAX   COL_S
+      FROM
+           (SELECT
+                    '0'             NUM,
+                    '강사명'         PROFNAME,
+                    '주민번호'        JUMINNO,
+                    '소속'           WORKPLACE,
+                    '직위'           WORKPOS,
+                    '강의분야'       LECTTYPE,
+                    '직업군'         JOBCODE,
+                    '연락처'         CELLPHONE,
+                    '총강의횟수'     LECTCNT,
+                    '총강의시간'     LECTTIME,
+                    '최종강의일'     LECTDATE,
+                    '최종강의과정'   COURSENAME,
+                    '최종강의과목명' SUBJNAME,
+                    '강사등급'       LEVELNAME,
+                    '강사만족도'     TEACHRSPT,
+                    '총강의수당'     LECTPAY,
+                    '총여비'         TRAVEL,
+                    '총인쇄비'       MSCTFEE,
+                    '총소득세'       INCOMETAX,
+                    '총주민세'       INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    '1' NUM
+                    , PROFNAME
+                    , SUBSTR(A.JUMINNO, 0, 6) JUMINNO
+                    , WORKPLACE
+                    , WORKPOS
+                    ,  A.LECTURETYPE LECTTYPE
+                    , C.NAME JOBCODE
+                    , CELLPHONE
+                    , TO_CHAR(D.LECTCNT) LECTCNT
+                    , TO_CHAR(D.LECTTIME) LECTTIME
+                    , D.LECTDATE
+                    , D.COURSENAME
+                    , D.SUBJNAME
+                    , E.LEVELNAME
+                    , TO_CHAR(F.TEACHRSPT) TEACHRSPT
+                    , TO_CHAR(NVL(G.LECTPAY, 0)+NVL(D.LECTPAY, 0), '999,999,999') LECTPAY
+                    , TO_CHAR(NVL(G.TRAVEL, 0), '999,999,999') TRAVEL
+                    , TO_CHAR(NVL(G.MSCTFEE, 0), '999,999,999') MSCTFEE
+                    , TO_CHAR(NVL(G.INCOMETAX, 0), '999,999,999') INCOMETAX
+                    , TO_CHAR(NVL(G.INHABTAX, 0), '999,999,999') INHABTAX
+              FROM  PRF_PROFESSOR A,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00020') B,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00031') C,
+                   (SELECT
+                            B.PROFESSORNO
+                            , B.LECTCNT
+                            , B.LECTTIME
+                            , TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD')
+                            , 'YYYY"년 "MM"월 "DD"일"') LECTDATE
+                            , D.COURSENAME
+                            , C.SUBJNAME
+                            , 0 LECTPAY
+                      FROM
+                            OPR_TIMETABLE A,
+                           (SELECT
+                                    PROFNO PROFESSORNO, COUNT(A.COURSECODE) LECTCNT
+                                    , MAX(A.COURSECODE||A.LECTDATE||A.TIMESEQ) LECTDATE
+                                    , SUM(SUBSTR(B.TOTIME, 0, 2)-SUBSTR(B.FROMTIME, 0, 2)) LECTTIME
+                              FROM  OPR_LECTPROF A, OPR_TIMETABLE B
+                             WHERE  A.COURSECODE = B.COURSECODE
+                               AND  A.LECTDATE = B.LECTDATE
+                               AND  A.TIMESEQ = B.TIMESEQ
+                               AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  LECTUREFLAG = 'Y'
+                          GROUP BY  PROFNO) B,
+                           (SELECT
+                                    COURSECODE, SUBJSEQ, SUBJNAME
+                              FROM  OPR_SUBJECT
+                             WHERE  SUBSTR(COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%') C,
+                           (SELECT
+                                    COURSECODE,  COURSENAME
+                              FROM  OPR_LECTURE
+                             WHERE  YEAR LIKE #excelDownYear#||'%') D
+                     WHERE  A.COURSECODE = C.COURSECODE
+                       AND  A.COURSECODE = D.COURSECODE
+                       AND  A.SUBJSEQ = C.SUBJSEQ
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                       AND  A.COURSECODE||A.LECTDATE||A.TIMESEQ = B.LECTDATE
+                 UNION ALL
+                    SELECT
+                            A.PROFESSORNO
+                            , B.LECTCNT
+                            , B.LECTTIME
+                            , TO_CHAR(TO_DATE(A.LECTDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE
+                            , MAX(A.COURSENAME) COURSENAME
+                            , MAX(A.SUBJNAME) SUBJNAME
+                            , B.LECTPAY
+                      FROM  PRF_LECTHIST A,
+                           (SELECT
+                                    PROFESSORNO
+                                    , COUNT(PROFESSORNO) LECTCNT
+                                    , MAX(LECTDATE||SUBSTR(FROMTIME, 0, 2)||SUBSTR(TOTIME, 0, 2)) LECTDATE
+                                    , SUM(LECTTIME) LECTTIME
+                                    , SUM(LECTPAY) LECTPAY
+                              FROM  PRF_LECTHIST
+                             WHERE  SUBSTR(LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                          GROUP BY  PROFESSORNO) B
+                     WHERE  A.PROFESSORNO = B.PROFESSORNO
+                       AND  A.LECTDATE||SUBSTR(A.FROMTIME, 0, 2)||SUBSTR(A.TOTIME, 0, 2) = B.LECTDATE
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                  GROUP BY  A.PROFESSORNO, B.LECTCNT, B.LECTTIME, A.LECTDATE, B.LECTPAY) D,
+                   (SELECT
+                            PROFLEVEL, LEVELNAME
+                      FROM  PRF_PAYTABLE ) E,
+                   (SELECT
+                            A.PROFNO PROFESSORNO
+                            , TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') TEACHRSPT
+                      FROM  TST_TEACHERRSPT A
+                     WHERE  SUBSTR(A.COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%'
+                  GROUP BY  PROFNO) F,
+                   (SELECT
+                            PROFNO PROFESSORNO
+                            , SUM(LECTPAY) LECTPAY
+                            , SUM(TRAVEL) TRAVEL
+                            , SUM(MSCTFEE) MSCTFEE
+                            , SUM(INCOMETAX) INCOMETAX
+                            , SUM(INHABTAX) INHABTAX
+                      FROM  PRF_LECTPAY
+                     WHERE  YEAR LIKE #excelDownYear#||'%'
+                  GROUP BY  PROFNO) G
+             WHERE  A.JOBCODE       = C.CODE(+)
+               AND  A.LECTURETYPE   = B.CODE(+)
+               AND  A.PROFESSORNO   = D.PROFESSORNO
+               AND  A.PROFESSORNO   = F.PROFESSORNO(+)
+               AND  A.PROFESSORNO   = G.PROFESSORNO(+)
+               AND  A.PROFLEVEL     = E.PROFLEVEL
+               AND  NVL(DELYN,'N') LIKE 'N'
+          ORDER BY  NUM, PROFNAME
+    )
+  	<!-- SELECT
+            PROFNAME   COL_A,
+            JUMINNO    COL_B,
+            WORKPLACE  COL_C,
+            WORKPOS    COL_D,
+            LECTTYPE   COL_E,
+            JOBCODE    COL_F,
+            CELLPHONE  COL_G,
+            LECTCNT    COL_H,
+            LECTTIME   COL_I,
+            LECTDATE   COL_J,
+            COURSENAME COL_K,
+            SUBJNAME   COL_L,
+            LEVELNAME  COL_M,
+            TEACHRSPT  COL_N,
+            LECTPAY    COL_O,
+            TRAVEL     COL_P,
+            MSCTFEE    COL_Q,
+            INCOMETAX  COL_R,
+            INHABTAX   COL_S
+      FROM
+           (SELECT
+                    '0'             NUM       ,
+                    '강사명'         PROFNAME  ,
+                    '주민번호'        JUMINNO    ,
+                    '소속'           WORKPLACE ,
+                    '직위'           WORKPOS   ,
+                    '강의분야'       LECTTYPE  ,
+                    '직업군'         JOBCODE   ,
+                    '연락처'         CELLPHONE ,
+                    '총강의횟수'     LECTCNT   ,
+                    '총강의시간'     LECTTIME  ,
+                    '최종강의일'     LECTDATE  ,
+                    '최종강의과정'   COURSENAME ,
+                    '최종강의과목명' SUBJNAME ,
+                    '강사등급'       LEVELNAME ,
+                    '강사만족도'     TEACHRSPT ,
+                    '총강의수당'     LECTPAY,
+                    '총여비'         TRAVEL,
+                    '총인쇄비'       MSCTFEE,
+                    '총소득세'       INCOMETAX,
+                    '총주민세'       INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    '1' NUM, PROFNAME, SUBSTR(A.JUMINNO, 0, 6) JUMINNO,
+                    WORKPLACE, WORKPOS, C.NAME JOBCODE, B.NAME LECTTYPE, CELLPHONE,
+                    TO_CHAR(D.LECTCNT) LECTCNT, TO_CHAR(D.LECTTIME) LECTTIME, D.LECTDATE, D.COURSENAME, D.SUBJNAME,
+                    E.LEVELNAME, TO_CHAR(F.TEACHRSPT) TEACHRSPT,
+                    TO_CHAR(NVL(G.LECTPAY, 0)+NVL(D.LECTPAY, 0), '999,999,999') LECTPAY,
+                    TO_CHAR(NVL(G.TRAVEL, 0), '999,999,999') TRAVEL,
+                    TO_CHAR(NVL(G.MSCTFEE, 0), '999,999,999') MSCTFEE,
+                    TO_CHAR(NVL(G.INCOMETAX, 0), '999,999,999') INCOMETAX,
+                    TO_CHAR(NVL(G.INHABTAX, 0), '999,999,999') INHABTAX
+              FROM  PRF_PROFESSOR A,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00020') B,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00031') C,
+                   (SELECT
+                            B.PROFESSORNO, B.LECTCNT, B.LECTTIME,
+                                    TO_CHAR(TO_DATE(A.LECTDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+                            D.COURSENAME, C.SUBJNAME, 0 LECTPAY
+                      FROM
+                            OPR_TIMETABLE A,
+                           (SELECT
+                                    PROFNO PROFESSORNO, COUNT(A.COURSECODE) LECTCNT, MAX(A.COURSECODE||A.LECTDATE||A.TIMESEQ) LECTDATE, SUM(SUBSTR(B.TOTIME, 0, 2)-SUBSTR(B.FROMTIME, 0, 2)) LECTTIME
+                              FROM  OPR_LECTPROF A, OPR_TIMETABLE B
+                             WHERE  A.COURSECODE = B.COURSECODE
+                               AND  A.LECTDATE = B.LECTDATE
+                               AND  A.TIMESEQ = B.TIMESEQ
+                               AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  LECTUREFLAG = 'Y'
+                          GROUP BY  PROFNO) B,
+                           (SELECT
+                                    COURSECODE, SUBJSEQ, SUBJNAME
+                              FROM  OPR_SUBJECT
+                             WHERE  SUBSTR(COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%') C,
+                           (SELECT
+                                    COURSECODE, COURSENAME
+                              FROM  OPR_LECTURE
+                             WHERE  YEAR LIKE #excelDownYear#||'%') D
+                     WHERE  A.COURSECODE = C.COURSECODE
+                       AND  A.COURSECODE = D.COURSECODE
+                       AND  A.SUBJSEQ = C.SUBJSEQ
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                       AND  A.COURSECODE||A.LECTDATE||A.TIMESEQ = B.LECTDATE
+                 UNION ALL
+                    SELECT
+                            A.PROFESSORNO, B.LECTCNT, B.LECTTIME,
+                    TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+                            MAX(A.COURSENAME) COURSENAME, MAX(A.SUBJNAME) SUBJNAME, B.LECTPAY
+                      FROM  PRF_LECTHIST A,
+                           (SELECT
+                                    PROFESSORNO, COUNT(PROFESSORNO) LECTCNT, MAX(LECTDATE||SUBSTR(FROMTIME, 0, 2)||SUBSTR(TOTIME, 0, 2)) LECTDATE, SUM(LECTTIME) LECTTIME, SUM(LECTPAY) LECTPAY
+                              FROM  PRF_LECTHIST
+                             WHERE  SUBSTR(LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                          GROUP BY  PROFESSORNO) B
+                     WHERE  A.PROFESSORNO = B.PROFESSORNO
+                       AND  A.LECTDATE||SUBSTR(A.FROMTIME, 0, 2)||SUBSTR(A.TOTIME, 0, 2) = B.LECTDATE
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                  GROUP BY  A.PROFESSORNO, B.LECTCNT, B.LECTTIME, A.LECTDATE, B.LECTPAY) D,
+                   (SELECT
+                            PROFLEVEL, LEVELNAME
+                      FROM  PRF_PAYTABLE ) E,
+                   (SELECT
+                            A.PROFNO PROFESSORNO, TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') TEACHRSPT
+                      FROM  TST_TEACHERRSPT A
+                     WHERE  SUBSTR(A.COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%'
+                  GROUP BY  PROFNO) F,
+                   (SELECT
+                            PROFNO PROFESSORNO, SUM(LECTPAY) LECTPAY, SUM(TRAVEL) TRAVEL, SUM(MSCTFEE) MSCTFEE, SUM(INCOMETAX) INCOMETAX, SUM(INHABTAX) INHABTAX
+                      FROM  PRF_LECTPAY
+                     WHERE  YEAR LIKE #excelDownYear#||'%'
+                  GROUP BY  PROFNO) G
+             WHERE  A.JOBCODE       = C.CODE(+)
+               AND  A.LECTURETYPE   = B.CODE(+)
+               AND  A.PROFESSORNO   = D.PROFESSORNO
+               AND  A.PROFESSORNO   = F.PROFESSORNO(+)
+               AND  A.PROFESSORNO   = G.PROFESSORNO(+)
+               AND  A.PROFLEVEL     = E.PROFLEVEL
+               AND  NVL(DELYN,'N') LIKE 'N'
+          ORDER BY  NUM, PROFNAME
+    ) -->
+
+  <!--
+    SELECT
+            PROFNAME   COL_A,
+            WORKPLACE  COL_B,
+            WORKPOS    COL_C,
+            LECTTYPE   COL_D,
+            JOBCODE    COL_E,
+            CELLPHONE  COL_F,
+            LECTCNT    COL_G,
+            LECTTIME   COL_H,
+            LECTDATE   COL_I,
+            COURSENAME COL_J,
+            SUBJNAME   COL_K,
+            LEVELNAME  COL_L,
+            TEACHRSPT  COL_M,
+            LECTPAY    COL_N,
+            TRAVEL     COL_O,
+            MSCTFEE    COL_P,
+            INCOMETAX  COL_Q,
+            INHABTAX   COL_R
+      FROM
+           (SELECT
+                    '0'             NUM       ,
+                    '강사명'         PROFNAME  ,
+                    '소속'           WORKPLACE ,
+                    '직위'           WORKPOS   ,
+                    '강의분야'       LECTTYPE  ,
+                    '직업군'         JOBCODE   ,
+                    '연락처'         CELLPHONE ,
+                    '총강의횟수'     LECTCNT   ,
+                    '총강의시간'     LECTTIME  ,
+                    '최종강의일'     LECTDATE  ,
+                    '최종강의과정'   COURSENAME ,
+                    '최종강의과목명' SUBJNAME ,
+                    '강사등급'       LEVELNAME ,
+                    '강사만족도'     TEACHRSPT ,
+                    '총강의수당'     LECTPAY,
+                    '총여비'         TRAVEL,
+                    '총인쇄비'       MSCTFEE,
+                    '총소득세'       INCOMETAX,
+                    '총주민세'       INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    '1' NUM, PROFNAME, WORKPLACE, WORKPOS, C.NAME JOBCODE, B.NAME LECTTYPE, CELLPHONE,
+                    TO_CHAR(D.LECTCNT) LECTCNT, TO_CHAR(D.LECTTIME) LECTTIME, D.LECTDATE, D.COURSENAME, D.SUBJNAME,
+                    E.LEVELNAME, TO_CHAR(F.TEACHRSPT) TEACHRSPT,
+							<isEqual property="isHist" compareValue="false">
+                    TO_CHAR(NVL(G.LECTPAY, 0), '999,999,999') LECTPAY,
+              </isEqual>
+              <isEqual property="isHist" compareValue="true">
+                    TO_CHAR(NVL(D.LECTPAY, 0), '999,999,999') LECTPAY,
+              </isEqual>
+                    TO_CHAR(NVL(G.TRAVEL, 0), '999,999,999') TRAVEL,
+                    TO_CHAR(NVL(G.MSCTFEE, 0), '999,999,999') MSCTFEE,
+                    TO_CHAR(NVL(G.INCOMETAX, 0), '999,999,999') INCOMETAX,
+                    TO_CHAR(NVL(G.INHABTAX, 0), '999,999,999') INHABTAX
+              FROM  PRF_PROFESSOR A,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00020') B,
+                   (SELECT
+                            CODE, NAME
+                      FROM  SYS_SYSTEMCODE
+                     WHERE  CODEDIV = '00031') C,
+							<isEqual property="isHist" compareValue="false">
+                   (SELECT
+                            B.PROFESSORNO, B.LECTCNT, B.LECTTIME,
+                            <isEqual property="excelDownYear" compareValue="">
+                            		TO_CHAR(TO_DATE(A.LECTDATE), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+		                   			</isEqual>
+		                   			<isNotEqual property="excelDownYear" compareValue="">
+                            		TO_CHAR(TO_DATE(A.LECTDATE), 'MM"월 "DD"일"') LECTDATE,
+		                   			</isNotEqual>
+                            D.COURSENAME, C.SUBJNAME
+                      FROM
+                            OPR_TIMETABLE A,
+                           (SELECT
+                                    PROFNO PROFESSORNO, COUNT(A.COURSECODE) LECTCNT, MAX(A.COURSECODE||A.LECTDATE||A.TIMESEQ) LECTDATE, SUM(SUBSTR(B.TOTIME, 0, 2)-SUBSTR(B.FROMTIME, 0, 2)) LECTTIME
+                              FROM  OPR_LECTPROF A, OPR_TIMETABLE B
+                             WHERE  A.COURSECODE = B.COURSECODE
+                               AND  A.LECTDATE = B.LECTDATE
+                               AND  A.TIMESEQ = B.TIMESEQ
+                               AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                               AND  LECTUREFLAG = 'Y'
+                          GROUP BY  PROFNO) B,
+                           (SELECT
+                                    COURSECODE, SUBJSEQ, SUBJNAME
+                              FROM  OPR_SUBJECT
+                             WHERE  SUBSTR(COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%') C,
+                           (SELECT
+                                    COURSECODE, COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME
+                              FROM  OPR_LECTURE
+                             WHERE  YEAR LIKE #excelDownYear#||'%') D
+                     WHERE  A.COURSECODE = C.COURSECODE
+                       AND  A.COURSECODE = D.COURSECODE
+                       AND  A.SUBJSEQ = C.SUBJSEQ
+                       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+                       AND  A.COURSECODE||A.LECTDATE||A.TIMESEQ = B.LECTDATE ) D,
+							</isEqual>
+							<isEqual property="isHist" compareValue="true">
+									 (SELECT
+								            A.PROFESSORNO, B.LECTCNT, B.LECTTIME,
+                            <isEqual property="excelDownYear" compareValue="">
+                            		TO_CHAR(TO_DATE(A.LECTDATE), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+		                   			</isEqual>
+		                   			<isNotEqual property="excelDownYear" compareValue="">
+                            		TO_CHAR(TO_DATE(A.LECTDATE), 'MM"월 "DD"일"') LECTDATE,
+		                   			</isNotEqual>
+								            MAX(A.COURSENAME) COURSENAME, MAX(A.SUBJNAME) SUBJNAME, B.LECTPAY
+								      FROM  PRF_LECTHIST A,
+								           (SELECT
+								                    PROFESSORNO, COUNT(PROFESSORNO) LECTCNT, MAX(LECTDATE||SUBSTR(FROMTIME, 0, 2)||SUBSTR(TOTIME, 0, 2)) LECTDATE, SUM(LECTTIME) LECTTIME, SUM(LECTPAY) LECTPAY
+								              FROM  PRF_LECTHIST
+								             WHERE  SUBSTR(LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+								          GROUP BY  PROFESSORNO) B
+								     WHERE  A.PROFESSORNO = B.PROFESSORNO
+								       AND  A.LECTDATE||SUBSTR(A.FROMTIME, 0, 2)||SUBSTR(A.TOTIME, 0, 2) = B.LECTDATE
+								       AND  SUBSTR(A.LECTDATE, 0, 4) LIKE #excelDownYear#||'%'
+								  GROUP BY  A.PROFESSORNO, B.LECTCNT, B.LECTTIME, A.LECTDATE, B.LECTPAY ) D,
+							</isEqual>
+                   (SELECT
+                            PROFLEVEL, LEVELNAME
+                      FROM  PRF_PAYTABLE ) E,
+                   (SELECT
+                            A.PROFNO PROFESSORNO, TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') TEACHRSPT
+                      FROM  TST_TEACHERRSPT A
+                     WHERE  SUBSTR(A.COURSECODE, 0, 7) LIKE '643'||#excelDownYear#||'%'
+                  GROUP BY  PROFNO) F,
+                   (SELECT
+                            PROFNO PROFESSORNO, SUM(LECTPAY) LECTPAY, SUM(TRAVEL) TRAVEL, SUM(MSCTFEE) MSCTFEE, SUM(INCOMETAX) INCOMETAX, SUM(INHABTAX) INHABTAX
+                      FROM  PRF_LECTPAY
+                     WHERE  YEAR LIKE #excelDownYear#||'%'
+                  GROUP BY  PROFNO) G
+             WHERE  A.JOBCODE       = C.CODE(+)
+               AND  A.LECTURETYPE   = B.CODE(+)
+               AND  A.PROFESSORNO   = D.PROFESSORNO
+               AND  A.PROFESSORNO   = F.PROFESSORNO(+)
+               AND  A.PROFESSORNO   = G.PROFESSORNO(+)
+               AND  A.PROFLEVEL     = E.PROFLEVEL
+               AND  NVL(DELYN,'N') LIKE 'N'
+          ORDER BY  NUM, PROFNAME
+    )
+    -->
+	</select>
+
+
+	<!-- 검색한 강사 목록을 엑셀로 다운로드 -->
+	<select id="selectPrf_ProfSearchExcel" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+    SELECT
+            PROFNAME   COL_A,
+            WORKPLACE  COL_B,
+            WORKPOS    COL_C,
+            LECTTYPE   COL_D,
+            JOBCODE    COL_E,
+            CELLPHONE  COL_F,
+            LECTCNT    COL_G,
+            LECTTIME   COL_H,
+            LECTDATE   COL_I,
+            COURSENAME COL_J,
+            SUBJNAME   COL_K,
+            LEVELNAME  COL_L,
+            TEACHRSPT  COL_M,
+            LECTPAY    COL_N,
+            TRAVEL     COL_O,
+            MSCTFEE    COL_P,
+            INCOMETAX  COL_Q,
+            INHABTAX   COL_R
+      FROM
+           (SELECT
+                    '0'             NUM,
+                    '강사명'         PROFNAME,
+                    '소속'           WORKPLACE,
+                    '직위'           WORKPOS,
+                    '강의분야'       LECTTYPE,
+                    '직업군'         JOBCODE,
+                    '연락처'         CELLPHONE,
+                    '총강의횟수'     LECTCNT,
+                    '총강의시간'     LECTTIME,
+                    '최종강의일'     LECTDATE,
+                    '최종강의과정'   COURSENAME,
+                    '최종강의과목명' SUBJNAME,
+                    '강사등급'       LEVELNAME,
+                    '강사만족도'     TEACHRSPT,
+                    '총강의수당'     LECTPAY,
+                    '총여비'         TRAVEL,
+                    '총인쇄비'       MSCTFEE,
+                    '총소득세'       INCOMETAX,
+                    '총주민세'       INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    '1' NUM
+                    , PROFNAME
+                    , WORKPLACE
+                    , WORKPOS
+                    , LECTURETYPE LECTTYPE
+                    , C.NAME JOBCODE
+                    , CELLPHONE
+                    , TO_CHAR(D.LECTCNT) LECTCNT
+                    , TO_CHAR(D.LECTTIME) LECTTIME
+                    , TO_CHAR(TO_DATE(D.LECTDATE ,'YYYY-MM-DD') , 'YYYY"년 "MM"월 "DD"일"') LECTDATE
+                    , D.COURSENAME
+                    , D.SUBJNAME
+                    , E.LEVELNAME
+                    , TO_CHAR(F.TEACHRSPT) TEACHRSPT
+                    , TO_CHAR(NVL(G.LECTPAY ,   0) , '999,999,999') LECTPAY
+                    , TO_CHAR(NVL(G.TRAVEL ,    0) , '999,999,999') TRAVEL
+                    , TO_CHAR(NVL(G.MSCTFEE ,   0) , '999,999,999') MSCTFEE
+                    , TO_CHAR(NVL(G.INCOMETAX , 0) , '999,999,999') INCOMETAX
+                    , TO_CHAR(NVL(G.INHABTAX ,  0) , '999,999,999') INHABTAX
+              FROM  PRF_PROFESSOR A,
+                   (SELECT  CODE, NAME  FROM  SYS_SYSTEMCODE  WHERE  CODEDIV = '00020') B,
+                   (SELECT  CODE, NAME  FROM  SYS_SYSTEMCODE  WHERE  CODEDIV = '00031') C,
+                   (SELECT
+                          A.PROFESSORNO
+                          , NVL(B.LECTCNT,0)+NVL(C.LECTCNT,0) LECTCNT
+                          , NVL(B.LECTTIME,0)+NVL(C.LECTTIME,0) LECTTIME
+                          , DECODE(NVL(C.LECTDATE,  '-'), '-', B.LECTDATE,   C.LECTDATE)   LECTDATE
+                          , DECODE(NVL(C.COURSENAME,'-'), '-', B.COURSENAME, C.COURSENAME) COURSENAME
+                          , DECODE(NVL(C.SUBJNAME,  '-'), '-', B.SUBJNAME,   C.SUBJNAME)   SUBJNAME
+                      FROM  PRF_PROFESSOR A,
+                         (SELECT
+                                 A.PROFESSORNO
+                                , A.LECTCNT
+                                , A.LECTTIME
+                                , B.LECTDATE
+                                , MAX(B.COURSENAME) COURSENAME
+                                , MAX(B.SUBJNAME) SUBJNAME
+                            FROM
+                                 (SELECT
+                                          A.PROFESSORNO
+                                          , COUNT(A.PROFESSORNO) LECTCNT
+                                          , SUM(LECTTIME) LECTTIME
+                                          , MAX(LECTDATE||FROMTIME||TOTIME) LECTDATE
+                                    FROM  PRF_LECTHIST A, PRF_PROFESSOR B
+                                   WHERE  A.PROFESSORNO = B.PROFESSORNO
+                                     AND  NVL(DELYN,'N') LIKE 'N'
+                                GROUP BY  A.PROFESSORNO) A,
+                                 (SELECT
+                                          A.PROFESSORNO
+                                          , COURSENAME
+                                          , SUBJNAME
+                                          , LECTDATE
+                                          , FROMTIME
+                                          , TOTIME
+                                    FROM  PRF_LECTHIST A, PRF_PROFESSOR B
+                                   WHERE  A.PROFESSORNO = B.PROFESSORNO
+                                     AND  NVL(DELYN,'N') LIKE 'N') B
+                           WHERE  A.LECTDATE = B.LECTDATE||B.FROMTIME||B.TOTIME
+                           GROUP BY  A.PROFESSORNO, A.LECTCNT, A.LECTTIME, B.LECTDATE ) B,
+                         (SELECT
+                                  A.PROFESSORNO
+                                  , A.LECTCNT
+                                  , A.LECTTIME
+                                  , B.LECTDATE
+                                  , B.COURSENAME
+                                  , B.SUBJNAME
+                            FROM
+                                 (SELECT
+                                          A.PROFNO PROFESSORNO
+                                          , COUNT(A.PROFNO) LECTCNT
+                                          , SUM(SUBSTR(B.TOTIME, 0, 2)-SUBSTR(B.FROMTIME, 0, 2)) LECTTIME
+                                          , MAX(A.COURSECODE||A.LECTDATE||A.TIMESEQ) LECTDATE
+                                    FROM  OPR_LECTPROF A, OPR_TIMETABLE B, PRF_PROFESSOR C
+                                   WHERE  A.PROFNO = C.PROFESSORNO
+                                     AND  A.COURSECODE = B.COURSECODE
+                                     AND  A.LECTDATE = B.LECTDATE
+                                     AND  A.TIMESEQ = B.TIMESEQ
+                                     AND  A.LECTUREFLAG = 'Y'
+                                     AND  NVL(DELYN,'N') LIKE 'N'
+                                GROUP BY  A.PROFNO) A,
+                                 (SELECT
+                                          A.PROFNO PROFESSORNO
+                                          , A.COURSECODE
+                                          , A.LECTDATE
+                                          , A.TIMESEQ
+                                          , E.COURSENAME
+                                          , D.SUBJNAME
+                                    FROM  OPR_LECTPROF A, OPR_TIMETABLE B, PRF_PROFESSOR C,
+                                         (SELECT
+                                                  COURSECODE
+                                                  , SUBJSEQ
+                                                  , SUBJNAME
+                                            FROM  OPR_SUBJECT) D,
+                                         (SELECT
+                                                  COURSECODE
+                                                  , COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME
+                                            FROM  OPR_LECTURE) E
+                                   WHERE  A.PROFNO = C.PROFESSORNO
+                                     AND  A.COURSECODE = B.COURSECODE
+                                     AND  A.LECTDATE = B.LECTDATE
+                                     AND  A.TIMESEQ = B.TIMESEQ
+                                     AND  A.COURSECODE = D.COURSECODE
+                                     AND  B.SUBJSEQ = D.SUBJSEQ
+                                     AND  A.COURSECODE = E.COURSECODE
+                                     AND  A.LECTUREFLAG = 'Y'
+                                     AND  NVL(DELYN,'N') LIKE 'N') B
+                                     WHERE  A.LECTDATE = B.COURSECODE||B.LECTDATE||B.TIMESEQ
+                                  ) C
+                             WHERE  A.PROFESSORNO = B.PROFESSORNO(+)
+                               AND  A.PROFESSORNO = C.PROFESSORNO(+)
+                               AND  NVL(DELYN,'N') LIKE 'N') D,
+                   (SELECT  PROFLEVEL, LEVELNAME  FROM  PRF_PAYTABLE ) E,
+                   (SELECT
+                            A.PROFNO PROFESSORNO, TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') TEACHRSPT
+                      FROM  TST_TEACHERRSPT A, PRF_PROFESSOR B
+                     WHERE  A.PROFNO = B.PROFESSORNO
+                       AND  NVL(DELYN,'N') LIKE 'N'
+                  GROUP BY  PROFNO) F,
+                   (SELECT
+                            PROFNO PROFESSORNO
+                            , NVL(SUM(C.LECTPAY) ,0)+SUM(A.LECTPAY) LECTPAY
+                            , SUM(TRAVEL) TRAVEL
+                            , SUM(MSCTFEE) MSCTFEE
+                            , SUM(INCOMETAX) INCOMETAX
+                            , SUM(INHABTAX) INHABTAX
+                      FROM  PRF_LECTPAY A, PRF_PROFESSOR B, PRF_LECTHIST C
+                     WHERE  A.PROFNO = B.PROFESSORNO
+                       AND  A.PROFNO = C.PROFESSORNO(+)
+                       AND  NVL(DELYN,'N') LIKE 'N'
+                  GROUP BY  PROFNO) G
+             WHERE  A.JOBCODE       = C.CODE(+)
+               AND  A.LECTURETYPE   = B.CODE(+)
+               AND  A.PROFESSORNO   = D.PROFESSORNO(+)
+               AND  A.PROFESSORNO   = F.PROFESSORNO(+)
+               AND  A.PROFESSORNO   = G.PROFESSORNO(+)
+               AND  A.PROFLEVEL     = E.PROFLEVEL(+)
+                <isNotEmpty property="searchName">
+                     AND A.PROFNAME like '%' || #searchName# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchProfLevel">
+                     AND A.PROFLEVEL like '%' || #searchProfLevel# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchGradeCode">
+                     AND A.JOBCODE like '%' || #searchGradeCode# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchCellPhone">
+                     AND REPLACE(A.CELLPHONE, '-', '') LIKE '%' || #searchCellPhone# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchCourseName">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFNO
+                          FROM OPR_LECTPROF P, OPR_LECTURE L
+                         WHERE P.COURSECODE = L.COURSECODE
+                           AND P.LECTUREFLAG = 'Y'
+                           AND L.COURSENAME LIKE '%'||#searchCourseName#||'%'
+                        SELECT PROFESSORNO
+                          FROM PRF_LECTHIST
+                         WHERE COURSENAME LIKE '%'||#searchCourseName#||'%')
+                </isNotEmpty>
+                <isNotEmpty property="searchSubjName">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFNO
+                          FROM OPR_LECTPROF P, OPR_TIMETABLE T, OPR_SUBJECT S
+                         WHERE P.COURSECODE = T.COURSECODE
+                           AND P.LECTDATE = T.LECTDATE
+                           AND P.TIMESEQ = T.TIMESEQ
+                           AND T.COURSECODE LIKE S.COURSECODE || '%'
+                           AND T.SUBJSEQ = S.SUBJSEQ
+                           AND P.LECTUREFLAG = 'Y'
+                           AND S.SUBJNAME LIKE '%' || #searchSubjName# || '%'
+                        UNION ALL
+                        SELECT PROFESSORNO
+                          FROM PRF_LECTHIST
+                         WHERE  SUBJNAME LIKE '%' || #searchSubjName# || '%')
+                </isNotEmpty>
+                <isNotEmpty property="searchFromDate">
+                <![CDATA[
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFNO
+                          FROM OPR_LECTPROF
+                         WHERE TO_DATE(LECTDATE, 'YYYYMMDD') <= TO_DATE(#searchFromDate#, 'YYYY-MM')
+                           AND LECTUREFLAG = 'Y'
+                        UNION ALL
+                        SELECT PROFESSORNO
+                          FROM PRF_LECTHIST
+                         WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') >= TO_DATE(#searchFromDate#,'YYYY-MM')
+                        )
+                ]]>
+                </isNotEmpty>
+                <isNotEmpty property="searchToDate">
+                <![CDATA[
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFNO
+                          FROM OPR_LECTPROF
+                         WHERE TO_DATE(LECTDATE, 'YYYYMMDD') <= TO_DATE(#searchToDate#, 'YYYY-MM')
+                        UNION ALL
+                        SELECT PROFESSORNO
+                          FROM PRF_LECTHIST
+                         WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') <= TO_DATE(#searchToDate#,'YYYY-MM')
+                        )
+                ]]>
+                </isNotEmpty>
+                <isNotEmpty property="searchLecType">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFESSORNO
+                        FROM   PRF_LECTHIST
+                        WHERE  LECTURETYPE = #searchLecType#
+                    )
+                </isNotEmpty>
+               AND  NVL(DELYN,'N') LIKE 'N'
+          ORDER BY  NUM, PROFNAME
+        )
+	</select>
+
+
+	<!-- 검색한 강사의 강의 이력 목록을 엑셀로 다운로드 -->
+	<select id="selectPrfProfSearchExcelLectureHistory" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+    SELECT
+            PROFNAME   COL_A,
+            WORKPLACE  COL_B,
+            WORKPOS    COL_C,
+            LECTTYPE   COL_D,
+            JOBCODE    COL_E,
+            CELLPHONE  COL_F,
+            LECTCNT    COL_G,
+            LECTTIME   COL_H,
+            LECTDATE   COL_I,
+            COURSENAME COL_J,
+            SUBJNAME   COL_K,
+            LEVELNAME  COL_L
+      FROM
+           (SELECT
+                    '0'             NUM       ,
+                    '강사명'         PROFNAME  ,
+                    '소속'           WORKPLACE ,
+                    '직위'           WORKPOS   ,
+                    '강의분야'       LECTTYPE  ,
+                    '직업군'         JOBCODE   ,
+                    '연락처'         CELLPHONE ,
+                    '총강의횟수'     LECTCNT   ,
+                    '총강의시간'     LECTTIME  ,
+                    '최종강의일'     LECTDATE  ,
+                    '최종강의과정'   COURSENAME ,
+                    '최종강의과목명' SUBJNAME ,
+                    '강사등급'       LEVELNAME ,
+                    '강사만족도'     TEACHRSPT ,
+                    '총강의수당'     LECTPAY,
+                    '총여비'         TRAVEL,
+                    '총인쇄비'       MSCTFEE,
+                    '총소득세'       INCOMETAX,
+                    '총주민세'       INHABTAX
+              FROM  DUAL
+         UNION ALL
+            SELECT
+                    '1' NUM, PROFNAME, WORKPLACE, WORKPOS, LECTURETYPE LECTTYPE, C.NAME JOBCODE, CELLPHONE,
+                    TO_CHAR(D.LECTCNT) LECTCNT,
+                    TO_CHAR(D.LECTTIME) LECTTIME,
+                    TO_CHAR(TO_DATE(D.LECTDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') LECTDATE,
+                    D.COURSENAME, D.SUBJNAME, E.LEVELNAME, TO_CHAR(F.TEACHRSPT) TEACHRSPT,
+                    TO_CHAR(NVL(G.LECTPAY,   0), '999,999,999') LECTPAY,
+                    TO_CHAR(NVL(G.TRAVEL,    0), '999,999,999') TRAVEL,
+                    TO_CHAR(NVL(G.MSCTFEE,   0), '999,999,999') MSCTFEE,
+                    TO_CHAR(NVL(G.INCOMETAX, 0), '999,999,999') INCOMETAX,
+                    TO_CHAR(NVL(G.INHABTAX,  0), '999,999,999') INHABTAX
+              FROM  PRF_PROFESSOR A,
+                   (SELECT  CODE, NAME  FROM  SYS_SYSTEMCODE  WHERE  CODEDIV = '00020') B,
+                   (SELECT  CODE, NAME  FROM  SYS_SYSTEMCODE  WHERE  CODEDIV = '00031') C,
+                   (SELECT
+                       A.PROFESSORNO, NVL(B.LECTCNT,0)+NVL(C.LECTCNT,0) LECTCNT, NVL(B.LECTTIME,0)+NVL(C.LECTTIME,0) LECTTIME,
+                       DECODE(NVL(C.LECTDATE,  '-'), '-', B.LECTDATE,   C.LECTDATE)   LECTDATE,
+                       DECODE(NVL(C.COURSENAME,'-'), '-', B.COURSENAME, C.COURSENAME) COURSENAME,
+                       DECODE(NVL(C.SUBJNAME,  '-'), '-', B.SUBJNAME,   C.SUBJNAME)   SUBJNAME
+                    FROM  PRF_PROFESSOR A,
+                         (SELECT
+                             A.PROFESSORNO, A.LECTCNT, A.LECTTIME, B.LECTDATE, MAX(B.COURSENAME) COURSENAME, MAX(B.SUBJNAME) SUBJNAME
+                          FROM
+                              (SELECT
+                                  A.PROFESSORNO, COUNT(A.PROFESSORNO) LECTCNT, SUM(LECTTIME) LECTTIME, MAX(LECTDATE||FROMTIME||TOTIME) LECTDATE
+                               FROM  PRF_LECTHIST A, PRF_PROFESSOR B
+                               WHERE  A.PROFESSORNO = B.PROFESSORNO
+                                   AND  NVL(DELYN,'N') LIKE 'N'
+                               GROUP BY  A.PROFESSORNO) A,
+                              (SELECT
+                                    A.PROFESSORNO, COURSENAME, SUBJNAME, LECTDATE, FROMTIME, TOTIME
+                               FROM  PRF_LECTHIST A, PRF_PROFESSOR B
+                               WHERE  A.PROFESSORNO = B.PROFESSORNO
+                                   AND  NVL(DELYN,'N') LIKE 'N') B
+                          WHERE  A.LECTDATE = B.LECTDATE||B.FROMTIME||B.TOTIME
+                          GROUP BY  A.PROFESSORNO, A.LECTCNT, A.LECTTIME, B.LECTDATE ) B,
+                          (SELECT
+                              A.PROFESSORNO, A.LECTCNT, A.LECTTIME, B.LECTDATE, B.COURSENAME, B.SUBJNAME
+                           FROM
+                               (SELECT
+                                    A.PROFNO PROFESSORNO, COUNT(A.PROFNO) LECTCNT, SUM(SUBSTR(B.TOTIME, 0, 2)-SUBSTR(B.FROMTIME, 0, 2)) LECTTIME, MAX(A.COURSECODE||A.LECTDATE||A.TIMESEQ) LECTDATE
+                                FROM  OPR_LECTPROF A, OPR_TIMETABLE B, PRF_PROFESSOR C
+                                WHERE  A.PROFNO = C.PROFESSORNO
+                                  AND  A.COURSECODE = B.COURSECODE
+                                  AND  A.LECTDATE = B.LECTDATE
+                                  AND  A.TIMESEQ = B.TIMESEQ
+                                  AND  A.LECTUREFLAG = 'Y'
+                                  AND  NVL(DELYN,'N') LIKE 'N'
+                                GROUP BY  A.PROFNO) A,
+                                (SELECT
+                                    A.PROFNO PROFESSORNO, A.COURSECODE, A.LECTDATE, A.TIMESEQ, E.COURSENAME, D.SUBJNAME
+                                 FROM  OPR_LECTPROF A, OPR_TIMETABLE B, PRF_PROFESSOR C,
+                                       (SELECT COURSECODE, SUBJSEQ, SUBJNAME FROM  OPR_SUBJECT) D,
+                                       (SELECT COURSECODE, COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME FROM  OPR_LECTURE) E
+                                 WHERE  A.PROFNO = C.PROFESSORNO
+                                   AND  A.COURSECODE = B.COURSECODE
+                                   AND  A.LECTDATE = B.LECTDATE
+                                   AND  A.TIMESEQ = B.TIMESEQ
+                                   AND  A.COURSECODE = D.COURSECODE
+                                   AND  B.SUBJSEQ = D.SUBJSEQ
+                                   AND  A.COURSECODE = E.COURSECODE
+                                   AND  A.LECTUREFLAG = 'Y'
+                                   AND  NVL(DELYN,'N') LIKE 'N') B
+                           WHERE  A.LECTDATE = B.COURSECODE||B.LECTDATE||B.TIMESEQ) C
+                             WHERE  A.PROFESSORNO = B.PROFESSORNO(+)
+                               AND  A.PROFESSORNO = C.PROFESSORNO(+)
+                               AND  NVL(DELYN,'N') LIKE 'N') D,
+                   (SELECT  PROFLEVEL, LEVELNAME  FROM  PRF_PAYTABLE ) E,
+                   (SELECT A.PROFNO PROFESSORNO, TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') TEACHRSPT
+                    FROM  TST_TEACHERRSPT A, PRF_PROFESSOR B
+                    WHERE  A.PROFNO = B.PROFESSORNO
+                      AND  NVL(DELYN,'N') LIKE 'N'
+                    GROUP BY  PROFNO) F,
+                   (SELECT
+                        PROFNO PROFESSORNO, NVL(SUM(C.LECTPAY),0)+SUM(A.LECTPAY) LECTPAY, SUM(TRAVEL) TRAVEL, SUM(MSCTFEE) MSCTFEE, SUM(INCOMETAX) INCOMETAX, SUM(INHABTAX) INHABTAX
+                    FROM  PRF_LECTPAY A, PRF_PROFESSOR B, PRF_LECTHIST C
+                    WHERE  A.PROFNO = B.PROFESSORNO
+                      AND  A.PROFNO = C.PROFESSORNO(+)
+                      AND  NVL(DELYN,'N') LIKE 'N'
+                    GROUP BY  PROFNO) G
+              WHERE  A.JOBCODE       = C.CODE(+)
+                AND  A.LECTURETYPE   = B.CODE(+)
+                AND  A.PROFESSORNO   = D.PROFESSORNO(+)
+                AND  A.PROFESSORNO   = F.PROFESSORNO(+)
+                AND  A.PROFESSORNO   = G.PROFESSORNO(+)
+                AND  A.PROFLEVEL     = E.PROFLEVEL(+)
+                <isNotEmpty property="searchName">
+                     AND A.PROFNAME like '%' || #searchName# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchProfLevel">
+                     AND A.PROFLEVEL like '%' || #searchProfLevel# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchGradeCode">
+                     AND A.JOBCODE like '%' || #searchGradeCode# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchCellPhone">
+                     AND REPLACE(A.CELLPHONE, '-', '') LIKE '%' || #searchCellPhone# || '%'
+                </isNotEmpty>
+                <isNotEmpty property="searchCourseName">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFESSORNO
+                        FROM PRF_LECTHIST
+                        WHERE COURSENAME LIKE '%'||#searchCourseName#||'%')
+                </isNotEmpty>
+                <isNotEmpty property="searchSubjName">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFESSORNO
+                        FROM PRF_LECTHIST
+                        WHERE  SUBJNAME LIKE '%' || #searchSubjName# || '%')
+                </isNotEmpty>
+                <isNotEmpty property="searchFromDate">
+                <![CDATA[
+                    AND A.PROFESSORNO IN (
+                        SELECT
+                            PROFESSORNO
+                        FROM PRF_LECTHIST
+                        WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') >= TO_DATE(#searchFromDate#,'YYYY-MM')
+                        )
+                ]]>
+                </isNotEmpty>
+                <isNotEmpty property="searchToDate">
+                <![CDATA[
+                    AND A.PROFESSORNO IN (
+                        SELECT
+                            PROFESSORNO
+                        FROM PRF_LECTHIST
+                            WHERE TO_DATE(SUBSTR(LECTDATE,0,7),'YYYY-MM') <= TO_DATE(#searchToDate#,'YYYY-MM')
+                        )
+                ]]>
+                </isNotEmpty>
+                <isNotEmpty property="searchLecType">
+                    AND A.PROFESSORNO IN (
+                        SELECT PROFESSORNO
+                        FROM   PRF_LECTHIST
+                        WHERE  LECTURETYPE = #searchLecType#
+                    )
+                </isNotEmpty>
+                AND  NVL(DELYN,'N') LIKE 'N'
+              ORDER BY  NUM, PROFNAME
+        )
+	</select>
+
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPrf_ProfInfoListCount" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PRF_PROFESSOR
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_ProfInfoCount" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM 	PRF_PROFESSOR
+		WHERE PROFESSORNO   = #professorNo#
+	</select>
+
+	<!-- 현재 등록된 강사 수 카운트 -->
+	<select id="selectPrf_ProfMaxCount" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*) as CNT
+      FROM  PRF_PROFESSOR
+     WHERE  NVL(DELYN, 'N') != 'Y'
+	</select>
+
+	<!-- 기본키 최대값 + 1 [PRF_PROFESSOR]  -->
+	<select id="selectPrf_ProfInfoMaxKey" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(PROFESSORNO),0) +1
+		FROM	PRF_PROFESSOR
+	</select>
+
+	<!-- SEQNO 기본키 최대값 + 1 [PRF_SCHOOLLOG]  -->
+	<select id="selectPrf_ProfSchoolMaxKey" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(SEQNO),0) +1
+		FROM	PRF_SCHOOLLOG
+		<isNotEmpty property="professorNo">
+			WHERE PROFESSORNO = #professorNo#
+		</isNotEmpty>
+	</select>
+
+	<!-- SEQNO 기본키 최대값 + 1 [PRF_CAREER]  -->
+	<select id="selectPrf_ProfCareerMaxKey" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(SEQNO),0) +1
+		FROM	PRF_CAREER
+		<isNotEmpty property="professorNo">
+			WHERE PROFESSORNO = #professorNo#
+		</isNotEmpty>
+	</select>
+
+	<!-- SEQNO 기본키 최대값 + 1 [PRF_THESIS]  -->
+	<select id="selectPrf_ProfThesisMaxKey" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(SEQNO),0) +1
+		FROM	PRF_THESIS
+		<isNotEmpty property="professorNo">
+			WHERE PROFESSORNO = #professorNo#
+		</isNotEmpty>
+	</select>
+
+
+	<!-- 기본정보 레코드 입력 [prf_ProfInfo] -->
+	<insert id="insertPrf_ProfInfo" parameterClass="prf_ProfInfo">
+		INSERT INTO PRF_PROFESSOR (
+			PROFESSORNO  ,
+			LECTURETYPE  ,
+			PROFNAME     ,
+			PROFNAME2    ,
+			JUMINNO      ,
+			EMAIL        ,
+			HOME_PHONE   ,
+			CELLPHONE    ,
+			HOME_ZIPCODE ,
+			HOME_ADDRESS ,
+			BANKCODE     ,
+			ACCOUNTNO    ,
+			WORKPLACE    ,
+			WORKPOS      ,
+			ISINNERPROF  ,
+			PROFLEVEL    ,
+			WORK_PHONE   ,
+			WORK_FAX     ,
+			WORK_ZIPCODE ,
+			WORK_ADDRESS ,
+			PROFINTROFILE,
+			REMARKS      ,
+			INSUSER      ,
+			INSDATE      ,
+			DELYN				 ,
+			INFODELYN    ,
+			JOBCODE,
+			GENDER,
+			SCHOOLNAME,
+			SPECIALITY,
+			DEGREE,
+			AREACODE,
+			PROFTYPE,
+			INCOMETYPE,
+			CORPORATENUMBER,
+			profho,
+			career,
+			teach
+		) VALUES (
+			#professorNo#  ,
+			#lectureType#  ,
+			#profName#     ,
+			#profName2#    ,
+			REPLACE(#juminNo#,'-',''),
+			#email#        ,
+			#home_Phone#    ,
+			#cellPhone#    ,
+			#home_ZipCode#  ,
+			#home_Address#  ,
+			#bankCode#     ,
+			#accountNo#    ,
+			#workPlace#    ,
+			#workPos#      ,
+			#isInnerProf#  ,
+			#profLevel#    ,
+			#work_Phone#    ,
+			#work_Fax#      ,
+			#work_ZipCode#  ,
+			#work_Address#  ,
+			#profIntroFile#,
+			#remarks#      ,
+			#insUser#      ,
+			TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD')     ,
+			'N',
+			'N',
+			#jobCode#,
+			#gender#,
+			#schoolname#,
+			#speciality#,
+			#degreee#,
+			#areaCode#,
+			#profType#,
+			#incomeType#,
+			#corporateNumber#,
+			#profho#,
+			#career#,
+			#teach#
+		)
+	</insert>
+
+	<!-- 학력 정보 레코드 입력 [Prf_ProfSchool] -->
+	<insert id="insertPrf_ProfSchool" parameterClass="prf_ProfSchool">
+		INSERT INTO PRF_SCHOOLLOG (
+			   			PROFESSORNO,
+			   			SEQNO      ,
+			   			YEAR       ,
+			   			SCHOOLNAME ,
+			   			SPECIALTY  ,
+			   			DEGREE
+		) VALUES (
+
+			   			#professorNo#,
+			   			#seqNo#      ,
+			   			#year#       ,
+			   			#schoolName# ,
+			   			#specialty#  ,
+			   			#degree#
+		)
+	</insert>
+
+	<!-- 학력 정보 레코드 입력 [Prf_ProfCareer] -->
+	<insert id="insertPrf_ProfCareer" parameterClass="prf_ProfCareer">
+		INSERT INTO PRF_CAREER (
+			   			PROFESSORNO,
+			   			SEQNO      ,
+			   			FROMDATE   ,
+			   			ORGANNAME  ,
+			   			POSITION
+		) VALUES (
+
+			   			#professorNo#,
+			   			#seqNo#      ,
+			   			#fromDate#   ,
+			   			#organName#  ,
+			   			#position#
+		)
+	</insert>
+
+	<!-- 학력 정보 레코드 입력 [Prf_ProfThesis] -->
+	<insert id="insertPrf_ProfThesis" parameterClass="prf_ProfThesis">
+		INSERT INTO PRF_THESIS (
+			   			PROFESSORNO,
+			   			SEQNO      ,
+			   			THESIS
+		) VALUES (
+
+			   			#professorNo#,
+			   			#seqNo#      ,
+			   			#thesis#
+		)
+	</insert>
+
+
+	<!--  기본정보 레코드 수정 [prf_ProfInfo] -->
+	<update id="updatePrf_ProfInfo" parameterClass="prf_ProfInfo">
+		UPDATE PRF_PROFESSOR SET
+			PROFESSORNO   = #professorNo#  ,
+			LECTURETYPE   = #lectureType#  ,
+			PROFNAME      = #profName#     ,
+			PROFNAME2     = #profName2#    ,
+			JUMINNO       = REPLACE(#juminNo#,'-',''),
+			EMAIL         = #email#        ,
+			HOME_PHONE    = #home_Phone#    ,
+			CELLPHONE     = #cellPhone#    ,
+			HOME_ZIPCODE  = #home_ZipCode#  ,
+			HOME_ADDRESS  = #home_Address#  ,
+			BANKCODE      = #bankCode#     ,
+			ACCOUNTNO     = #accountNo#    ,
+			WORKPLACE     = #workPlace#    ,
+			WORKPOS       = #workPos#      ,
+			ISINNERPROF   = #isInnerProf#  ,
+			PROFLEVEL     = #profLevel#    ,
+			WORK_PHONE    = #work_Phone#    ,
+			WORK_FAX      = #work_Fax#      ,
+			WORK_ZIPCODE  = #work_ZipCode#  ,
+			WORK_ADDRESS  = #work_Address#  ,
+			<isNotEmpty property="fileYN">
+				 PROFINTROFILE = #profIntroFile#,
+			</isNotEmpty>
+			REMARKS       = #remarks#      ,
+			RENEWUSER     = #renewUser#      ,
+			RENEWDATE     = TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD')      ,
+			DELYN	       = #delYn#      ,
+			JOBCODE	     = #jobCode#,
+			GENDER = #gender#,
+			SCHOOLNAME = #schoolname#,
+			SPECIALITY = #speciality#,
+			DEGREE = #degreee# ,
+			AREACODE = #areaCode#,
+			PROFTYPE = #profType#,
+			INCOMETYPE = #incomeType#,
+			CORPORATENUMBER = #corporateNumber#,
+			profho = #profho#,
+			career = #career#,
+			teach = #teach#
+			
+		WHERE PROFESSORNO  = #professorNo#
+	</update>
+
+
+
+
+	<!--  강사 개인정보 삭제 (강사번호, 이름빼고 모두 삭제) [prf_ProfInfo] -->
+	<update id="updatePrf_ProfInfoData" parameterClass="prf_ProfInfo">
+		UPDATE PRF_PROFESSOR SET
+			LECTURETYPE   = null						,
+			PROFNAME2     = null					  ,
+			JUMINNO       = null						,
+			EMAIL         = null						,
+			HOME_PHONE    = null						,
+			CELLPHONE     = null						,
+			HOME_ZIPCODE  = null						,
+			HOME_ADDRESS  = null						,
+			BANKCODE      = null						,
+			ACCOUNTNO     = null						,
+			WORKPLACE     = null						,
+			WORKPOS       = null						,
+			ISINNERPROF   = null						,
+			PROFLEVEL     = null						,
+			WORK_PHONE    = null						,
+			WORK_FAX      = null						,
+			WORK_ZIPCODE  = null						,
+			WORK_ADDRESS  = null						,
+			PROFINTROFILE = null						,
+			REMARKS       = null						,
+			INFODELYN	   = 'Y',
+			GENDER = null,
+			SCHOOLNAME = null,
+			SPECIALITY = null,
+			DEGREE = null,
+			AREACODE = null,
+			PROFTYPE = null,
+			INCOMETYPE = null,
+			CORPORATENUMBER = null,
+			profho = null,
+			career = null,
+			teach = null
+		WHERE PROFESSORNO  = #professorNo#
+	</update>
+
+
+	<!--  강사 삭제 (강사번호, 이름빼고 모두 삭제) -->
+	<delete id="deletePrf_ProfInfo" parameterClass="prf_ProfInfo">
+		UPDATE PRF_PROFESSOR SET
+			LECTURETYPE   = null						,
+			PROFNAME2     = null					  ,
+			JUMINNO       = null						,
+			EMAIL         = null						,
+			HOME_PHONE    = null						,
+			CELLPHONE     = null						,
+			HOME_ZIPCODE  = null						,
+			HOME_ADDRESS  = null						,
+			BANKCODE      = null						,
+			ACCOUNTNO     = null						,
+			WORKPLACE     = null						,
+			WORKPOS       = null						,
+			ISINNERPROF   = null						,
+			PROFLEVEL     = null						,
+			WORK_PHONE    = null						,
+			WORK_FAX      = null						,
+			WORK_ZIPCODE  = null						,
+			WORK_ADDRESS  = null						,
+			PROFINTROFILE = null						,
+			REMARKS       = null						,
+			DELYN	  		 = 'Y',
+			GENDER = null,
+			SCHOOLNAME = null,
+			SPECIALITY = null,
+			DEGREE = null,
+			AREACODE = null,
+			PROFTYPE= null,
+			INCOMETYPE = null,
+			CORPORATENUMBER = null,
+			profho = null,
+			career = null,
+			teach = null
+		WHERE PROFESSORNO  = #professorNo#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  기본정보 레코드 삭제 [prf_ProfSchool] -->
+	<delete id="deletePrf_ProfSchool" parameterClass="prf_ProfInfo">
+		DELETE
+		 FROM		PRF_SCHOOLLOG
+		WHERE		PROFESSORNO   = #professorNo#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  기본정보 레코드 삭제 [prf_ProfCareer] -->
+	<delete id="deletePrf_ProfCareer" parameterClass="prf_ProfInfo">
+		DELETE
+		 FROM		PRF_CAREER
+		WHERE		PROFESSORNO   = #professorNo#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  기본정보 레코드 삭제 [prf_ProfThesis] -->
+	<delete id="deletePrf_ProfThesis" parameterClass="prf_ProfInfo">
+		DELETE
+		 FROM		PRF_THESIS
+		WHERE		PROFESSORNO   = #professorNo#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	<delete id="deletePrf_Lecthist" parameterClass="prf_ProfInfo">
+		DELETE
+		FROM		PRF_LECTHIST
+		WHERE		PROFESSORNO = #professorNo#
+	</delete>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_ProfLectInfo" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*)
+      FROM  OPR_LECTPROF
+     WHERE  SUBSTR(LECTDATE,0,4) = TO_CHAR(TO_DATE(SYSDATE), 'yyyy')
+       AND  PROFNO = #professorNo#
+	</select>
+
+	<select id="selectSubject" parameterClass="java.lang.String" resultClass="prf_ProfInfo">
+		SELECT SUBJSEQ AS courseName, SUBJNAME AS subjName
+		FROM  OPR_LECSUBJECT
+		WHERE COURSECODE = #searchCourseCode#
+	</select>
+
+	<insert id="insertPrf_ProfInfoCareer1" parameterClass="prf_ProfInfo">
+		INSERT INTO PRF_LECTHIST
+		(
+			PROFESSORNO
+			, COURSENAME
+			, COURSECODE
+			, LECTDATE
+			, SUBJNAME
+			, LECTTIME
+			, LECTURETYPE
+		)
+		VALUES
+		(
+			#professorNo#
+			, (SELECT COURSENAME FROM OPR_LECTURE WHERE COURSECODE = #courseCode#)
+			, #courseCode#
+			, SUBSTR(REPLACE(#lectDate#, '-'),0,4)||'-'||SUBSTR(REPLACE(#lectDate#, '-'),5,2)||'-'||SUBSTR(REPLACE(#lectDate#, '-'),7,2)
+			, #subjName#
+			, #lectHour#
+			, #lectureType#
+		)
+		<!-- INSERT INTO OPR_LECTPROF
+		(COURSECODE, LECTDATE, TIMESEQ, PROFNO, PROFNAME, PROFASSIGN, PROFLEVEL, LECTUREFLAG)
+		VALUES
+		(#courseName#,
+		#lectDate#,
+		(SELECT NVL(MAX(TIMESEQ)+1,1) FROM OPR_LECTPROF WHERE LECTDATE = #lectDate#),
+		#professorNo#,
+		(SELECT PROFNAME FROM PRF_PROFESSOR WHERE PROFESSORNO = #professorNo#),
+		(SELECT WORKPLACE FROM PRF_PROFESSOR WHERE PROFESSORNO = #professorNo#),
+		(SELECT PROFLEVEL FROM PRF_PROFESSOR WHERE PROFESSORNO = #professorNo#),
+		'Y'
+		) -->
+	</insert>
+
+
+	<insert id="insertPrf_ProfInfoCareer2" parameterClass="prf_ProfInfo">
+		INSERT INTO OPR_TIMETABLE
+		(COURSECODE, LECTDATE, TIMESEQ, SUBJSEQ, FROMTIME, TOTIME, PROFNAME, PROFASSIGN)
+		VALUES
+		(#courseCode#,
+		SUBSTR(#lectDate#,0,4)||'-'||SUBSTR(#lectDate#,5,2)||'-'||SUBSTR(#lectDate#,7,2),
+		(SELECT NVL(MAX(TIMESEQ),1) FROM OPR_LECTPROF WHERE LECTDATE = #lectDate#),
+		#subjName#,
+		'09:00',
+		(SELECT TRIM(TO_CHAR(TO_NUMBER(#lectHour#)+9,'09')||':00') FROM DUAL),
+		(SELECT PROFNAME FROM PRF_PROFESSOR WHERE PROFESSORNO = #professorNo#),
+		(SELECT WORKPLACE FROM PRF_PROFESSOR WHERE PROFESSORNO = #professorNo#))
+	</insert>
+
+	<delete id="deletePrf_ProfInfoCareer1" parameterClass="prf_ProfInfo">
+		DELETE FROM PRF_LECTHIST
+		WHERE PROFESSORNO = #professorNo#
+		AND LECTDATE = SUBSTR(REPLACE(#lectDate#, '-'),0,4)||'-'||SUBSTR(REPLACE(#lectDate#, '-'),5,2)||'-'||SUBSTR(REPLACE(#lectDate#, '-'),7,2)
+		AND COURSECODE = #courseCode#
+		AND SUBJNAME = #subjName#
+		<!-- DELETE FROM OPR_LECTPROF
+		WHERE  COURSECODE = #courseCode#
+		  AND  LECTDATE = REPLACE(#lectDate#, '-')
+		  AND  TIMESEQ = #timeSeq#
+		  AND  PROFNO = #professorNo# -->
+	</delete>
+
+	<delete id="deletePrf_ProfInfoCareer2" parameterClass="prf_ProfInfo">
+		DELETE FROM PRF_LECTHIST
+		WHERE PROFESSORNO = #professorNo#
+		AND LECTDATE = SUBSTR(REPLACE(#prevLectDate#, '-'),0,4)||'-'||SUBSTR(REPLACE(#prevLectDate#, '-'),5,2)||'-'||SUBSTR(REPLACE(#prevLectDate#, '-'),7,2)
+		AND COURSECODE = #prevCourseCode#
+		AND SUBJNAME = #prevSubjName#
+	<!--
+		DELETE FROM OPR_TIMETABLE
+		WHERE  COURSECODE = #courseCode#
+		  AND  LECTDATE = REPLACE(#lectDate#, '-')
+		  AND  TIMESEQ = #timeSeq#
+		  -->
+	</delete>
+	
+	<insert id="insertPrf_ProfInfoExcel" parameterClass="prf_ProfInfo">
+		INSERT INTO PRF_PROFESSOR ( professorno
+								  , profname
+		                          , juminno
+		                          , cellphone
+		                          , email
+		                          , workplace
+		                          , workpos
+		                          , work_phone
+		                          , work_fax
+		                          , work_address
+		                          , schoolname
+		                          , degree
+		                          , speciality
+		                          
+		                          , proftype
+		                          
+		                          , bankcode
+		                          , accountno
+		                          , incometype
+		                          , corporatenumber
+		                          , remarks
+		                          , insuser
+		                          , insdate
+		                          , gender
+		                          , profho
+		                          , career
+		                          , teach
+		                 ) VALUES ( #professorNo#
+		                          , #profName#
+		                 		  , #juminNo#
+		                 		  , #cellPhone#
+		                 		  , #email#
+		                 		  , #workPlace#
+		                 		  , #workPos#
+		                 		  , #work_Phone#
+		                 		  , #work_Fax#
+		                 		  , #work_Address#
+		                 		  , #schoolname#
+		                 		  , #degreee#
+		                 		  , #speciality#
+		                 		  
+		                 		  , #profType#
+		                 		  
+		                 		  , #bankCode#
+		                 		  , #accountNo#
+		                 		  , #incomeType#
+		                 		  , #corporateNumber#
+		                 		  , #remarks# 
+		                 		  , #insUser#
+			                      , TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD')
+			                      , DECODE(SUBSTR(#juminNo#, 7, 1), 1, 1, 0)
+			                      ,2
+			                      , #career#
+			                      , #teach#
+		                 		  )
+		                 		  
+	</insert>
+	
+	<insert id="insertPrf_ProfInfoExcelThesis" parameterClass="prf_ProfThesis">
+		INSERT INTO PRF_THESIS ( professorno
+			   			       , seqno
+			   			       , thesis
+					  ) VALUES ( #professorNo#
+			   			       , #seqNo#
+			   			       , #thesis#
+		)
+	</insert>
+	
+	<select id="selectPrf_ProfFileMaxKey" parameterClass="prf_ProfInfo" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(fileno),0) +1
+		FROM	PRF_FILE
+	</select>
+	
+	<insert id="insertPrf_ProfInfoFile" parameterClass="prf_ProfInfo">
+		INSERT INTO PRF_FILE ( fileno
+			   			     , professorno
+			   			     , filename
+			   			     , filepath
+					) VALUES ( #fileNo#
+			   		         , #professorNo#
+			   			     , #fileName#
+			   			     , #filePath#
+						     )
+	</insert>
+	
+	<select id="selectPrf_ProfFileList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT fileno
+		     , p.professorno
+		     , p.filename
+		     , p.filepath
+		  FROM PRF_FILE p
+		 WHERE p.professorno = #professorNo#
+	</select>
+	
+	<delete id="deletePrf_File" parameterClass="prf_ProfInfo">
+		DELETE 
+		  FROM PRF_FILE
+		 WHERE fileno = #fileNo#
+	</delete>
+	
+	<select id="selectPrf_ProfSubjectList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+		SELECT DISTINCT prof.* 
+ 		  FROM ( SELECT a.coursecode AS courseCode
+     				  , (SELECT coursename FROM OPR_LECTURE WHERE coursecode = a.coursecode) AS courseName
+     				  , a.timesubject AS subjName
+     				  , b.profno AS professorNo
+     				  , (SELECT workplace FROM PRF_PROFESSOR WHERE professorno = b.profno) AS workplace
+     				  , a.lectdate AS lectDate
+     				  , a.profname
+     				  , b.proflevel AS profLevel
+     				  , A.subjseq
+     				  , (SELECT name 
+     				       FROM SYS_SYSTEMCODE 
+     				      WHERE codediv = 00031 
+     				        AND code = (SELECT jobcode FROM PRF_PROFESSOR WHERE professorno = b.profno)) AS jobcode
+     				  , (SELECT areaname 
+     				       FROM PRF_AREA 
+     				      WHERE areano = (SELECT areacode FROM PRF_PROFESSOR WHERE professorno = b.profno)) AS areacode
+     				  , (SELECT name
+     				       FROM SYS_SYSTEMCODE
+     				      WHERE codediv = 00005
+     				        AND code = (SELECT isinnerprof FROM PRF_PROFESSOR WHERE professorno = b.profno)) AS isInnerProf     				       				        
+				   FROM OPR_TIMETABLE a, OPR_LECTPROF b
+				  WHERE 1=1
+					AND a.coursecode = b.coursecode(+)
+					AND a.lectdate = b.lectdate(+)
+					AND a.timeseq = b.timeseq(+)) prof
+         WHERE 1=1					
+		
+		<isNotEmpty property="searchYearFrom">
+			AND SUBSTR(prof.lectDate,1,4) <![CDATA[>=]]> #searchYearFrom#
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchYearTo">
+			AND SUBSTR(prof.lectDate,1,4) <![CDATA[<=]]> #searchYearTo#
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchCourseName">
+			AND prof.courseName LIKE '%'||#searchCourseName#||'%'
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchSubjName">
+			AND prof.subjName LIKE '%'||#searchSubjName#||'%'
+		</isNotEmpty>
+		
+		<!-- <isNotEmpty property="searchLecType">
+			AND prof.coursename LIKE '%'||#searchLecType#||'%'
+		</isNotEmpty> -->
+		
+		<isNotEmpty property="searchProfLevel">
+			AND prof.profLevel = #searchProfLevel#
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchGradeCode">
+			AND prof.jobcode =(SELECT name 
+			                     FROM SYS_SYSTEMCODE 
+			                    WHERE codediv = 00031 
+			                      AND code= #searchGradeCode#)
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchAreaCode">
+			AND prof.areacode =( SELECT areaname 
+			                       FROM PRF_AREA 
+			                      WHERE areano = #searchAreaCode#) 
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchName">
+			AND prof.profname LIKE '%'||#searchName#||'%'
+		</isNotEmpty>
+		
+		<isNotEmpty property="searchIsInnerCode">
+			AND prof.isInnerProf = (SELECT name 
+			                          FROM SYS_SYSTEMCODE 
+			                         WHERE codediv = 00005 
+			                           AND code= #searchIsInnerCode#)
+		</isNotEmpty>
+		
+		 ORDER BY prof.profname											
+	
+	</select>
+
+	<select id="selectBankCode"  parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT code
+		  FROM SYS_SYSTEMCODE
+		 WHERE codediv = 00001
+		   AND name = #value#
+	</select>
+	
+	<select id="selectProfType"  parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT code
+		  FROM SYS_SYSTEMCODE
+		 WHERE codediv = 00033
+		   AND name = #value#
+	</select>
+</sqlMap>

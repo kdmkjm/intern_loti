@@ -1,0 +1,899 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_Pass">
+
+	<typeAlias alias="opr_Pass" 		type="loti.opr.pass.model.Opr_Pass"/>
+	<typeAlias alias="opr_PassData" type="loti.opr.pass.model.Opr_PassData"/>
+	<typeAlias alias="Opr_CyberData" type="loti.opr.pass.model.Opr_CyberData"/>
+
+
+
+	<!-- 기본조회쿼리 --> 
+	<select id="selectOpr_Pass" parameterClass="opr_Pass" resultClass="opr_Pass">
+			SELECT 	
+				   		COURSECODE   ,
+				   		SEQ          ,
+				   		JUMINNO      ,
+				   		BIRTHSEX     ,
+				   		STDNAME      ,
+				   		STDNO        ,
+				   		ASSIGN       ,
+				   		ASSIGNNAME   ,
+				   		GRADECODE    ,
+				   		GRADENAME    ,
+				   		RANKCODE     ,
+				   		RANKNAME     ,
+				   		JOBKIND      ,
+				   		JOBNAME      ,
+				   		EMAIL        ,
+				   		CELLPHONE    ,
+				   		ISCOST       ,
+				   		TEAMNO       ,
+				   		ISLEADER     ,
+				   		SCORESTUDY   ,
+				   		SCOREATTEND  ,
+				   		SCORERESEARCH,
+				   		SCORETEAM    ,
+				   		SCOREADD     ,
+				   		SCOREPRA     ,
+				   		SCOREETC     ,
+				   		SCOREAVG     ,
+				   		SCOREFOREIGN,
+				   		SCORECONVER,
+				   		SCOREPAPER,
+				   		SCOREPERSONAL,
+						SCORETEAMDISC,
+						SCOREHOBBY,
+						SCORESTAMINA,
+						SCOREINFO,
+						SCOREVALUE,
+				   		PROGRESSRATE ,
+				   		STUDYHOUR    ,
+				   		RANKING      ,
+				   		DISPRANKING  ,
+				   		ISFINISH     
+			  FROM OPR_CRSSTUDENT
+	</select>
+
+	<!-- 이수명단전송 목록 조회쿼리 -->
+	<select id="selectOpr_PassSendList" parameterClass="opr_Pass" resultClass="opr_Pass">
+		SELECT  
+            B.STDNAME, 
+            B.COURSECODE, A.COURSENAME, A.EDUGBN, A.EDUFROM, A.EDUTO,
+					<isEqual property="lectureType" compareValue="collection"> 
+            A.EDUHOUR,
+            B.SCORESTUDY+B.SCORERESEARCH+B.SCORETEAM+B.SCOREATTEND+B.SCOREADD+B.SCOREPRA+B.SCOREETC
+						+B.SCOREFOREIGN+B.SCORECONVER+B.SCOREPAPER+B.SCOREPERSONAL
+						+B.SCORETEAMDISC+B.SCOREHOBBY+B.SCORESTAMINA+B.SCOREINFO+B.SCOREVALUE SCORE,
+					</isEqual>
+					<isEqual property="lectureType" compareValue="cyber"> 
+            A.APVHOUR*60 EDUHOUR, 
+            B.STUDYHOUR SCORE,
+					</isEqual>
+            A.EDUTYPE, A.EDUMETHOD,
+            B.JUMINNO,B.BIRTHSEX,B.CHIEFORGAN STDORGCODE, A.ISSELECTED,
+            DECODE(B.ISFINISH, 'Y', '1', 'N', '0') ISFINISHED
+      FROM  OPR_CRSSTUDENT B,
+           (SELECT  
+                    C.COURSECODE, C.CRSTYPE1, C.CRSTYPE2, C.CRSTYPE3, C.EDUFROM, C.EDUTO, 
+                    C.COURSENAME||'('||TO_NUMBER(SUBSTR(C.COURSECODE,11,2))||'기)' COURSENAME,
+                    C.APVHOUR, D.EDUHOUR*60 EDUHOUR, E.EDUGBN, E.EDUTYPE,
+                    DECODE(C.CRSTYPE1,'00003', 2, 1) EDUMETHOD,
+                    DECODE(NVL(SENDER,'0'),'0', 0, 1) ISSELECTED
+              FROM  OPR_LECTURE C,
+                   (SELECT 
+                            COURSECODE, MAX(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) EDUHOUR
+                      FROM  OPR_SUBJECT
+                     WHERE  COURSECODE = #searchCourseCode#
+                  GROUP BY  COURSECODE) D,
+                   (SELECT  TYPE1, TYPE2, TYPE3, EDUGBN, EDUTYPE
+                      FROM  CMN_COURSETYPE) E
+             WHERE  C.COURSECODE = D.COURSECODE
+               AND  E.TYPE1 = C.CRSTYPE1
+               AND  E.TYPE2 = C.CRSTYPE2
+               AND  E.TYPE3 = C.CRSTYPE3) A
+     WHERE  B.COURSECODE = A.COURSECODE
+       AND  B.COURSECODE LIKE #searchCourseCode#
+	</select>
+
+	<!--  집합 이수 목록조회쿼리 -->
+	<select id="selectOpr_PassList" parameterClass="opr_Pass" resultClass="opr_Pass">
+		SELECT  
+            B.COURSECODE, B.SEQ, B.STDNO, B.STDNAME, 
+            NVL(B.SCORESTUDY, 0) SCORESTUDY, NVL(B.SCORERESEARCH, 0) SCORERESEARCH, 
+            NVL(B.SCORETEAM, 0) SCORETEAM, NVL(B.SCOREATTEND,0) SCOREATTEND,
+            NVL(B.SCOREADD, 0) SCOREADD, NVL(B.SCOREPRA, 0) SCOREPRA, NVL(B.SCOREETC, 0) SCOREETC,
+            NVL(B.SCOREFOREIGN, 0) SCOREFOREIGN, NVL(B.SCORECONVER,0) SCORECONVER, NVL(B.SCOREPAPER,0) SCOREPAPER, NVL(B.SCOREPERSONAL,0) SCOREPERSONAL,
+            (NVL(B.SCORESTUDY, 0) + NVL(B.SCORERESEARCH, 0) + NVL(B.SCORETEAM, 0) + NVL(B.SCOREATTEND,0) + 
+            NVL(B.SCOREADD, 0) + NVL(B.SCOREPRA, 0) + NVL(B.SCOREETC, 0) + NVL(B.SCOREFOREIGN,0) +NVL(B.SCORECONVER,0) + NVL(B.SCOREPAPER,0)+ NVL(B.SCOREPERSONAL,0)
+			+ NVL(B.SCORETEAMDISC, 0) + NVL(B.SCOREHOBBY, 0) + NVL(B.SCORESTAMINA, 0) + NVL(B.SCOREINFO, 0) + NVL(B.SCOREVALUE, 0)
+			) SCORETOTAL,
+            D.RANKING, B.ISFINISH, B.ASSIGNNAME, B.RANKNAME, B.GRADENAME,
+            SUBSTR(B.PASSSEQ,1,4) || '-' || TO_NUMBER(SUBSTR(B.PASSSEQ,5,5)) PASSSEQ
+      FROM  OPR_CRSSTUDENT B,
+           (SELECT
+                    COURSECODE, CRSTYPE1
+              FROM  OPR_LECTURE
+             WHERE  CRSTYPE1 != '00003'
+           ) D,
+           (SELECT 
+           					COURSECODE, SEQ, SUM(ATNDSCORE) SCOREATTEND 
+           		FROM	OPR_ROLLBOOK 
+           	 WHERE	COURSECODE LIKE #searchCourseCode#
+          GROUP BY	COURSECODE, SEQ) C,
+          (SELECT STDNO, 
+            ROW_NUMBER() OVER (ORDER BY SCOREAVG DESC, SCORESTUDY+SCOREFOREIGN DESC, SCORECONVER DESC, 
+            										SCOREPRA+SCOREPAPER+SCOREPERSONAL+SCOREHOBBY+SCORESTAMINA+SCOREINFO+SCOREVALUE DESC, 
+            										SCORETEAM+SCORETEAMDISC DESC, SCOREATTEND DESC, JUMINNO ) AS RANKING  
+            FROM (SELECT STDNO, 
+                        (NVL(SCORESTUDY,0)+NVL(SCOREATTEND,0)+NVL(SCORERESEARCH,0)+NVL(SCORETEAM,0)+NVL(SCOREADD,0)+
+                        NVL(SCOREPRA,0)+NVL(SCOREFOREIGN,0)+NVL(SCORECONVER,0)+NVL(SCOREPAPER,0)+NVL(SCOREPERSONAL,0)+NVL(SCORETEAMDISC,0)+NVL(SCOREHOBBY,0)+NVL(SCORESTAMINA,0)+NVL(SCOREINFO,0)+NVL(SCOREVALUE,0)) AS SCOREAVG, 
+                        NVL(SCORESTUDY,0) AS SCORESTUDY, NVL(SCOREATTEND,0) AS SCOREATTEND, NVL(SCORERESEARCH,0) AS SCORERESEARCH,
+                        NVL(SCORETEAM,0) AS SCORETEAM, NVL(SCOREPRA,0) AS SCOREPRA, NVL(SCOREFOREIGN,0) SCOREFOREIGN, NVL(SCORECONVER,0) SCORECONVER, NVL(SCOREPAPER,0) SCOREPAPER, NVL(SCOREPERSONAL,0) SCOREPERSONAL,
+						NVL(SCORETEAMDISC, 0) AS SCORETEAMDISC, NVL(SCOREHOBBY, 0) AS SCOREHOBBY, NVL(SCORESTAMINA, 0) AS SCORESTAMINA, NVL(SCOREINFO, 0) AS SCOREINFO, NVL(SCOREVALUE, 0) AS SCOREVALUE,
+                        (CASE SUBSTR(BIRTHSEX,7,1)
+                             WHEN '1' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '2' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '3' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '4' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                           END) AS JUMINNO
+                    FROM OPR_CRSSTUDENT 
+                   WHERE COURSECODE LIKE #searchCourseCode#)) D
+     WHERE  B.COURSECODE = D.COURSECODE
+       AND  B.COURSECODE = C.COURSECODE(+)
+       AND  B.SEQ        = C.SEQ(+)
+       AND  B.COURSECODE LIKE #searchCourseCode#
+       AND	B.STDNO = D.STDNO
+		<isNotEmpty prepend="AND" property="searchIsFinish">
+			 ISFINISH like #searchIsFinish#
+		</isNotEmpty>
+	ORDER BY	$searchOrderRule$, STDNO
+	</select>
+	
+	<select id="selectOpr_PassListExcel" parameterClass="opr_Pass" resultClass="opr_Pass">
+		SELECT * FROM
+		(
+		SELECT
+			PASSSEQ		COL_A,
+			STDNO		COL_B,
+			ASSIGN		COL_C,
+			STDNAME		COL_D,
+			SEX			COL_E,
+			CELLPHONE	COL_F,
+			RANKNAME	COL_G,
+			AGE			COL_H,
+			ISFINISH	COL_I
+		FROM
+		(
+			SELECT '교육기간'		PASSSEQ,
+					'' STDNO,
+					TO_CHAR(TO_DATE(EDUFROM, 'yyyymmdd'), 'yyyy-mm-dd') ||'~' ||TO_CHAR(TO_DATE(EDUTO, 'yyyymmdd'), 'yyyy-mm-dd') ASSIGN,
+                     '' STDNAME,
+                     '' SEX,
+                     '' CELLPHONE,
+                     '' RANKNAME,
+                     '' AGE,
+                     '' ISFINISH
+			FROM	OPR_LECTURE
+			WHERE COURSECODE LIKE #searchCourseCode#
+			UNION ALL
+			SELECT  '이수번호'	PASSSEQ,
+					'교번'	STDNO,
+					'소속'	ASSIGN,
+					'성명'	STDNAME,
+					'성별'	SEX,
+					'휴대전화'	CELLPHONE,
+					'직급'	RANKNAME,
+					'연령'	AGE,
+					'이수여부'	ISFINISH
+			FROM DUAL
+         )
+         UNION ALL
+         SELECT
+         	PASSSEQ		COL_A,
+			TO_CHAR(STDNO)		COL_B,
+			ASSIGN		COL_C,
+			STDNAME		COL_D,
+			SEX			COL_E,
+			CELLPHONE	COL_F,
+			RANKNAME	COL_G,
+			AGE			COL_H,
+			ISFINISH	COL_I
+		FROM  
+			(
+				SELECT  
+					SUBSTR(B.PASSSEQ,1,4) || '-' || TO_NUMBER(SUBSTR(B.PASSSEQ,5,5)) PASSSEQ,
+					B.STDNO			STDNO,
+					B.ASSIGNNAME	ASSIGN,
+		          	B.STDNAME		STDNAME,
+					(CASE MOD(TO_NUMBER(SUBSTR(B.BIRTHSEX,7,1)),2)
+                        WHEN 1 THEN '남'
+                        WHEN 0 THEN '여'
+                     END) AS SEX,
+					B.CELLPHONE		CELLPHONE,
+					B.RANKNAME		RANKNAME,
+					TO_CHAR((TO_CHAR(SYSDATE,'yyyy') - 
+		                 		CASE SUBSTR(B.BIRTHSEX,7,1)
+		                        WHEN '1' THEN TO_NUMBER(LPAD(B.BIRTHSEX,2))+1900
+		                        WHEN '2' THEN TO_NUMBER(LPAD(B.BIRTHSEX,2))+1900
+		                        WHEN '3' THEN TO_NUMBER(LPAD(B.BIRTHSEX,2))+2000
+		                        WHEN '4' THEN TO_NUMBER(LPAD(B.BIRTHSEX,2))+2000
+		           		        END
+		             )) AS AGE,
+		            (CASE B.ISFINISH
+                        WHEN 'Y' THEN '이수'
+                        WHEN 'N' THEN '미이수'
+                        ELSE '교육중'
+                     END)		ISFINISH
+				FROM  OPR_CRSSTUDENT B
+				WHERE  B.COURSECODE LIKE #searchCourseCode#
+                ORDER BY STDNO
+              )
+        )
+	</select>
+	
+	<!--  교번이 생성 되어 있는 데이터 인지 체크 -->
+	<select id="selectOpr_PassListStdNoCount" parameterClass="opr_Pass" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*)
+      FROM  OPR_CRSSTUDENT
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  STDNO IS NULL
+	</select>
+	
+	<!--  과정명 없이 검색시 과정명 셋팅 -->
+	<select id="selectCourseName" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT 
+            COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' AS COURSENAME 
+      FROM  OPR_LECTURE
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+	
+	<!--  집합/사이버 과정 체크-->
+	<select id="selectCrsType" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT 
+            NVL(CRSTYPE1, '00000') 
+      FROM  OPR_LECTURE 
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+	
+	<!--  교육비 계산 여부 체크-->
+	<select id="checkCostCalc" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT 
+            COUNT(*) 
+      FROM  OPR_COURSECOST 
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+
+	<!-- 사이버 이수목록조회쿼리 -->
+	<select id="selectOpr_PassCyberList" parameterClass="opr_Pass" resultClass="opr_Pass">
+		SELECT  
+						B.COURSECODE, 
+						B.SEQ, 
+						D.CRSTYPE1, 
+						B.STDNO, 
+						B.STDNAME, 
+						B.ASSIGNNAME,
+            NVL(B.PROGRESSRATE,0) PROGRESSRATE, 
+            NVL(B.STUDYHOUR, 0) STUDYHOUR, 
+            NVL(B.HOMESTUDY,0) HOMESTUDY, 
+            NVL(B.PARTICIPATE, 0) PARTICIPATE, 
+            NVL(B.CONNECTCOUNT,0) CONNECTCOUNT, 
+            NVL(B.ACQUIRESCORE, 0) ACQUIRESCORE, 
+            D.APVHOUR, 
+            D.APVRATE, 
+            B.ISFINISH 
+      FROM  OPR_CRSSTUDENT B,
+           (SELECT
+                    COURSECODE, CRSTYPE1, APVHOUR, CYBERPRGSRATE APVRATE
+              FROM  OPR_LECTURE
+             WHERE  CRSTYPE1 = '00003') D
+     WHERE  B.COURSECODE = D.COURSECODE
+       AND  B.COURSECODE LIKE #searchCourseCode#
+	ORDER BY  STDNO
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectOpr_PassListCount" parameterClass="opr_Pass" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!--  이수처리가 된 데이터인지 조회한다. -->
+	<select id="selectOpr_PassSendListCount" parameterClass="opr_Pass" resultClass="java.lang.Integer">
+		SELECT 
+            COUNT(*) 
+      FROM  OPR_CRSSTUDENT 
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  ISFINISH IS NULL
+	</select>
+
+
+	<!--  이수처리가 된 데이터인지 조회한다. -->
+	<select id="selectOpr_PassIsPassCheck" parameterClass="opr_Pass" resultClass="java.lang.String">
+		SELECT 
+            ISPASS
+      FROM  OPR_LECTURE 
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+
+
+		<!-- 등록되어 있는 학생인지  Count -->
+	<select id="selectOpr_PassCount" parameterClass="opr_PassData" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) as CNT
+			FROM	OPR_CRSSTUDENT
+		 WHERE	COURSECODE	= '$courseCode$'   
+			 AND	STDNO				= '$stdNo$'
+			 AND	STDNAME 		= '$stdName$'
+			 AND	SUBSTR(JUMINNO,0,7) = '$stdBirth$'
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertOpr_Pass" parameterClass="opr_Pass">
+		INSERT INTO OPR_CRSSTUDENT (	
+			   			COURSECODE   ,	
+			   			SEQ          ,	
+			   			JUMINNO      ,
+			   			BIRTHSEX     ,	
+			   			STDNAME      ,	
+			   			STDNO        ,	
+			   			ASSIGN       ,	
+			   			ASSIGNNAME   ,	
+			   			GRADECODE    ,	
+			   			GRADENAME    ,	
+			   			RANKCODE     ,	
+			   			RANKNAME     ,	
+			   			JOBKIND      ,	
+			   			JOBNAME      ,	
+			   			EMAIL        ,	
+			   			CELLPHONE    ,	
+			   			ISCOST       ,	
+			   			TEAMNO       ,	
+			   			ISLEADER     ,	
+			   			SCORESTUDY   ,	
+			   			SCOREATTEND  ,	
+			   			SCORERESEARCH,	
+			   			SCORETEAM    ,	
+			   			SCOREADD     ,	
+			   			SCOREPRA     ,	
+			   			SCOREETC     ,	
+			   			SCOREAVG     ,	
+			   			PROGRESSRATE ,	
+			   			STUDYHOUR    ,	
+			   			RANKING      ,	
+			   			DISPRANKING  ,	
+			   			ISFINISH     	
+		) VALUES (
+						 
+			   			#courseCode#   ,	
+			   			#seq#          ,	
+			   			#juminNo#      ,
+			   			#birthsex#      ,	
+			   			#stdName#      ,	
+			   			#stdNo#        ,	
+			   			#assign#       ,	
+			   			#assignName#   ,	
+			   			#gradeCode#    ,	
+			   			#gradeName#    ,	
+			   			#rankCode#     ,	
+			   			#rankName#     ,	
+			   			#jobKind#      ,	
+			   			#jobName#      ,	
+			   			#email#        ,	
+			   			#cellPhone#    ,	
+			   			#isCost#       ,	
+			   			#teamNo#       ,	
+			   			#isLeader#     ,	
+			   			#scoreStudy#   ,	
+			   			#scoreAttend#  ,	
+			   			#scoreResearch#,	
+			   			#scoreTeam#    ,	
+			   			#scoreAdd#     ,	
+			   			#scorePra#     ,	
+			   			#scoreEtc#     ,	
+			   			#scoreAvg#     ,	
+			   			#progressRate# ,	
+			   			#studyHour#    ,	
+			   			#ranking#      ,	
+			   			#dispRanking#  ,	
+			   			#isFinish#     	
+		)
+	</insert>
+
+
+	<!--  이수확정 -->
+	<update id="updateOpr_PassSend" parameterClass="opr_Pass">
+    UPDATE  OPR_LECTURE SET
+            PASSER = #sender#,
+            PASSDATE = TO_CHAR(SYSDATE,'YYYYMMDD') 
+     WHERE  COURSECODE LIKE #searchCourseCode# 
+	</update>
+
+
+	<!--  이수 처리 -->
+	<update id="updateOpr_Pass" parameterClass="opr_PassData">
+		UPDATE	OPR_CRSSTUDENT SET       
+			    ISFINISH      = #isFinish#
+			    <isEmpty property="passseq">
+			    , PASSSEQ = (SELECT SUBSTR(#courseCode#,4,4)||LPAD(NVL(MAX(SUBSTR(PASSSEQ,5,5)),0)+1, 5, '0') 
+			    			FROM OPR_CRSSTUDENT WHERE COURSECODE LIKE SUBSTR(#courseCode#,1,7)||'%')
+			    </isEmpty>
+			    <isEqual property="passseq" compareValue="-">
+			    , PASSSEQ = (SELECT SUBSTR(#courseCode#,4,4)||LPAD(NVL(MAX(SUBSTR(PASSSEQ,5,5)),0)+1, 5, '0') 
+			    			FROM OPR_CRSSTUDENT WHERE COURSECODE LIKE SUBSTR(#courseCode#,1,7)||'%')
+			    </isEqual>
+		 WHERE	COURSECODE	= #courseCode#   
+			 AND	SEQ					= #seq#
+	</update>
+
+
+	<!--  이수 처리 -->
+	<update id="updateOpr_PassIsPass" parameterClass="opr_Pass">
+		UPDATE	OPR_LECTURE SET       
+			    	ISPASS      = 'Y'
+		 WHERE	COURSECODE	= #courseCode#
+	</update>
+
+
+	<!--  사이버 이수 처리 -->
+	<update id="updateOpr_PassCyber" parameterClass="opr_PassData">
+		UPDATE	OPR_CRSSTUDENT SET       
+			   	ISFINISH      = #isFinish# 
+		 WHERE	COURSECODE	= #courseCode#   
+			 AND	SEQ					= #seq#
+	</update>
+
+
+	<!--  사이버 엑셀 업로드 후 다시 등록을 한다. -->
+	<update id="updateOpr_PassCyberExcelSave" parameterClass="opr_PassData">
+		UPDATE	OPR_CRSSTUDENT SET       
+			   	PROGRESSRATE  = #progressRate#	,
+			   	HOMESTUDY     = #homeStudy# 		,
+			   	STUDYHOUR    	= #studyHour# 		,
+			   	PARTICIPATE   = #participate# 	,
+			   	CONNECTCOUNT  = #connectCount# 	,
+			   	ACQUIRESCORE  = TRUNC(TO_NUMBER(#acquireScore#)) ,
+			   	ISFINISH      = #isFinish# 
+		 WHERE	COURSECODE	= #courseCode#   
+			 AND	STDNO				= #stdNo#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_Pass" parameterClass="opr_Pass">
+		DELETE FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 업로드한 과정으로 과정별 교육생 테이블에서 교육생수 가져오기 -->
+	<select id="selectOpr_PassCourseCount" parameterClass="opr_Pass" resultClass="java.lang.Integer">
+		SELECT  COUNT(*) AS CNT
+      FROM  OPR_CRSSTUDENT
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+	
+	
+	<!-- 업로드시 생년월일 중복 카운트 Count -->
+	<select id="selectOpr_PassTempDuplCount" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) COUNT  
+			FROM	DUAL, 
+           (SELECT	COUNT(*) COUNT
+							FROM	CMN_XLSTEMP
+             WHERE	SESSI = #sessi#
+          GROUP BY	COLA, COLL) A
+		 WHERE	A.COUNT != 1
+	</select>
+	
+
+	<!--  엑셀테이블에서 실제테이블로 업데이트 -->
+	<update id="updateOpr_PassTempToReal" parameterClass="opr_Pass">
+		UPDATE  OPR_CRSSTUDENT SET 
+        		PROGRESSRATE 	= #progressRate#	,
+        		STUDYHOUR			= #apvHour#				, 
+        		ISFINISH			= DECODE(REPLACE (#isFinish#, ' ', ''), '이수', 'Y', 'N')
+		 WHERE	SUBSTR(JUMINNO, 0, 7) LIKE '%' || REPLACE(SUBSTR(#juminNo#, 0, 8), '-', '') || '%'
+		   AND	STDNAME 							LIKE '%' || #stdName# || '%'
+       AND	COURSECODE 						LIKE '%' || #searchCourseCode# || '%' 
+	</update>
+	
+	
+	<!-- 중복시 업로드한 엑셀 데이터중 오류 데이터 리스트 가져오기 -->
+	<select id="selectOpr_PassTempDuplList" parameterClass="opr_Pass" resultClass="opr_Pass">
+	  SELECT  SEQ, COLA STDNAME, COLB JUMINNO, COLC POSITION, COLD GRADE, COLE PROGRESSRATE, COLF HOMESTUDY, 
+            COLG APVHOUR, COLH PARTICIPATE, COLI CONNECTCOUNT, COLJ SCORETOTAL, COLK ISFINISH
+      FROM  CMN_XLSTEMP
+     WHERE  SESSI = #sessi#
+       AND	COLL 
+                IN (SELECT  A.COLL STDBIRTH  
+                      FROM  DUAL, 
+                           (SELECT  COUNT(*) COUNT, COLA, COLL
+                              FROM  CMN_XLSTEMP
+                             WHERE  SESSI = #sessi#
+                          GROUP BY  COLA, COLL) A
+                     WHERE  A.COUNT != 1)
+	</select>
+	
+	
+	<!-- 중복시 업로드한 엑셀 테이터의 생년월일 가져오기 -->
+	<select id="selectOpr_PassTempDuplData" parameterClass="opr_Pass" resultClass="java.lang.String">
+		SELECT  A.COLL STDBIRTH  
+      FROM  DUAL, 
+           (SELECT  COUNT(*) COUNT, COLA, COLL
+              FROM  CMN_XLSTEMP
+             WHERE  SESSI = #sessi#
+          GROUP BY  COLA, COLL) A
+     WHERE  A.COUNT != 1
+	</select>
+	
+	
+	
+	<!--  임시 테이블 레코드 삭제 -->
+	<delete id="deleteOpr_PassCyberTemp" >
+		DELETE FROM CMN_XLSTEMP
+		WHERE SESSI = #sessi#
+	</delete>
+	
+	<!-- 임시테이블 레코드 입력 -->
+	<insert id="insertOpr_PassCyberTemp" parameterClass="opr_Pass">
+		INSERT INTO CMN_XLSTEMP (
+			   			COLA	,
+			   			COLB	,
+			   			COLC  ,
+			   			COLD  ,
+			   			COLE  ,
+			   			COLF	,
+			   			COLG 	,
+			   			COLH  ,
+			   			COLI  ,
+			   			COLJ  ,
+			   			COLK  ,
+			   			COLL	,
+			   			SESSI	,
+			   			SEQ
+		) VALUES (
+
+			   			#stdName#,
+			   			#juminNo#    ,
+			   			#position#    ,
+			   			#grade#    ,
+			   			#progressRate#,
+			   			#homeStudy#	  ,
+			   			#studyHour#   ,
+			   			#participate#    ,
+			   			#connectCount#   ,
+			   			#acquireScore#   ,
+			   			#isFinish#   ,
+			   			REPLACE(SUBSTR(#juminNo#, 0, 8), '-', '')    ,
+			   			#sessi#		,
+			   			(SELECT NVL(MAX(SEQ),0) + 1
+						FROM CMN_XLSTEMP
+						WHERE SESSI = #sessi# )
+
+		)
+	</insert>
+
+	
+		<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE       
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD') 
+		)
+	</insert>
+	
+	
+	
+	<!--  동명이인 교육생, 실제사용이름과 DB등록된이름이 틀린 교육생 조회 -->
+	<select id="selectOpr_PassErrorData" parameterClass="opr_Pass" resultClass="opr_Pass">
+	  SELECT
+            SEQ, 
+            COLA STDNAME, 
+            COLB JUMINNO, 
+            COLC ASSIGNNAME, 
+            COLD RANKNAME, 
+            COLE PROGRESSRATE, 
+            COLF HOMESTUDY, 
+            COLG STUDYHOUR, 
+            COLH PARTICIPATE, 
+            COLI CONNECTCOUNT, 
+            COLJ ACQUIRESCORE, 
+            COLK ISFINISH
+      FROM  CMN_XLSTEMP A, 
+           (SELECT  
+                    COLA STDNAME, 
+                    SUBSTR(COLB, 0, 8) JUMINNO
+              FROM  CMN_XLSTEMP
+             WHERE  SESSI = #sessi#
+             MINUS
+            SELECT  
+                    STDNAME, 
+                    SUBSTR(JUMINNO, 0, 6)||'-'||SUBSTR(JUMINNO, 7, 1) JUMINNO
+              FROM  OPR_CRSSTUDENT
+             WHERE  COURSECODE LIKE #searchCourseCode#
+           ) B
+     WHERE  SESSI = #sessi#
+       AND  SUBSTR(COLB, 0, 8) = B.JUMINNO
+	</select>
+	
+	<!--  동명이인 교육생, 실제사용이름과 DB등록된이름이 틀린 교육생 외에 정상적인 데이터를 저장  -->
+	<update id="updateOpr_PassGoodData" parameterClass="opr_Pass">
+		UPDATE  OPR_CRSSTUDENT A SET
+            A.PROGRESSRATE =   
+													 (SELECT  
+					                           COLE PROGRESSRATE
+					                     FROM  CMN_XLSTEMP
+					                    WHERE  SESSI = #sessi#
+					                      AND  COLL 
+					                           IN (SELECT  B.COLL STDBIRTH  
+					                                 FROM  DUAL, 
+					                                      (SELECT  COUNT(*) COUNT, COLA, COLL
+					                                         FROM  CMN_XLSTEMP
+					                                        WHERE  SESSI = #sessi#
+					                                     GROUP BY  COLA, COLL) B
+					                                WHERE  B.COUNT = 1)
+					                      AND  COLA = A.STDNAME
+					                      AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.HOMESTUDY =   
+													 (SELECT  
+					                           COLF HOMESTUDY
+					                     FROM  CMN_XLSTEMP
+					                    WHERE  SESSI = #sessi#
+					                      AND  COLL 
+					                           IN (SELECT  B.COLL STDBIRTH  
+					                                 FROM  DUAL, 
+					                                      (SELECT  COUNT(*) COUNT, COLA, COLL
+					                                         FROM  CMN_XLSTEMP
+					                                        WHERE  SESSI = #sessi#
+					                                     GROUP BY  COLA, COLL) B
+					                                WHERE  B.COUNT = 1)
+					                      AND  COLA = A.STDNAME
+					                      AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.STUDYHOUR =   
+											 (SELECT  
+							                  COLG APVHOUR
+							            FROM  CMN_XLSTEMP
+							           WHERE  SESSI = #sessi#
+							             AND  COLL 
+							                  IN (SELECT  B.COLL STDBIRTH  
+							                        FROM  DUAL, 
+							                             (SELECT  COUNT(*) COUNT, COLA, COLL
+							                                FROM  CMN_XLSTEMP
+							                               WHERE  SESSI = #sessi#
+							                            GROUP BY  COLA, COLL) B
+							                       WHERE  B.COUNT = 1)
+							             AND  COLA = A.STDNAME
+							             AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.PARTICIPATE =   
+											 (SELECT  
+							                  COLH PARTICIPATE
+							            FROM  CMN_XLSTEMP
+							           WHERE  SESSI = #sessi#
+							             AND  COLL 
+							                  IN (SELECT  B.COLL STDBIRTH  
+							                        FROM  DUAL, 
+							                             (SELECT  COUNT(*) COUNT, COLA, COLL
+							                                FROM  CMN_XLSTEMP
+							                               WHERE  SESSI = #sessi#
+							                            GROUP BY  COLA, COLL) B
+							                       WHERE  B.COUNT = 1)
+							             AND  COLA = A.STDNAME
+							             AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.CONNECTCOUNT =   
+											 (SELECT  
+							                  COLI CONNECTCOUNT
+							            FROM  CMN_XLSTEMP
+							           WHERE  SESSI = #sessi#
+							             AND  COLL 
+							                  IN (SELECT  B.COLL STDBIRTH  
+							                        FROM  DUAL, 
+							                             (SELECT  COUNT(*) COUNT, COLA, COLL
+							                                FROM  CMN_XLSTEMP
+							                               WHERE  SESSI = #sessi#
+							                            GROUP BY  COLA, COLL) B
+							                       WHERE  B.COUNT = 1)
+							             AND  COLA = A.STDNAME
+							             AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.ACQUIRESCORE =   
+											 (SELECT  
+							                  COLJ ACQUIRESCORE
+							            FROM  CMN_XLSTEMP
+							           WHERE  SESSI = #sessi#
+							             AND  COLL 
+							                  IN (SELECT  B.COLL STDBIRTH  
+							                        FROM  DUAL, 
+							                             (SELECT  COUNT(*) COUNT, COLA, COLL
+							                                FROM  CMN_XLSTEMP
+							                               WHERE  SESSI = #sessi#
+							                            GROUP BY  COLA, COLL) B
+							                       WHERE  B.COUNT = 1)
+							             AND  COLA = A.STDNAME
+							             AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)),
+            A.ISFINISH = 
+            					 DECODE(REPLACE(
+			            					 			(SELECT  
+			                                     COLK ISFINISH
+			                               FROM  CMN_XLSTEMP
+			                              WHERE  SESSI = #sessi#
+			                                AND  COLL 
+			                                     IN (SELECT  B.COLL STDBIRTH  
+			                                           FROM  DUAL, 
+			                                                (SELECT  COUNT(*) COUNT, COLA, COLL
+			                                                   FROM  CMN_XLSTEMP
+			                                                  WHERE  SESSI = #sessi#
+			                                               GROUP BY  COLA, COLL) B
+			                                          WHERE  B.COUNT = 1)
+			                                AND  COLA = A.STDNAME
+			                                AND  REPLACE(SUBSTR(COLB, 0, 8), '-', '') = SUBSTR(A.JUMINNO, 0, 7)
+                       ), ' ', ''), '이수', 'Y', '미이수', 'N')
+     WHERE	A.COURSECODE   = #searchCourseCode# 
+	</update>
+
+	<!--  사이버이수 테이블 레코드 삭제 -->
+	<delete id="deleteOpr_CyberPassInfo" >
+		DELETE FROM OPR_CYBERPASS
+		WHERE COURSECODE = #courseCode#
+	</delete>
+
+	<!-- 사이버이수 테이블 레코드 입력 -->
+	<insert id="insertOpr_CyberPassInfo" parameterClass="Opr_CyberData">
+		INSERT INTO OPR_CYBERPASS (
+			   			COURSECODE	,
+			   			COURSENAME	,
+			   			STDNO  ,
+			   			STDNAME  ,
+			   			JUMINNO  ,
+			   			CHIEFORGANNAME	,
+			   			ORGANNAME 	,
+			   			ORGANCODE  ,
+			   			ASSIGNNAME  ,
+			   			GRADENAME  ,
+			   			SCORESTUDY  ,
+			   			RANKING	,
+			   			STUDYHOUR	,
+			   			REGGBN	,
+			   			ESARAMSEND	,
+			   			FINISHNO	,
+			   			ISFINISH
+		) VALUES (
+			   			#courseCode#,
+			   			#courseName#    ,
+			   			#stdNo#    ,
+			   			#stdName#    ,
+			   			#juminNo#,
+			   			#chiefOrganName#  ,
+			   			#organName#   ,
+			   			#organCode#    ,
+			   			#assignName#   ,
+			   			#gradeName#   ,
+			   			#scoreStudy#   ,
+			   			#ranking#	,
+			   			#studyHour#		,
+			   			#regGbn#	,
+			   			#saramSend#	,
+			   			#finishNo#	,
+						#isFinish#
+		)
+	</insert>
+
+	<!--  교육신청자 레코드 삭제 -->
+	<delete id="deleteOpr_ApplicantInfo" parameterClass="java.lang.String">
+		DELETE FROM OPR_APPLICANT
+		WHERE COURSECODE = #courseCode#
+	</delete>
+
+	<!--  교육신청자 레코드 등록 -->
+	<insert id="insertOpr_ApplicantInfo" parameterClass="java.lang.String">
+		INSERT INTO OPR_APPLICANT
+		SELECT CourseCode, StdNo seq, JuminNo, StdName, OrganCode Assign, organName AssignName, '' GradeCode, GradeName, '' RankCode,
+               '' RankName, '' JobKind, '' JobName, '' Email, '' CellPhone, TO_CHAR(SYSDATE, 'YYYYMMDD') ReqDate, '2' ReqWay,
+               '' ReqXlsFile, 'Y' IsSelected, DECODE(SUBSTR(OrganCode, 0, 3), '643', '6430000', '436', '4360000', '437', '4360000',
+               '438', '4360000', '439', '4390000', '440', '4400000', '441', '4410000', '442', '4420000', '443', '4430000', '444',
+               '4440000', '445', '4450000', '446', '4460000', '447', '4470000', '448', '4480000', '557', '5570000', '571', '5710000', '9999999') ChiefOrgan
+        FROM OPR_CyberPass
+        WHERE CourseCode = #courseCode#
+	</insert>
+
+	<!--  교육생  레코드 삭제 -->
+	<delete id="deleteOpr_CrsStudentInfo" parameterClass="java.lang.String">
+		DELETE FROM OPR_CRSSTUDENT
+		WHERE COURSECODE = #courseCode#
+	</delete>
+
+	<!--  교육생 레코드 등록 -->
+	<insert id="insertOpr_CrsStudentInfo" parameterClass="java.lang.String">
+		INSERT INTO OPR_CRSSTUDENT
+		SELECT CourseCode, StdNo seq, JuminNo, StdName, StdNo, OrganCode Assign, organName AssignName, '' GradeCode, GradeName, '' RankCode,
+               '' RankName, '' JobKind, '' JobName, '' Email, '' CellPhone, 'N' IsCost, '' TeamNo, '' IsLeader, '' ScoreStudy, '' ScoreAttend,
+               '' ScoreResearch, '' ScoreTeam, '' ScoreAdd, '' ScorePra, '' ScoreEtc, '' ScoreAvg, '100' ProgressRate, ScoreStudy StudyHour, Ranking,
+               Ranking DispRanking, DECODE(IsFinish, '수료', 'Y', 'N') IsFinish, DECODE(SUBSTR(OrganCode, 0, 3), '643', '6430000', '436', '4360000',
+               '437', '4360000', '438', '4360000', '439', '4390000', '440', '4400000', '441', '4410000', '442', '4420000', '443', '4430000',
+               '444', '4440000', '445', '4450000', '446', '4460000', '447', '4470000', '448', '4480000', '557', '5570000', '571', '5710000', '9999999') ChiefOrgan,
+               '' ScoreSubj1, '' ScoreSubj2, '' ScoreSubj3, '' ScoreSubj4, '' HomeStudy, '' Participate, '' ConnectCount, ScoreStudy AcquireScore, '' ROOMNO
+        FROM OPR_CyberPass
+        WHERE CourseCode = #courseCode#
+	</insert>
+
+	<!-- 과정의 사이버이수테이블 검색 -->
+	<select id="selectOpr_CyberPassList" parameterClass="java.lang.String" resultClass="Opr_CyberData">
+		SELECT COURSECODE, COURSENAME, STDNO, STDNAME, JUMINNO, CHIEFORGANNAME, ORGANNAME, ORGANCODE, ASSIGNNAME,
+		       GRADENAME, SCORESTUDY, RANKING, STUDYHOUR, REGGBN, ESARAMSEND, FINISHNO, ISFINISH
+	    FROM OPR_CyberPass
+        WHERE CourseCode = #courseCode#
+	</select>
+
+	<!-- 사용자 테이블에 존재여부 -->
+	<select id="selectCmn_PubWorkerCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+	    FROM CMN_PUBWORKER
+	   WHERE JUMINNO = #juminNo#
+	</select>
+
+	<!-- 사용자정보 수정 -->
+	<update id="updateCmn_PubWorker" parameterClass="Opr_CyberData">
+		UPDATE CMN_PUBWORKER SET
+			   USERNAME = #stdName#,
+			   ORGANCODE = #organCode#,
+			   UPDDATE = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+			   UPDWAY = '3',
+			   UPDUSER = 'cyber'
+		WHERE JUMINNO = #juminNo#
+	</update>
+
+	<!-- 사용자정보 등록 -->
+	<insert id="insertCmn_PubWorker" parameterClass="Opr_CyberData">
+		INSERT INTO CMN_PUBWORKER (	
+			   			JUMINNO,
+  						USERNAME,
+						ORGANCODE,
+						INSDATE,
+						INSWAY,
+						INSUSER
+		) VALUES (						 
+			   			#juminNo#   ,	
+			   			#stdName#  ,	
+			   			#organCode#  ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+			   			'3' ,	
+			   			'cyber'
+		)
+	</insert>
+
+	<!--  이수 처리 -->
+	<update id="updateOpr_LectureIsPass" parameterClass="java.lang.String">
+		UPDATE	OPR_LECTURE SET       
+			    	ISPASS      = 'Y'
+		 WHERE	COURSECODE	= #courseCode#
+	</update>
+
+</sqlMap>

@@ -1,0 +1,338 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Svc_BoardNotice">
+
+	<typeAlias alias="svc_BoardNotice" type="loti.svc.ref.notice.model.Svc_BoardNotice" />
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSvc_BoardNotice" parameterClass="svc_BoardNotice"
+		resultClass="svc_BoardNotice">
+		SELECT ROWNUM NUM,
+		BOARD_IDX,
+		USERID ,
+		USERNM ,
+		TITLE ,
+		PASSWD ,
+		TO_CHAR(TO_DATE(WDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE ,
+		TO_CHAR(TO_DATE(UDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE ,
+		COUNTS ,
+		RE_IDX ,
+		RE_STEP ,
+		RE_LEVEL ,
+		CONTENT ,
+		ISNOTICE
+		FROM BOARD_NOTICE
+		WHERE BOARD_IDX = #board_Idx#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSvc_BoardNoticeList" parameterClass="svc_BoardNotice"
+		resultClass="svc_BoardNotice">
+		WITH FILE_COUNT AS(
+			SELECT BOARD_IDX, COUNT(*) CNT 
+			FROM BOARD_FILE 
+			WHERE BOARDNUM=1 
+			GROUP BY BOARD_IDX
+		),
+		COMMENT_COUNT AS(
+			SELECT BOARD_IDX, COUNT(*) CNT 
+			FROM BOARD_COMMENT 
+			WHERE BOARDNUM=1 
+			AND  ISDELETED IS NULL
+			GROUP BY BOARD_IDX
+		),
+		BASE1 AS(
+			SELECT ROWNUM RNUM, BOARD_IDX, USERID, USERNM, TITLE,
+					TO_CHAR(TO_DATE(WDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE,
+					TO_CHAR(TO_DATE(UDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE,
+					COUNTS, RE_IDX, RE_STEP, RE_LEVEL, 0, ISNOTICE,
+					(SELECT CNT FROM FILE_COUNT WHERE FILE_COUNT.BOARD_IDX = BOARD_NOTICE.BOARD_IDX) FCOUNT,
+					(SELECT CNT FROM COMMENT_COUNT WHERE COMMENT_COUNT.BOARD_IDX = BOARD_NOTICE.BOARD_IDX) COMMENTCOUNT
+			FROM BOARD_NOTICE
+			WHERE ISNOTICE IS NOT NULL
+			ORDER BY BOARD_IDX DESC
+		),
+		BASE2 AS(
+			SELECT ROWNUM RNUM, BOARD_IDX, USERID, USERNM, TITLE,
+					TO_CHAR(TO_DATE(WDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE,
+					TO_CHAR(TO_DATE(UDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE,
+					COUNTS, RE_IDX, RE_STEP, RE_LEVEL, LEVEL, '',
+					(SELECT CNT FROM FILE_COUNT WHERE FILE_COUNT.BOARD_IDX = BOARD_NOTICE.BOARD_IDX) FCOUNT,
+					(SELECT CNT FROM COMMENT_COUNT WHERE COMMENT_COUNT.BOARD_IDX = BOARD_NOTICE.BOARD_IDX) COMMENTCOUNT
+			FROM BOARD_NOTICE
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			START WITH RE_IDX IS NULL
+			CONNECT BY PRIOR BOARD_NOTICE.BOARD_IDX = RE_IDX
+			ORDER SIBLINGS BY BOARD_NOTICE.BOARD_IDX DESC
+		)
+		SELECT * FROM BASE1
+		UNION ALL
+		SELECT * FROM BASE2
+		WHERE RNUM BETWEEN (#currentPage# - 9) AND #currentPage#
+	</select>
+
+	<!-- 첨부파일 목록 조회 -->
+	<select id="selectSvc_BoardFileList" parameterClass="svc_BoardNotice"
+		resultClass="svc_BoardNotice">
+		SELECT FILE_IDX, FNAME, RNAME, FSIZE, FCOUNTS FCOUNT,
+		SUBSTR(FNAME , INSTR(FNAME,'.', 1, LENGTH(REPLACE(FNAME,'.','..')) - LENGTH(FNAME)) + 1 ) FTYPE
+		FROM BOARD_FILE
+		WHERE BOARDNUM = 1
+		<isNotEmpty prepend="AND" property="board_Idx">
+			BOARD_IDX = #board_Idx#
+		</isNotEmpty>
+		<isEmpty property="board_Idx" prepend="AND">
+		    BOARD_IDX IS NULL
+		</isEmpty>
+		ORDER BY FILE_IDX ASC
+	</select>
+
+	<!-- 실제 저장된 파일명 조회 -->
+	<select id="selectFileName" parameterClass="java.lang.String"
+		resultClass="svc_BoardNotice">
+		SELECT FILE_IDX, FNAME, RNAME, FSIZE, BOARD_IDX
+		FROM BOARD_FILE
+		WHERE FILE_IDX
+		= #file_Idx#
+	</select>
+	
+	<!-- 첨부파일 정보 입력 -->
+	<insert id="insertSvc_BoardFile" parameterClass="svc_BoardNotice">
+	    <selectKey keyProperty="file_Idx" resultClass="java.lang.String">
+	        SELECT BOARD_FILE_SEQ.NEXTVAL FROM DUAL
+	    </selectKey>
+		INSERT INTO BOARD_FILE
+		VALUES(
+		#file_Idx#,
+		1, <!-- 공지사항 게시판번호 : 1 -->
+		#board_Idx#,
+		#fname#,
+		#rname#,
+		#fsize#,
+		0
+		)
+	</insert>
+	
+	<update id="updateSvc_BoardFile" parameterClass="svc_BoardNotice">
+	    UPDATE BOARD_FILE
+	    SET
+	    	BOARD_IDX = #board_Idx#
+	    WHERE FILE_IDX = #file_Idx#
+	</update>
+	
+	<!-- 파일 다운로드 카운트 증가 -->
+	<update id="updateFileDownloadCount" parameterClass="svc_BoardNotice">
+		UPDATE
+		BOARD_FILE
+		SET FCOUNTS = FCOUNTS + 1
+		WHERE FILE_IDX = #file_Idx#
+	</update>
+
+	
+	<!-- 첨부파일 정보 제거 -->
+	<delete id="deleteFileInfo" parameterClass="java.lang.String">
+		DELETE FROM BOARD_FILE
+		WHERE FILE_IDX = #to_delete_file_idx#
+	</delete>
+
+
+	<!-- 페이징 처리용 레코드 수 Count -->
+	<select id="selectSvc_BoardNoticeListCount" parameterClass="svc_BoardNotice"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM BOARD_NOTICE
+		<isNotEmpty property="searchKeyword">
+			<isNotEmpty prepend="WHERE" property="searchColumn">
+				$searchColumn$ like '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+
+	<!-- 입력/수정 구분용 레코드 수 Count -->
+	<select id="selectSvc_BoardNoticeCount" parameterClass="svc_BoardNotice"
+		resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM BOARD_NOTICE
+		WHERE BOARD_IDX = #board_Idx#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSvc_BoardNotice" parameterClass="svc_BoardNotice">
+		<selectKey keyProperty="board_Idx" resultClass="java.lang.String">
+			SELECT BOARD_NOTICE_SEQ.NEXTVAL FROM DUAL
+		</selectKey>
+		INSERT INTO BOARD_NOTICE (
+		BOARD_IDX,
+		USERID ,
+		USERNM ,
+		TITLE ,
+		PASSWD ,
+		WDATE ,
+		UDATE ,
+		COUNTS ,
+		RE_IDX ,
+		RE_STEP ,
+		RE_LEVEL ,
+		CONTENT ,
+		ISNOTICE
+		<!-- <isNotEmpty property="fileYN"> , FNAME , FSIZE , FCOUNTS </isNotEmpty> -->
+		) VALUES (
+
+		#board_Idx#,
+		#userId# ,
+		#userNm# ,
+		#title# ,
+		#passWd# ,
+		TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI') ,
+		TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI') ,
+		0 ,
+		#re_Idx# ,
+		#re_Step# ,
+		#re_Level# ,
+		#content# ,
+		#isnotice#
+		<!-- <isNotEmpty property="fileYN"> , #fname# , #fsize# , 0 </isNotEmpty> -->
+		)
+
+	</insert>
+
+	
+	<!-- query comment list -->
+	<select id="selectSvc_BoardCommentList" parameterClass="svc_BoardNotice"
+		resultClass="svc_BoardNotice">
+		SELECT
+		COMMENT_IDX,
+		BOARDNUM,
+		BOARD_IDX,
+		USERID,
+		USERNM,
+		PASSWD,
+		TO_CHAR(TO_DATE(WDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE,
+		TO_CHAR(TO_DATE(UDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE,
+		RE_IDX,
+		RE_STEP,
+		RE_LEVEL,
+		CONTENT,
+		ISDELETED
+		FROM BOARD_COMMENT
+		WHERE BOARDNUM = 1
+		AND BOARD_IDX = #board_Idx#
+		START WITH RE_IDX IS NULL
+		CONNECT BY PRIOR
+		COMMENT_IDX = RE_IDX
+		ORDER SIBLINGS BY RE_STEP, RE_LEVEL
+	</select>
+
+	<!-- 댓글(comment) 입력 -->
+	<insert id="insertComment" parameterClass="svc_BoardNotice">
+		INSERT INTO BOARD_COMMENT
+		(
+			COMMENT_IDX,
+			BOARDNUM,
+			BOARD_IDX,
+			USERID,
+			USERNM,
+			WDATE,
+			RE_IDX,
+			RE_STEP,
+			RE_LEVEL,
+			CONTENT
+		)
+		VALUES
+		(
+			(SELECT NVL(MAX(COMMENT_IDX),0)+1 FROM BOARD_COMMENT),
+			1,
+			#board_Idx#,
+			#userId#,
+			#userNm#,
+			TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI'),
+			#re_Idx#,
+			(SELECT NVL(MAX(RE_STEP),0)+1
+				FROM BOARD_COMMENT
+				WHERE BOARDNUM = 1
+				AND BOARD_IDX = #board_Idx#
+				<isNotEmpty property="re_Idx">
+					AND RE_IDX = #re_Idx#
+				</isNotEmpty>
+			),
+			(
+				SELECT NVL(MAX(RE_LEVEL),0)<isNotEmpty property="re_Idx">+1</isNotEmpty>
+				FROM BOARD_COMMENT
+				WHERE BOARDNUM = 1 AND BOARD_IDX = #board_Idx#
+				AND COMMENT_IDX = #re_Idx#
+			),
+			#content#
+		)
+	</insert>
+
+	<!-- 댓글(comment) 삭제 -->
+	<delete id="deleteComment" parameterClass="svc_BoardNotice">
+		<isNotEmpty property="board_Idx">
+			DELETE FROM
+			BOARD_COMMENT
+			WHERE COMMENT_IDX IN (SELECT
+									COMMENT_IDX
+									FROM BOARD_COMMENT
+									
+										START WITH COMMENT_IDX IN (SELECT COMMENT_IDX
+																	FROM BOARD_COMMENT
+																	WHERE BOARDNUM =1
+																	AND BOARD_IDX=#board_Idx#)
+										CONNECT BY PRIOR COMMENT_IDX = RE_IDX)
+		</isNotEmpty>
+		<isEmpty property="board_Idx">
+			UPDATE BOARD_COMMENT
+			SET ISDELETED = 'Y'
+			WHERE COMMENT_IDX = #comment_Idx#
+		</isEmpty>
+	</delete>
+	
+	<!-- 댓글(comment) 수정 -->
+	<update id="updateComment" parameterClass="svc_BoardNotice">
+		UPDATE	BOARD_COMMENT
+		SET		CONTENT = #content#,
+				UDATE = TO_CHAR(SYSDATE, 'YYYYMMDD HH24:MI')
+		WHERE	COMMENT_IDX = #comment_Idx#
+	</update>
+	
+	<!-- 레코드 조회시 카운트 증가 -->
+	<update id="updateSvc_BoardNoticeAddCount" parameterClass="svc_BoardNotice">
+		UPDATE BOARD_NOTICE SET
+		COUNTS = COUNTS + 1
+		WHERE BOARD_IDX = #board_Idx#
+	</update>
+	<!-- 레코드 조회시 카운트 감소 -->
+	<update id="updateSvc_BoardNoticeMinusCount" parameterClass="svc_BoardNotice">
+		UPDATE BOARD_NOTICE SET
+		COUNTS = COUNTS - 1
+		WHERE BOARD_IDX = #board_Idx#
+	</update>
+
+	<!-- 레코드 수정 -->
+	<update id="updateSvc_BoardNotice" parameterClass="svc_BoardNotice">
+		UPDATE
+		BOARD_NOTICE SET
+		TITLE = #title# ,
+		UDATE = TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI') ,
+		CONTENT = #content# ,
+		ISNOTICE = #isnotice#
+		WHERE BOARD_IDX = #board_Idx#
+	</update>
+
+	<!-- 레코드 삭제 -->
+	<delete id="deleteSvc_BoardNotice" parameterClass="svc_BoardNotice">
+		DELETE FROM BOARD_NOTICE
+		WHERE BOARD_IDX = #board_Idx#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+</sqlMap>

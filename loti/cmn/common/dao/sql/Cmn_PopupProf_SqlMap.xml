@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupProf">
+
+	<typeAlias alias="Cmn_PopupProf" type="loti.cmn.common.model.Cmn_PopupProf"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCmn_PopupProfMgmt" parameterClass="Cmn_PopupProf" resultClass="Cmn_PopupProf">
+			SELECT 	
+				   		A.COURSECODE,
+				   		A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+				   		A.EDUFROM  ,
+				   		A.EDUTO   ,
+				   		REPLACE(#lectdate#,'-','') AS LECTDATE,
+				   		#timeseq# AS TIMESEQ      
+			  FROM OPR_LECTURE A
+			 WHERE A.COURSECODE = #courseCode#
+	</select>
+	
+	<!-- 강의지정강사 존재여부  -->
+	<select id="selectCmn_PopupProfCount" parameterClass="Cmn_PopupProf" resultClass="java.lang.Integer">
+			SELECT COUNT(*) as CNT 
+			  FROM OPR_LECTPROF 
+			 WHERE COURSECODE = #courseCode#
+			   AND LECTDATE = REPLACE(#lectdate#,'-','')
+			   AND TIMESEQ = #timeseq#
+	</select>
+	
+	<!-- 강의지정강사가 없으면 강사 MASTER 테이블에서 조회 -->
+	<select id="selectCmn_PopupProffessorList" parameterClass="Cmn_PopupProf" resultClass="Cmn_PopupProf">
+			 SELECT PROFESSORNO AS PROFNO, 
+			 				PROFNAME, 
+			 				WORKPLACE AS PROFASSIGN,
+			 				PROFLEVEL
+			 FROM 	PRF_PROFESSOR
+			 WHERE 	PROFESSORNO IN ($profno$)
+	</select>
+	
+	<!-- 강의지정강사가 있으면  강의지정강사 테이블에서 조회 -->
+	<select id="selectCmn_PopupProfList" parameterClass="Cmn_PopupProf" resultClass="Cmn_PopupProf">
+			SELECT A.PROFNO,
+			       A.PROFNAME,
+			       A.PROFASSIGN,
+             SUBSTR(JUMINNO, 0, 2)||'.'||SUBSTR(JUMINNO, 3, 2)||'.'||SUBSTR(JUMINNO, 5, 2) BIRTH,
+             A.PROFLEVEL  
+			  FROM OPR_LECTPROF A, PRF_PROFESSOR B
+			 WHERE A.PROFNO = B.PROFESSORNO     
+			   AND A.COURSECODE = #courseCode#
+			   AND A.LECTDATE = REPLACE(#lectdate#,'-','')
+			   AND A.TIMESEQ = #timeseq#
+	</select>
+	
+	<!--  OPR_LECTPROF 강사 연결 삭제 -->
+	<delete id="deleteCrs_LectureMgmt" parameterClass="Cmn_PopupProf">
+		DELETE FROM OPR_LECTPROF 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  OPR_TIMETABLE 강사 이름, 소속 제거 -->
+	<update id="updateCmn_PopupTimeTable" parameterClass="Cmn_PopupProf">
+		UPDATE OPR_TIMETABLE SET
+					 PROFNAME = '',
+			   PROFASSIGN = ''
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+		<!-- 조회조건 Key 추가 -->
+	</update>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_LectureMgmt" parameterClass="Cmn_PopupProf">
+		INSERT INTO OPR_LECTPROF (	
+			   			COURSECODE,	
+			   			LECTDATE  ,	
+			   			TIMESEQ   ,	
+			   			PROFNO   ,	
+			   			PROFNAME  ,	
+			   			PROFASSIGN    ,	
+			   			PROFLEVEL  ,	
+			   			ISPAYED       	
+		) (SELECT #courseCode#,	
+			   			REPLACE(#lectdate#,'-','') ,	
+			   			#timeseq#   ,	
+			   			PROFESSORNO   ,	
+			   			PROFNAME  ,
+			   			WORKPLACE,	
+			   			PROFLEVEL   ,	
+							'N' 
+				 FROM PRF_PROFESSOR
+				WHERE PROFESSORNO = #profno#      	
+		)
+	</insert>
+	
+	<!--  레코드 수정 -->
+	<update id="updateCrs_LectureMgmt" parameterClass="Cmn_PopupProf">
+		UPDATE OPR_TIMETABLE SET
+			   PROFNAME = #profname#||(SELECT DECODE(COUNT(PROFNO),1,'','외'||(COUNT(PROFNO)-1)) FROM OPR_LECTPROF WHERE COURSECODE=#courseCode# AND LECTDATE=REPLACE(#lectdate#,'-','') AND TIMESEQ=#timeseq#),
+			   PROFASSIGN = (SELECT WORKPLACE FROM PRF_PROFESSOR WHERE PROFESSORNO =#profno#)
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+	</update>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_SearchProfList" parameterClass="Cmn_PopupProf" resultClass="Cmn_PopupProf">
+			SELECT PROFESSORNO AS PROFNO,
+			       PROFNAME,
+			       WORKPLACE,
+			       WORKPOS,
+			       SUBSTR(JUMINNO, 0, 2)||'.'||SUBSTR(JUMINNO, 3, 2)||'.'||SUBSTR(JUMINNO, 5, 2) BIRTH,
+			       PROFLEVEL  
+			  FROM PRF_PROFESSOR 
+			 WHERE NVL(DELYN, 'N') != 'Y'
+				 AND PROFNAME LIKE '%'||#searchKeyword#||'%'
+			    OR WORKPLACE LIKE '%'||#searchKeyword#||'%'
+	</select>
+
+</sqlMap>
+
+

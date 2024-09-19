@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="MainMenu">
+
+	<typeAlias alias="mainMenu" type="loti.cmn.menu.model.MainMenu"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectMainMenu" parameterClass="mainMenu" resultClass="mainMenu">
+			SELECT
+				   		MENUNO   ,
+				   		PARENT   ,
+				   		MENUNAME ,
+				   		PROGNAME ,
+				   		EXECPATH ,
+				   		PROGID   ,
+				   		PARMS    ,
+				   		ICONPATH ,
+				   		MENUTYPE ,
+				   		EXECTYPE ,
+				   		DISPORDER,
+				   		USE      ,
+				   		USERGUBN
+			  FROM SYS_MENUINFO
+	</select>
+
+	<!-- TOP 메뉴목록 조회쿼리 -->
+	<select id="selectTopMenuList" parameterClass="mainMenu" resultClass="mainMenu">
+		SELECT 
+            ROWNUM AS NUM,
+            A.MENUNO  MENUNO ,
+            PARENT   ,
+            MENUNAME ,
+            PROGNAME ,
+            EXECPATH ,
+            PROGID   ,
+            PARMS    ,
+            ICONPATH ,
+            ICONPATHON ,
+            MENUTYPE ,
+            EXECTYPE ,
+            DISPORDER,
+            USE      ,
+            USERGUBN
+      FROM  SYS_MENUINFO A,
+           (SELECT 
+                    MENUNO 
+              FROM  SYS_MENUINFO
+             WHERE  MENUNO IN  
+                   (SELECT
+                            PARENT 
+                      FROM  SYS_MENUINFO 
+                     WHERE  MENUNO IN (SELECT MENUNO FROM  SYS_GROUPAUTH WHERE  GROUPNO IN ($groupNo$))
+                    )
+               AND  PARENT = 0 
+            )B
+     WHERE  A.MENUNO = B.MENUNO
+       AND  A.USE = 'Y'
+		 	<isNotEmpty prepend="AND" property="parent">
+			A.PARENT = #parent#
+			</isNotEmpty>
+			ORDER BY DISPORDER
+	</select>
+	
+	<!--  TOP 서브메뉴 조회 쿼리 -->
+	<select id="selectTopSubMenuList" parameterClass="mainMenu" resultClass="mainMenu">
+		    SELECT 
+	            ROWNUM AS NUM,
+	            A.MENUNO AS MENUNO ,
+	            PARENT   ,
+	            MENUNAME ,
+	            PROGNAME ,
+	            EXECPATH ,
+	            PROGID   ,
+	            PARMS    ,
+	            ICONPATH ,
+	            ICONPATHON ,
+	            ICONPATHSUB ,
+	            MENUTYPE ,
+	            EXECTYPE ,
+	            DISPORDER,
+	            USE      ,
+	            USERGUBN,
+	            LEVEL
+	      FROM  SYS_MENUINFO A,
+	           (SELECT 
+	                    MENUNO 
+	              FROM  SYS_GROUPAUTH 
+	             WHERE  GROUPNO IN ($groupNo$)
+	             UNION
+	            SELECT   
+	                    MENUNO 
+	              FROM  SYS_MENUINFO
+	             WHERE  MENUNO IN 
+	                   (SELECT 
+	                            PARENT 
+	                      FROM  SYS_MENUINFO 
+	                     WHERE  MENUNO IN(SELECT  MENUNO  FROM  SYS_GROUPAUTH  WHERE  GROUPNO IN ($groupNo$))
+	                   )
+	             UNION
+	            SELECT
+	                    MENUNO 
+	              FROM  SYS_MENUINFO
+	             WHERE  MENUNO IN 
+	                   (SELECT 
+	                            PARENT 
+	                      FROM  SYS_MENUINFO
+	                     WHERE  MENUNO IN 
+	                           (SELECT 
+	                                    PARENT 
+	                              FROM  SYS_MENUINFO 
+	                             WHERE  MENUNO IN (SELECT  MENUNO FROM  SYS_GROUPAUTH WHERE  GROUPNO IN ($groupNo$))
+	                           )
+	                   ) 
+	               AND  MENUNO !=0
+	           )B
+	     WHERE  A.MENUNO = B.MENUNO
+	       AND  A.USE = 'Y'
+	       AND  A.PARENT = #menuNo#
+	START WITH  A.MENUNO = 0      
+	CONNECT BY NOCYCLE PRIOR A.MENUNO  = PARENT
+	ORDER SIBLINGS BY DISPORDER
+	</select>
+		<!-- LEFT 메뉴목록 조회쿼리 -->
+	<select id="selectLeftMenuList" parameterClass="mainMenu" resultClass="mainMenu">
+		SELECT 
+            ROWNUM AS NUM,
+            A.MENUNO AS MENUNO ,
+            PARENT   ,
+            MENUNAME ,
+            PROGNAME ,
+            EXECPATH ,
+            PROGID   ,
+            PARMS    ,
+            ICONPATH ,
+            ICONPATHON ,
+            ICONPATHSUB ,
+            MENUTYPE ,
+            EXECTYPE ,
+            DISPORDER,
+            USE      ,
+            USERGUBN,
+            LEVEL
+      FROM  SYS_MENUINFO A,
+           (SELECT 
+                    MENUNO 
+              FROM  SYS_GROUPAUTH 
+             WHERE  GROUPNO IN ($groupNo$)
+             UNION
+            SELECT   
+                    MENUNO 
+              FROM  SYS_MENUINFO
+             WHERE  MENUNO IN 
+                   (SELECT 
+                            PARENT 
+                      FROM  SYS_MENUINFO 
+                     WHERE  MENUNO IN(SELECT  MENUNO  FROM  SYS_GROUPAUTH  WHERE  GROUPNO IN ($groupNo$))
+                   )
+             UNION
+            SELECT
+                    MENUNO 
+              FROM  SYS_MENUINFO
+             WHERE  MENUNO IN 
+                   (SELECT 
+                            PARENT 
+                      FROM  SYS_MENUINFO
+                     WHERE  MENUNO IN 
+                           (SELECT 
+                                    PARENT 
+                              FROM  SYS_MENUINFO 
+                             WHERE  MENUNO IN (SELECT  MENUNO FROM  SYS_GROUPAUTH WHERE  GROUPNO IN ($groupNo$))
+                           )
+                   ) 
+               AND  MENUNO !=0
+           )B
+     WHERE  A.MENUNO = B.MENUNO
+       AND  A.USE = 'Y'
+START WITH  A.MENUNO = #parent#
+CONNECT BY NOCYCLE PRIOR A.MENUNO  = PARENT
+ORDER SIBLINGS BY DISPORDER
+	</select>
+	
+	<!-- 사용자의 메뉴번호에 대한 권한 여부  조회  쿼리 -->
+	<select id="selectUserMenuCheck" parameterClass="mainMenu" resultClass="java.lang.Integer" >
+<!--				SELECT COUNT(MENUNO)
+				  FROM SYS_GROUPMEMBER A,
+				       SYS_GROUPAUTH B
+				 WHERE A.GROUPNO = B.GROUPNO
+				   AND A.JUMINNO = #juminNo#
+				   AND B.MENUNO = #menuNo#
+				   -->
+		SELECT 
+						COUNT(MENUNO)
+  		FROM 	SYS_GROUPAUTH B
+ 		 WHERE 	B.GROUPNO IN ($groupNo$)
+			 AND 	B.MENUNO = #menuNo#
+	</select>
+
+
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="menuno">
+				MENUNO = #menuno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parent">
+				PARENT = #parent#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menuname">
+				MENUNAME = #menuname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progname">
+				PROGNAME = #progname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="execpath">
+				EXECPATH = #execpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progid">
+				PROGID = #progid#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parms">
+				PARMS = #parms#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="iconpath">
+				ICONPATH = #iconpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menutype">
+				MENUTYPE = #menutype#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="exectype">
+				EXECTYPE = #exectype#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="disporder">
+				DISPORDER = #disporder#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="use">
+				USE = #use#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="usergubn">
+				USERGUBN = #usergubn#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_PayStandard">
+
+	<typeAlias alias="prf_PayStandard" type="loti.prf.payrule.model.Prf_PayStandard"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPrf_PayStandard" parameterClass="prf_PayStandard" resultClass="prf_PayStandard">
+		SELECT 	PROFLEVEL,
+			   		LEVELNAME,
+			   		PAYTARGET,
+			   		STDHOUR  ,
+			   		BASEPAY  ,
+			   		EXCEEDPAY,
+			   		PROFGUBN 
+			FROM 	PRF_PAYTABLE
+		 WHERE	PROFLEVEL = #profLevel#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPrf_PayStandardList" parameterClass="prf_PayStandard" resultClass="prf_PayStandard">
+			SELECT 	ROWNUM NUM, 
+				   		PROFLEVEL,
+				   		LEVELNAME,
+				   		PAYTARGET,
+				   		STDHOUR  ,
+				   		BASEPAY  ,
+				   		EXCEEDPAY,
+				   		PROFGUBN 
+			  FROM	PRF_PAYTABLE
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	ORDER BY  DISPORDER
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPrf_PayStandardListCount" parameterClass="prf_PayStandard" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PRF_PAYTABLE
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_PayStandardCount" parameterClass="prf_PayStandard" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) as CNT
+		  FROM	PRF_PAYTABLE
+		 WHERE	PROFLEVEL = #profLevel#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPrf_PayStandard" parameterClass="prf_PayStandard">
+		INSERT INTO PRF_PAYTABLE (	
+			   			PROFLEVEL,	
+			   			LEVELNAME,	
+			   			PAYTARGET,	
+			   			STDHOUR  ,	
+			   			BASEPAY  ,	
+			   			EXCEEDPAY,	
+			   			PROFGUBN 	
+		) VALUES (
+						 
+			   			#profLevel#,	
+			   			#levelName#,	
+			   			#payTarget#,	
+			   			#stdHour#  ,	
+			   			#basePay#  ,	
+			   			#exceedPay#,	
+			   			#profGubn# 	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updatePrf_PayStandard" parameterClass="prf_PayStandard">
+		UPDATE PRF_PAYTABLE SET
+					PAYTARGET = #payTarget#,
+					STDHOUR   = #stdHour#  ,
+					BASEPAY   = #basePay#  ,
+					EXCEEDPAY = #exceedPay#,
+					PROFGUBN  = #profGubn# 
+		WHERE	PROFLEVEL = #profLevel#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePrf_PayStandard" parameterClass="prf_PayStandard">
+		DELETE	FROM PRF_PAYTABLE
+		 WHERE	PROFLEVEL = #profLevel#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 지역목록 조회 -->
+	<select id="selectPrf_AreaList" parameterClass="prf_PayStandard" resultClass="prf_PayStandard">
+        SELECT ROW_NUMBER() OVER (ORDER BY areaname) areaRownum
+       	     , areano
+		     , areaname
+		     , areacharge
+		     , areadistance
+		  FROM PRF_AREA
+		 WHERE 1=1
+		 ORDER BY areaname
+	</select>
+	
+	<!-- 지역목록 콤보박스조회 -->
+	
+	<select id="selectAreaCode" resultClass="prf_PayStandard" >
+		SELECT CASE WHEN areano = 63 THEN 1 ELSE 2 END AS rowno
+		     , areano
+		     , areaname
+		     , areacharge
+		     , areadistance
+		  FROM (
+				 SELECT areano
+				      , areaname
+				      , areacharge
+				      , areadistance
+				   FROM PRF_AREA
+				  WHERE 1=1
+				    AND areause = 'Y' )
+	     ORDER BY rowno, areaname
+	</select>
+	
+<!--  	기존 지역목록 콤보박스를 조회하는 쿼리  2016.12.22 기본값 청주로 바꾸기 위해 위와 같이 수정
+	<select id="selectAreaCode" resultClass="prf_PayStandard" >
+		SELECT CASE WHEN areano = 0 THEN 1 ELSE 2 END AS rowno
+		     , areano
+		     , areaname
+		     , areacharge
+		     , areadistance
+		  FROM ( SELECT 0  areano
+				      , '전체' areaname
+				      , '' areacharge
+				      , '' areadistance
+			       FROM DUAL
+			  
+    			  UNION
+			 
+				 SELECT areano
+				      , areaname
+				      , areacharge
+				      , areadistance
+				   FROM PRF_AREA
+				  WHERE 1=1
+				    AND areause = 'Y' )
+	     ORDER BY rowno, areaname
+	</select>
+-->
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_AreaCount" parameterClass="prf_PayStandard" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		  FROM PRF_AREA
+		 WHERE areano = #areano#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 지역 등록 -->
+	<insert id="insertPrf_Area" parameterClass="prf_PayStandard">
+		INSERT INTO PRF_AREA ( areano
+		                     , areaname
+		                     , areacharge
+		                     , areadistance
+		                     , areause		                         
+					) VALUES ( (SELECT MAX(areano) FROM PRF_AREA) + 1
+					         , #areaname#
+					         , #areacharge#
+					         , #areadistance#
+					         , #areause# 	
+							 )
+	</insert>
+	
+	<!-- 지역 수정 -->
+	<update id="updatePrf_Area" parameterClass="prf_PayStandard">
+		UPDATE PRF_AREA
+		   SET areaname     = #areaname#
+		     , areacharge   = #areacharge#
+		     , areadistance = #areadistance#
+		     , areause      = #areause#			 
+		 WHERE areano		= #areano#
+	</update>
+	
+	<!-- 지역정보 상세보기 -->
+	<select id="selectPrf_Area" parameterClass="prf_PayStandard" resultClass="prf_PayStandard">
+		SELECT areano
+		     , areaname
+		     , areacharge
+		     , areadistance
+		     , areause
+		  FROM PRF_AREA
+		 WHERE areano = #areano#
+	</select>
+	
+	<!-- 지역정보 삭제 -->
+	<delete id="deletePrf_Area" parameterClass="prf_PayStandard">
+		DELETE FROM PRF_AREA
+		 WHERE areano = #areano#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="proflevel">
+				PROFLEVEL = #proflevel#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="levelname">
+				LEVELNAME = #levelname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="paytarget">
+				PAYTARGET = #paytarget#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="stdhour">
+				STDHOUR = #stdhour#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="basepay">
+				BASEPAY = #basepay#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="exceedpay">
+				EXCEEDPAY = #exceedpay#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profgubn">
+				PROFGUBN = #profgubn#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>

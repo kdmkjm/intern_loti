@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="prfLectAcomForm" 		type="loti.prf.acom.model.Prf_LectAcom"/>
+    <form-bean name="prfBaseInfoForm" 		type="loti.prf.baseinfo.model.Prf_ProfInfo"/>
+    <form-bean name="prfPayForm" 			type="loti.prf.pay.model.Prf_Pay"/>
+    <form-bean name="prfWeekPayForm" 		type="loti.prf.weekpay.model.Prf_WeekPay"/>
+    <form-bean name="prfPayStandardForm"	type="loti.prf.payrule.model.Prf_PayStandard"/>
+    <form-bean name="prfSatisForm"      	type="loti.prf.baseinfo.model.Prf_ProfSatis"/>
+    
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+  
+  	<!--강의실적확인 -->
+  	  <action path="/prfLectAcom" name="prfLectAcomForm" type="loti.prf.acom.action.Prf_LectAcomAction" scope="request" unknown="false" roles="77">
+	      <forward name="list" 			path="/prf/acom/Prf_LectAcom.jsp"/>
+	      <forward name="info"   		path="/prf/acom/Prf_LectAcomDetl.jsp"/>
+	      <forward name="insert" 		path="/prfLectAcom.act?task=list"/>
+	      <forward name="modify" 		path="/prf/acom/Prf_LectAcomNew.jsp"/>
+	      <forward name="update" 		path="/prfLectAcom.act?task=list"/>
+	      <forward name="create" 		path="/prf/acom/Prf_LectAcomNew.jsp"/>
+	      <forward name="delete" 		path="/prfLectAcom.act?task=list"/>
+	      <forward name="getPrf" 		path="/prf/acom/Prf_LectGetPrf.jsp"/>
+    </action>
+  
+  	<!--강사정보 -->
+  	  <action path="/prfBaseInfo" name="prfBaseInfoForm" type="loti.prf.baseinfo.action.Prf_ProfInfoAction" scope="request" unknown="false" roles="44">
+	      <forward name="list" 		path="/prf/baseinfo/Prf_ProfInfo.jsp"/>
+	      <forward name="move" 		path="/prf/baseinfo/Prf_ProfInfo.jsp"/>
+	      <forward name="insert" 	path="/prfBaseInfo.act?task=list"/>
+	      <forward name="modify" 	path="/prf/baseinfo/Prf_ProfInfoMod.jsp"/>
+	      <forward name="update" 	path="/prfBaseInfo.act?task=list"/>
+	      <forward name="create" 	path="/prf/baseinfo/Prf_ProfInfoMod.jsp"/>
+	      <forward name="delete" 	path="/prfBaseInfo.act?task=list"/>
+	      <forward name="lecInfo" path="/prf/baseinfo/Prf_LectureInfo.jsp"/>
+	      <forward name="newLectInfo" path="/prf/baseinfo/Prf_LectureInfoNew.jsp"/>
+    </action>
+  
+  	<!--강사등급별 조회 -->
+  	<action path="/prfGradeInfo" name="prfBaseInfoForm" type="loti.prf.baseinfo.action.Prf_ProfGradeInfoAction" scope="request" unknown="false" roles="135">
+	      <forward name="list" 		path="/prf/baseinfo/Prf_ProfGradeInfo.jsp"/>
+    </action>
+    
+   	<!--강사과정별 조회 -->
+  	<action path="/prfSubjectInfo" name="prfBaseInfoForm" type="loti.prf.baseinfo.action.Prf_ProfSubjectInfoAction" scope="request" unknown="false" roles="147">
+	      <forward name="list" 		path="/prf/baseinfo/Prf_ProfSubjectInfo.jsp"/>
+    </action>
+    
+  	<!--강사만족도정보 -->
+  	<action path="/prfSatis" name="prfSatisForm" type="loti.prf.baseinfo.action.Prf_ProfSatisAction" scope="request" unknown="false" roles="44">
+	      <forward name="info" 		path="/prf/baseinfo/Prf_ProfSatis.jsp"/>
+	      <forward name="list" 		path="/prf/baseinfo/Prf_ProfSatisList.jsp"/>
+	      <forward name="excel" 	path="/prf/baseinfo/Prf_ProfSatisExcel.jsp"/>
+    </action>    
+  
+  	<!--강사수당 -->
+  	  <action path="/prfPay" name="prfPayForm" type="loti.prf.pay.action.Prf_PayAction" scope="request" unknown="false" roles="45,46">
+	      <forward name="list" 				path="/prf/pay/Prf_Pay.jsp"/>
+	      <forward name="insert" 			path="/prfPay.act?task=list"/>
+	      <forward name="modify" 			path="/prf/pay/Prf_Pay.jsp"/>
+	      <forward name="update" 			path="/prfPay.act?task=list"/>
+	      <forward name="create" 			path="/prf/pay/Prf_Pay.jsp"/>
+	      <forward name="delete" 			path="/prfPay.act?task=list"/>
+	      <forward name="searchDate" 	path="/prf/pay/Prf_PayDate.jsp"/>
+    </action>
+  
+    <!--강사수당 주간별 -->
+  	<action path="/prfWeekPay" name="prfWeekPayForm" type="loti.prf.weekpay.action.Prf_WeekPayAction" scope="request" unknown="false" roles="45,46">
+	      <forward name="list" 				path="/prf/payweek/Prf_WeekPayList.jsp"/>
+	      <forward name="excelDownload1"	path="/prf/payweek/Prf_WeekPayListExcel1.jsp"/>
+	      <forward name="excelDownload2"	path="/prf/payweek/Prf_WeekPayListExcel2.jsp"/>
+    </action>
+    
+  	<!--강사료 지급기준 -->
+  	  <action path="/prfPayStandard" name="prfPayStandardForm" type="loti.prf.payrule.action.Prf_PayStandardAction" scope="request" unknown="false" roles="46">
+	      <forward name="list" 		path="/prf/payrule/Prf_PayStandard.jsp"/>
+	      <forward name="insert" 	path="/prfPayStandard.act?task=list"/>
+	      <forward name="modify" 	path="/prf/payrule/Prf_PayStandardMod.jsp"/>
+	      <forward name="update" 	path="/prfPayStandard.act?task=list"/>
+	      <forward name="create" 	path="/prf/payrule/Prf_PayStandardMod.jsp"/>
+	      <forward name="delete" 	path="/prfPayStandard.act?task=list"/>
+	      
+     	  <forward name="areaList" 		path="/prf/payrule/Prf_ProfAreaInfo.jsp"/>
+    	  <forward name="areaInsert" 	path="/prfPayStandard.act?task=areaList"/>
+	      <forward name="areaModify" 	path="/prf/payrule/Prf_ProfAreaMod.jsp"/>
+	      <forward name="areaUpdate" 	path="/prfPayStandard.act?task=areaList"/>
+	      <forward name="areaCreate" 	path="/prf/payrule/Prf_ProfAreaMod.jsp"/>
+	      <forward name="areaDelete" 	path="/prfPayStandard.act?task=areaList"/>
+    </action>
+
+     
+  </action-mappings>
+  
+	<controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

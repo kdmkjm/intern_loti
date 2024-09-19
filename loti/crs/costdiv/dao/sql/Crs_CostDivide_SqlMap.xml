@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_CostDivide">
+
+	<typeAlias alias="crs_CostDivide" type="loti.crs.costdiv.model.Crs_CostDivide"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CostDivide" parameterClass="crs_CostDivide" resultClass="crs_CostDivide">
+			SELECT 	
+				   		ORGANCODE ,
+				   		COSTYYMM  ,
+				   		SEQ       ,
+				   		COURSECODE,
+				   		COUSRENAME,
+				   		EDUCOUNT  ,
+				   		EDUCOST   ,
+				   		INSUSER   ,
+				   		INSDATE   
+			  FROM OPR_COURSECOSTDIV
+	</select>
+	
+		<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostDivideHead" parameterClass="crs_CostDivide" resultClass="crs_CostDivide">
+			SELECT CHIEFORGAN,
+			       ORGANNAME      
+			  FROM CMN_MSTORGAN 
+  	ORDER BY ORGANGU NULLS FIRST, CHIEFORGAN
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostDivideList" parameterClass="crs_CostDivide" resultClass="crs_CostDivide">
+			SELECT A.COURSECODE, 
+		       D.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+		       MAX (D.EDUFROM) EDUFROM, 
+		       MAX (D.EDUTO) EDUTO,
+		       COUNT (A.JUMINNO) EDUCOUNT,
+		       MAX(C.EDUCOST) AS EDUCOST
+		  FROM OPR_CRSSTUDENT A,
+		       (SELECT COURSECODE, 
+		               SUM(TXTBOOKCOST_INTRO)
+		               + SUM(TXTBOOKCOST_MSCT)
+		               + SUM(TXTBOOKCOST_COMMON)
+		               + SUM(TXTBOOKCOST_AXBOOK)
+		               + SUM(PROFCOST_PAY)
+		               + SUM(PROFCOST_TRAVEL)
+		               + SUM(PROFCOST_QUESTION)
+		               + SUM(IMCHACOST)
+		               + SUM(ETCCOST) EDUCOST
+		          FROM OPR_COURSECOST
+		         WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+		           AND COURSECODE != 'C'
+		         GROUP BY COURSECODE   
+		       ) C,
+		       OPR_LECTURE D
+		 WHERE A.COURSECODE = C.COURSECODE
+		   AND A.COURSECODE = D.COURSECODE
+		   AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+		 GROUP BY A.COURSECODE, D.COURSENAME
+		 UNION ALL
+		SELECT A.COURSECODE,
+		       A.COURSENAME,
+		       '',
+		       '',
+		       EDUCNT,
+		       EDUCOST
+		  FROM (SELECT 'C' COURSECODE,
+		               '민간컨텐츠과정('||TO_NUMBER(SUBSTR(REPLACE(#searchdate#,'-',''),5,2))||'월)' COURSENAME,
+		               '',
+		               '',
+		               MAX(EDUCNT) EDUCNT,
+		               MAX(EDUCOST) EDUCOST
+		          FROM (SELECT COURSECODE,
+		                       (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                           )EDUCOST,
+                           (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                               AND B.COURSECODE = C.COURSECODE 
+                               AND C.ISFINISH LIKE 'Y'
+                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+                           ) EDUCNT
+		                  FROM OPR_CYBERCOSTMST A,
+		                       OPR_CYBERCOST B
+		                 WHERE A.CYBERYYMM = B.CYBERYYMM
+		                   AND A.CYBERTIMES = B.CYBERTIMES
+		                   AND A.COSTYYMM = REPLACE(#searchdate#,'-','')   
+		                 GROUP BY COURSECODE  )
+		        ) A,
+		        OPR_COURSECOST B
+		 WHERE A.COURSECODE = B.COURSECODE
+		   AND B.COSTYYMM = REPLACE(#searchdate#,'-','') 
+  ORDER BY 3, 4, 2
+	
+	
+			<!-- SELECT A.COURSECODE, 
+			       D.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+             MAX (D.EDUFROM) EDUFROM, 
+             MAX (D.EDUTO) EDUTO,
+             COUNT (A.JUMINNO) EDUCOUNT,
+             MAX(C.EDUCOST) AS EDUCOST
+        FROM OPR_CRSSTUDENT A,
+             (SELECT COURSECODE, 
+			               SUM(TXTBOOKCOST_INTRO)
+			               + SUM(TXTBOOKCOST_MSCT)
+			               + SUM(TXTBOOKCOST_COMMON)
+			               + SUM(TXTBOOKCOST_AXBOOK)
+			               + SUM(PROFCOST_PAY)
+			               + SUM(PROFCOST_TRAVEL)
+			               + SUM(PROFCOST_QUESTION)
+			               + SUM(ETCCOST) EDUCOST
+			          FROM OPR_COURSECOST
+			         WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+			         GROUP BY COURSECODE
+						 ) C,
+             OPR_LECTURE D
+       WHERE A.COURSECODE = C.COURSECODE
+         AND A.COURSECODE = D.COURSECODE
+         AND A.ISCOST = 'N'
+       GROUP BY A.COURSECODE, D.COURSENAME-->
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostDivideOrganList" parameterClass="crs_CostDivide" resultClass="crs_CostDivide">
+			SELECT #coursecode# COURSECODE,
+		       B.CHIEFORGAN,
+		       DECODE(A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0) ORGCNT,
+		       DECODE(A.CHIEFORGAN, B.CHIEFORGAN, DECODE(B.CHIEFORGAN, '6430000', NVL(A.EDUCOST,0)+NVL(C.REMAIN,0),NVL(A.EDUCOST,0)), 0) EDUCOST
+		  FROM (SELECT A.COURSECODE, 
+		               A.CHIEFORGAN, 
+		               COUNT (A.JUMINNO) ORGCNT,
+		               TRUNC(TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON)) * COUNT(A.JUMINNO),-1)  EDUCOST
+		          FROM OPR_CRSSTUDENT A, 
+		               (SELECT COURSECODE, 
+		                       SUM(NVL(TXTBOOKCOST_INTRO,0))
+		                       + SUM(NVL(TXTBOOKCOST_MSCT,0))
+		                       + SUM(NVL(TXTBOOKCOST_COMMON,0))
+		                       + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+		                       + SUM(NVL(PROFCOST_PAY,0))
+		                       + SUM(NVL(PROFCOST_TRAVEL,0))
+		                       + SUM(NVL(PROFCOST_QUESTION,0))
+		                       + SUM(NVL(IMCHACOST,0))
+		                       + SUM(NVL(ETCCOST,0)) TOTALCOST,
+		                       (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+		                  FROM OPR_COURSECOST A
+		                 WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+		                   AND COURSECODE = #coursecode#
+		                 GROUP BY COURSECODE
+		               ) B
+		         WHERE A.COURSECODE = B.COURSECODE
+		           AND A.COURSECODE = #coursecode#
+		           AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+		         GROUP BY A.COURSECODE, A.CHIEFORGAN
+		         <isEqual property="coursecode" compareValue="C">
+		         UNION ALL
+		        SELECT 'C',
+		               CHIEFORGAN,
+		               COUNT(B.JUMINNO),
+		               TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+		          FROM (SELECT COURSECODE,
+		                       (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                           )TOTALCOST,
+                           (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                               AND B.COURSECODE = C.COURSECODE
+                               AND C.ISFINISH LIKE 'Y' 
+                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+                           ) TOTALINWON
+		                  FROM OPR_CYBERCOSTMST A,
+		                       OPR_CYBERCOST B
+		                 WHERE A.CYBERYYMM = B.CYBERYYMM
+		                   AND A.CYBERTIMES = B.CYBERTIMES
+		                   AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+		                 GROUP BY COURSECODE
+		               ) A,
+		               OPR_CRSSTUDENT B
+		         WHERE A.COURSECODE = B.COURSECODE
+		           AND B.ISFINISH LIKE 'Y'
+		           AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+		         GROUP BY CHIEFORGAN
+		         </isEqual>
+		       ) A,
+		       (SELECT COURSECODE, MAX(TOTALCOST)-SUM(EDUCOST) REMAIN
+		          FROM (SELECT A.COURSECODE, 
+		                       A.CHIEFORGAN, 
+		                       COUNT (A.JUMINNO) ORGCNT, 
+		                       MAX(B.TOTALCOST) TOTALCOST, 
+		                       TRUNC(TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON)) * COUNT(A.JUMINNO),-1)  EDUCOST
+		                  FROM OPR_CRSSTUDENT A, 
+		                       (SELECT COURSECODE, 
+		                               SUM(NVL(TXTBOOKCOST_INTRO,0))
+		                               + SUM(NVL(TXTBOOKCOST_MSCT,0))
+		                               + SUM(NVL(TXTBOOKCOST_COMMON,0))
+		                               + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+		                               + SUM(NVL(PROFCOST_PAY,0))
+		                               + SUM(NVL(PROFCOST_TRAVEL,0))
+		                               + SUM(NVL(PROFCOST_QUESTION,0))
+		                               + SUM(NVL(IMCHACOST,0))
+		                               + SUM(NVL(ETCCOST,0)) TOTALCOST,
+		                               (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+		                          FROM OPR_COURSECOST A
+		                         WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+		                           AND COURSECODE = #coursecode#
+		                         GROUP BY COURSECODE                       
+		                       ) B
+		                 WHERE A.COURSECODE = B.COURSECODE
+		                 <isEqual property="coursecode" compareValue="C">
+		                   AND A.COURSECODE = 'C'
+		                 </isEqual>
+		                   AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)   
+		                 GROUP BY  A.COURSECODE, A.CHIEFORGAN
+		                 <isEqual property="coursecode" compareValue="C">
+		                 UNION ALL
+		                SELECT 'C',
+		                       CHIEFORGAN,
+		                       COUNT(B.JUMINNO),
+		                       MAX(A.TOTALCOST),
+		              <!--     TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON) * COUNT(B.JUMINNO),-1)    -->
+		                       TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+		                  FROM (SELECT COURSECODE,
+		                               (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+				                             WHERE A.CYBERYYMM = B.CYBERYYMM
+				                               AND A.CYBERTIMES = B.CYBERTIMES
+				                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+				                           )TOTALCOST,
+				                           (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+				                             WHERE A.CYBERYYMM = B.CYBERYYMM
+				                               AND A.CYBERTIMES = B.CYBERTIMES
+				                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+				                               AND B.COURSECODE = C.COURSECODE 
+				                               AND C.ISFINISH LIKE 'Y'
+				                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+				                           ) TOTALINWON
+		                          FROM OPR_CYBERCOSTMST A,
+		                               OPR_CYBERCOST B
+		                         WHERE A.CYBERYYMM = B.CYBERYYMM
+		                           AND A.CYBERTIMES = B.CYBERTIMES
+		                           AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+		                         GROUP BY COURSECODE
+		                       ) A,
+		                       OPR_CRSSTUDENT B
+		                 WHERE A.COURSECODE = B.COURSECODE
+		                   AND B.ISFINISH LIKE 'Y'
+		                   AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+		                 GROUP BY CHIEFORGAN
+		                </isEqual>
+		               )
+		         GROUP BY COURSECODE
+		       ) C,                  
+		       CMN_MSTORGAN B
+		 WHERE B.CHIEFORGAN = A.CHIEFORGAN(+)
+		   AND A.COURSECODE = C.COURSECODE(+)
+		 ORDER BY B.ORGANGU, B.CHIEFORGAN
+	
+	
+	
+<!--  			SELECT #coursecode# COURSECODE,
+			       B.CHIEFORGAN,
+			       DECODE(A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0) ORGCNT,
+			       DECODE(A.CHIEFORGAN, B.CHIEFORGAN, DECODE(B.CHIEFORGAN, '6430000', NVL(A.EDUCOST,0)+NVL(C.REMAIN,0),NVL(A.EDUCOST,0)), 0) EDUCOST
+			  FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT,
+                     TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON) * COUNT(A.JUMINNO),-1)  EDUCOST
+                FROM OPR_CRSSTUDENT A, 
+							       (SELECT COURSECODE, 
+						                 SUM(NVL(TXTBOOKCOST_INTRO,0))
+						                 + SUM(NVL(TXTBOOKCOST_MSCT,0))
+						                 + SUM(NVL(TXTBOOKCOST_COMMON,0))
+						                 + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+						                 + SUM(NVL(PROFCOST_PAY,0))
+						                 + SUM(NVL(PROFCOST_TRAVEL,0))
+						                 + SUM(NVL(PROFCOST_QUESTION,0))
+						                 + SUM(NVL(ETCCOST,0)) TOTALCOST,
+			                       (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+			                  FROM OPR_COURSECOST A
+			                 WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+			                   AND COURSECODE = #coursecode#
+			                 GROUP BY COURSECODE
+							       ) B
+							 WHERE A.COURSECODE = B.COURSECODE
+							   AND A.COURSECODE = #coursecode#
+							   AND A.ISCOST = 'N'
+							GROUP BY A.COURSECODE, A.CHIEFORGAN
+			      ) A,
+						(SELECT COURSECODE, MAX(TOTALCOST)-SUM(EDUCOST) REMAIN
+               FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT, MAX(TOTALCOST) TOTALCOST, 
+                            TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON) * COUNT(A.JUMINNO),-1)  EDUCOST
+                       FROM OPR_CRSSTUDENT A, 
+                            (SELECT COURSECODE, 
+                                    SUM(NVL(TXTBOOKCOST_INTRO,0))
+									                  + SUM(NVL(TXTBOOKCOST_MSCT,0))
+									                  + SUM(NVL(TXTBOOKCOST_COMMON,0))
+									                  + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+									                  + SUM(NVL(PROFCOST_PAY,0))
+									                  + SUM(NVL(PROFCOST_TRAVEL,0))
+									                  + SUM(NVL(PROFCOST_QUESTION,0))
+									                  + SUM(NVL(ETCCOST,0)) TOTALCOST,
+                                    (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+                               FROM OPR_COURSECOST A
+                              WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+                                AND COURSECODE = #coursecode#
+                              GROUP BY COURSECODE
+                           ) B
+                     WHERE A.COURSECODE = B.COURSECODE
+                       AND A.COURSECODE = #coursecode#
+                       AND A.ISCOST = 'N'
+                     GROUP BY  A.COURSECODE, A.CHIEFORGAN
+                   )
+             GROUP BY COURSECODE
+            ) C,			      
+			      CMN_MSTORGAN B
+			WHERE B.CHIEFORGAN = A.CHIEFORGAN(+)
+			  AND A.COURSECODE = C.COURSECODE(+)
+			ORDER BY B.ORGANGU, B.CHIEFORGAN-->
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostDivideTail" parameterClass="crs_CostDivide" resultClass="crs_CostDivide">
+			SELECT B.CHIEFORGAN,
+		       SUM (DECODE (A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0)) ORGCNT,
+		       SUM (DECODE (A.CHIEFORGAN, B.CHIEFORGAN, DECODE (B.CHIEFORGAN,'6430000', NVL (A.EDUCOST, 0)+ NVL (C.REMAIN, 0),NVL (A.EDUCOST, 0)),0)) EDUCOST
+		  FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT,
+		               TRUNC(TRUNC(MAX(B.TOTALCOST)/MAX(TOTALINWON)) * COUNT (A.JUMINNO),-1) EDUCOST
+		          FROM OPR_CRSSTUDENT A,
+		               (SELECT COURSECODE,
+		                       SUM (NVL (TXTBOOKCOST_INTRO, 0))
+		                       + SUM (NVL (TXTBOOKCOST_MSCT, 0))
+		                       + SUM (NVL (TXTBOOKCOST_COMMON, 0))
+		                       + SUM (NVL (TXTBOOKCOST_AXBOOK, 0))
+		                       + SUM (NVL (PROFCOST_PAY, 0))
+		                       + SUM (NVL (PROFCOST_TRAVEL, 0))
+		                       + SUM (NVL (PROFCOST_QUESTION, 0))
+		                       + SUM (NVL (IMCHACOST, 0))
+		                       + SUM (NVL (ETCCOST, 0)) TOTALCOST,
+		                       (SELECT COUNT (JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+		                  FROM OPR_COURSECOST A
+		                 WHERE COSTYYMM = REPLACE (#searchdate#, '-', '')
+		                   AND COURSECODE != 'C'
+		                 GROUP BY COURSECODE
+		               ) B
+		         WHERE A.COURSECODE = B.COURSECODE 
+		           AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+		         GROUP BY A.COURSECODE, A.CHIEFORGAN
+		         UNION ALL
+		        SELECT 'C',
+		               CHIEFORGAN,
+		               COUNT(B.JUMINNO),
+		               TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+		          FROM (SELECT COURSECODE,
+		                       (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                           )TOTALCOST,
+                           (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+                             WHERE A.CYBERYYMM = B.CYBERYYMM
+                               AND A.CYBERTIMES = B.CYBERTIMES
+                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+                               AND B.COURSECODE = C.COURSECODE 
+                               AND C.ISFINISH LIKE 'Y'
+                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+                           ) TOTALINWON
+		                  FROM OPR_CYBERCOSTMST A,
+		                       OPR_CYBERCOST B
+		                 WHERE A.CYBERYYMM = B.CYBERYYMM
+		                   AND A.CYBERTIMES = B.CYBERTIMES
+		                   AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+		                 GROUP BY COURSECODE
+		               ) A,
+		               OPR_CRSSTUDENT B
+		         WHERE A.COURSECODE = B.COURSECODE
+		           AND B.ISFINISH LIKE 'Y'
+		           AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+		         GROUP BY CHIEFORGAN		         
+		         
+		       ) A,
+		       (SELECT COURSECODE, MAX (TOTALCOST) - SUM (EDUCOST) REMAIN
+		          FROM (SELECT A.COURSECODE, A.CHIEFORGAN,
+		                       COUNT (A.JUMINNO) ORGCNT,
+		                       MAX (TOTALCOST) TOTALCOST,
+		                       TRUNC(TRUNC (  MAX (B.TOTALCOST)/ MAX (B.TOTALINWON))* COUNT (A.JUMINNO),-1) EDUCOST
+		                  FROM OPR_CRSSTUDENT A,
+		                       (SELECT COURSECODE,
+		                               SUM(NVL (TXTBOOKCOST_INTRO, 0))
+		                               + SUM (NVL (TXTBOOKCOST_MSCT, 0))
+		                               + SUM (NVL (TXTBOOKCOST_COMMON, 0))
+		                               + SUM (NVL (TXTBOOKCOST_AXBOOK, 0))
+		                               + SUM (NVL (PROFCOST_PAY, 0))
+		                               + SUM (NVL (PROFCOST_TRAVEL, 0))
+		                               + SUM (NVL (PROFCOST_QUESTION, 0))
+		                               + SUM (NVL (IMCHACOST, 0))
+		                               + SUM (NVL (ETCCOST, 0)) TOTALCOST,
+		                               (SELECT COUNT (JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+		                          FROM OPR_COURSECOST A
+		                         WHERE COSTYYMM = REPLACE (#searchdate#, '-', '')
+		                           AND COURSECODE != 'C'
+		                         GROUP BY COURSECODE
+		                       ) B
+		                 WHERE A.COURSECODE = B.COURSECODE 
+		                   AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+		                 GROUP BY A.COURSECODE, A.CHIEFORGAN
+		                 UNION ALL
+										SELECT 'C',
+		                       CHIEFORGAN,
+		                       COUNT(B.JUMINNO),
+		                       MAX(A.TOTALCOST),
+		                       TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+		                  FROM (SELECT COURSECODE,
+		                               (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+				                             WHERE A.CYBERYYMM = B.CYBERYYMM
+				                               AND A.CYBERTIMES = B.CYBERTIMES
+				                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+				                           )TOTALCOST,
+				                           (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+				                             WHERE A.CYBERYYMM = B.CYBERYYMM
+				                               AND A.CYBERTIMES = B.CYBERTIMES
+				                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+				                               AND B.COURSECODE = C.COURSECODE 
+				                               AND C.ISFINISH LIKE 'Y'
+				                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+				                           ) TOTALINWON
+		                          FROM OPR_CYBERCOSTMST A,
+		                               OPR_CYBERCOST B
+		                         WHERE A.CYBERYYMM = B.CYBERYYMM
+		                           AND A.CYBERTIMES = B.CYBERTIMES
+		                           AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+		                         GROUP BY COURSECODE
+		                       ) A,
+		                       OPR_CRSSTUDENT B
+		                 WHERE A.COURSECODE = B.COURSECODE
+		                   AND B.ISFINISH LIKE 'Y'
+		                   AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+		                 GROUP BY CHIEFORGAN		                 
+		               )
+		         GROUP BY COURSECODE
+		       ) C,
+		       CMN_MSTORGAN B
+		 WHERE B.CHIEFORGAN = A.CHIEFORGAN(+) 
+		   AND A.COURSECODE = C.COURSECODE(+)
+		 GROUP BY B.ORGANGU, B.CHIEFORGAN
+		 ORDER BY B.ORGANGU, B.CHIEFORGAN
+	
+	
+	
+<!--  			SELECT B.CHIEFORGAN, 
+			       SUM(DECODE(A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0)) ORGCNT,
+			       SUM(DECODE(A.CHIEFORGAN, B.CHIEFORGAN, DECODE(B.CHIEFORGAN, '6430000', NVL(A.EDUCOST,0)+NVL(C.REMAIN,0), NVL(A.EDUCOST,0)), 0)) EDUCOST
+			  FROM (SELECT A.COURSECODE, A.CHIEFORGAN, 
+                     COUNT (A.JUMINNO) ORGCNT,
+                     TRUNC(MAX(B.TOTALCOST)/MAX(TOTALINWON) * COUNT (A.JUMINNO),-1) EDUCOST
+                FROM OPR_CRSSTUDENT A, 
+                     (SELECT COURSECODE, 
+                             SUM(NVL(TXTBOOKCOST_INTRO,0))
+					                   + SUM(NVL(TXTBOOKCOST_MSCT,0))
+					                   + SUM(NVL(TXTBOOKCOST_COMMON,0))
+					                   + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+					                   + SUM(NVL(PROFCOST_PAY,0))
+					                   + SUM(NVL(PROFCOST_TRAVEL,0))
+					                   + SUM(NVL(PROFCOST_QUESTION,0))
+					                   + SUM(NVL(ETCCOST,0)) TOTALCOST,
+                             (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+                        FROM OPR_COURSECOST A
+                       WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+                       GROUP BY COURSECODE
+                     ) B
+               WHERE A.COURSECODE = B.COURSECODE
+                 AND A.ISCOST = 'N'
+               GROUP BY A.COURSECODE,A.CHIEFORGAN
+            ) A,
+            (SELECT COURSECODE, MAX(TOTALCOST)-SUM(EDUCOST) REMAIN
+               FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT, MAX(TOTALCOST) TOTALCOST, 
+                            TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON) * COUNT(A.JUMINNO),-1)  EDUCOST
+                       FROM OPR_CRSSTUDENT A, 
+                            (SELECT COURSECODE, 
+                                    SUM(NVL(TXTBOOKCOST_INTRO,0))
+									                  + SUM(NVL(TXTBOOKCOST_MSCT,0))
+									                  + SUM(NVL(TXTBOOKCOST_COMMON,0))
+									                  + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+									                  + SUM(NVL(PROFCOST_PAY,0))
+									                  + SUM(NVL(PROFCOST_TRAVEL,0))
+									                  + SUM(NVL(PROFCOST_QUESTION,0))
+									                  + SUM(NVL(ETCCOST,0)) TOTALCOST,
+                                    (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+                               FROM OPR_COURSECOST A
+                              WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+                              GROUP BY COURSECODE
+                           ) B
+                     WHERE A.COURSECODE = B.COURSECODE
+                       AND A.ISCOST = 'N'
+                     GROUP BY  A.COURSECODE, A.CHIEFORGAN
+                   )
+             GROUP BY COURSECODE
+             ) C,	
+			      CMN_MSTORGAN B
+			WHERE B.CHIEFORGAN = A.CHIEFORGAN(+)
+			  AND A.COURSECODE = C.COURSECODE(+)
+			GROUP BY B.ORGANGU, B.CHIEFORGAN
+			ORDER BY B.ORGANGU, B.CHIEFORGAN
+-->			
+	</select>	
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_CostDivideListCount" parameterClass="crs_CostDivide" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_COURSECOSTDIV
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_CostDivideCount" parameterClass="crs_CostDivide" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_COURSECOSTDIV
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_CostDivideMaxseq" parameterClass="crs_CostDivide" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(SEQ),0)+1 as MAXSEQ
+		  FROM OPR_COURSECOSTDIV
+		 WHERE COSTYYMM = REPLACE(#searchdate#,'-','') 
+		<!-- 조회조건 Key 추가 -->
+	</select>	
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_CostDivide" parameterClass="crs_CostDivide">
+			INSERT INTO OPR_COURSECOSTDIV (    
+			        ORGANCODE ,    
+			        COSTYYMM  ,    
+			        SEQ       ,    
+			        COURSECODE,    
+			        COUSRENAME,    
+			        EDUCOUNT  ,    
+			        EDUCOST   ,    
+			        INSUSER   ,    
+			        INSDATE       
+			)SELECT B.CHIEFORGAN,
+			        REPLACE(#searchdate#,'-',''),
+			        #seq#,
+			        #coursecode#,
+			        DECODE(#coursecode#,'C','민간컨텐츠과정('||TO_NUMBER(SUBSTR(REPLACE(#searchdate#,'-',''),5,2))||'월)',(SELECT COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' FROM OPR_LECTURE WHERE COURSECODE= #coursecode#)) COURSENAME,           
+			        DECODE(A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0) ORGCNT,
+			        DECODE(A.CHIEFORGAN, B.CHIEFORGAN, DECODE(B.CHIEFORGAN, '6430000', NVL(A.EDUCOST,0)+NVL(C.REMAIN,0), NVL(A.EDUCOST,0)), 0) EDUCOST,
+			        #userId#,
+			        TO_CHAR(SYSDATE,'YYYYMMDD')
+			   FROM (SELECT A.COURSECODE,
+			                A.CHIEFORGAN,
+			                COUNT(A.JUMINNO) ORGCNT,  
+			                TRUNC(TRUNC(MAX(C.TOTALCOST)/MAX(C.TOTALINWON))*COUNT(A.JUMINNO),-1) AS EDUCOST
+			           FROM OPR_CRSSTUDENT A,
+			                (SELECT COURSECODE, 
+			                        SUM(NVL(TXTBOOKCOST_INTRO,0))
+			                        + SUM(NVL(TXTBOOKCOST_MSCT,0))
+			                        + SUM(NVL(TXTBOOKCOST_COMMON,0))
+			                        + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+			                        + SUM(NVL(PROFCOST_PAY,0))
+			                        + SUM(NVL(PROFCOST_TRAVEL,0))
+			                        + SUM(NVL(PROFCOST_QUESTION,0))
+			                        + SUM(NVL(IMCHACOST,0))
+			                        + SUM(NVL(ETCCOST,0)) TOTALCOST,
+			                        (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+			                   FROM OPR_COURSECOST A
+			                  WHERE A.COSTYYMM = REPLACE(#searchdate#,'-','')
+			                    AND A.COURSECODE = #coursecode#
+			                  GROUP BY COURSECODE                     
+			                ) C
+			          WHERE A.COURSECODE = C.COURSECODE
+			            AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+			            AND A.COURSECODE = #coursecode#
+			          GROUP BY A.COURSECODE, A.CHIEFORGAN
+			          <isEqual property="coursecode" compareValue="C">
+			          UNION ALL
+			         SELECT 'C',
+			                CHIEFORGAN,
+			                COUNT(B.JUMINNO),
+			                TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+			           FROM (SELECT COURSECODE,
+			                        (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+	                              WHERE A.CYBERYYMM = B.CYBERYYMM
+	                                AND A.CYBERTIMES = B.CYBERTIMES
+	                                AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+	                            )TOTALCOST,
+	                            (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+	                             WHERE A.CYBERYYMM = B.CYBERYYMM
+	                               AND A.CYBERTIMES = B.CYBERTIMES
+	                               AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+	                               AND B.COURSECODE = C.COURSECODE 
+	                               AND C.ISFINISH LIKE 'Y'
+	                               AND (ISCOST = 'N' OR ISCOST IS NULL)
+	                            ) TOTALINWON
+			                   FROM OPR_CYBERCOSTMST A,
+			                        OPR_CYBERCOST B
+			                  WHERE A.CYBERYYMM = B.CYBERYYMM
+			                    AND A.CYBERTIMES = B.CYBERTIMES
+			                    AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+			                  GROUP BY COURSECODE
+			                ) A,
+			                OPR_CRSSTUDENT B
+			          WHERE A.COURSECODE = B.COURSECODE
+			            AND B.ISFINISH LIKE 'Y'
+			            AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+			          GROUP BY CHIEFORGAN 
+			          </isEqual>         
+			        ) A,
+			        (SELECT COURSECODE, MAX(TOTALCOST)-SUM(EDUCOST) REMAIN
+			           FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT, MAX(TOTALCOST) TOTALCOST, 
+			                        TRUNC(TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON)) * COUNT(A.JUMINNO),-1)  EDUCOST
+			                   FROM OPR_CRSSTUDENT A, 
+			                        (SELECT COURSECODE, 
+			                                SUM(NVL(TXTBOOKCOST_INTRO,0))
+			                                + SUM(NVL(TXTBOOKCOST_MSCT,0))
+			                                + SUM(NVL(TXTBOOKCOST_COMMON,0))
+			                                + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+			                                + SUM(NVL(PROFCOST_PAY,0))
+			                                + SUM(NVL(PROFCOST_TRAVEL,0))
+			                                + SUM(NVL(PROFCOST_QUESTION,0))
+			                                + SUM(NVL(IMCHACOST,0))
+			                                + SUM(NVL(ETCCOST,0)) TOTALCOST,
+			                                (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND (ISCOST = 'N' OR ISCOST IS NULL)) TOTALINWON
+			                           FROM OPR_COURSECOST A
+			                          WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+			                            AND COURSECODE = #coursecode#
+			                          GROUP BY COURSECODE                           
+			                        ) B
+			                  WHERE A.COURSECODE = B.COURSECODE
+			                    AND A.COURSECODE = #coursecode#
+			                    AND (A.ISCOST = 'N' OR A.ISCOST IS NULL)
+			                  GROUP BY  A.COURSECODE, A.CHIEFORGAN
+			                  <isEqual property="coursecode" compareValue="C">
+			                  UNION ALL     
+			                 SELECT 'C',
+			                        CHIEFORGAN,
+			                        COUNT(B.JUMINNO),
+			                        MAX(A.TOTALCOST),
+			                        TRUNC(TRUNC(MAX(A.TOTALCOST)/MAX(A.TOTALINWON)) * COUNT(B.JUMINNO),-1)
+			                   FROM (SELECT COURSECODE,
+			                                (SELECT MAX(NVL(EDUCOST,0)) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B  
+						                            WHERE A.CYBERYYMM = B.CYBERYYMM
+						                              AND A.CYBERTIMES = B.CYBERTIMES
+						                              AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+						                          )TOTALCOST,
+						                          (SELECT COUNT(JUMINNO) FROM OPR_CYBERCOSTMST A, OPR_CYBERCOST B, OPR_CRSSTUDENT C 
+						                            WHERE A.CYBERYYMM = B.CYBERYYMM
+						                              AND A.CYBERTIMES = B.CYBERTIMES
+						                              AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+						                              AND B.COURSECODE = C.COURSECODE 
+						                              AND C.ISFINISH LIKE 'Y'
+						                              AND (ISCOST = 'N' OR ISCOST IS NULL)
+						                          ) TOTALINWON
+			                           FROM OPR_CYBERCOSTMST A,
+			                                OPR_CYBERCOST B
+			                          WHERE A.CYBERYYMM = B.CYBERYYMM
+			                            AND A.CYBERTIMES = B.CYBERTIMES
+			                            AND A.COSTYYMM = REPLACE(#searchdate#,'-','')
+			                          GROUP BY COURSECODE
+			                        ) A,
+			                        OPR_CRSSTUDENT B
+			                  WHERE A.COURSECODE = B.COURSECODE
+			                    AND B.ISFINISH LIKE 'Y'
+			                    AND (B.ISCOST = 'N' OR B.ISCOST IS NULL)
+			                  GROUP BY CHIEFORGAN  
+			                  </isEqual>                 
+			                )
+			          GROUP BY COURSECODE
+			        ) C,
+			        CMN_MSTORGAN B
+			  WHERE B.CHIEFORGAN = A.CHIEFORGAN(+)
+			    AND A.COURSECODE = C.COURSECODE(+)
+			  ORDER BY A.COURSECODE, B.ORGANGU, B.CHIEFORGAN 	
+	
+	
+	
+<!--  		INSERT INTO OPR_COURSECOSTDIV (	
+			   			ORGANCODE ,	
+			   			COSTYYMM  ,	
+			   			SEQ       ,	
+			   			COURSECODE,	
+			   			COUSRENAME,	
+			   			EDUCOUNT  ,	
+			   			EDUCOST   ,	
+			   			INSUSER   ,	
+			   			INSDATE   	
+		)SELECT B.CHIEFORGAN,
+			       	REPLACE(#searchdate#,'-',''),
+			       	#seq#,
+			        #coursecode#,
+			       	(SELECT COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' FROM OPR_LECTURE WHERE COURSECODE= #coursecode#) COURSENAME,           
+			       	DECODE(A.CHIEFORGAN, B.CHIEFORGAN, A.ORGCNT, 0) ORGCNT,
+			       	DECODE(A.CHIEFORGAN, B.CHIEFORGAN, DECODE(B.CHIEFORGAN, '6430000', NVL(A.EDUCOST,0)+NVL(C.REMAIN,0), NVL(A.EDUCOST,0)), 0) EDUCOST,
+			       	#userId#,
+			       	TO_CHAR(SYSDATE,'YYYYMMDD')
+			   FROM (SELECT A.COURSECODE,
+			                A.CHIEFORGAN,
+			                COUNT(A.JUMINNO) ORGCNT,  
+			                TRUNC(MAX(C.TOTALCOST)/MAX(C.TOTALINWON)*COUNT(A.JUMINNO),-1) AS EDUCOST
+					       FROM OPR_CRSSTUDENT A,
+			                (SELECT COURSECODE, 
+		                          SUM(NVL(TXTBOOKCOST_INTRO,0))
+						                  + SUM(NVL(TXTBOOKCOST_MSCT,0))
+						                  + SUM(NVL(TXTBOOKCOST_COMMON,0))
+						                  + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+						                  + SUM(NVL(PROFCOST_PAY,0))
+						                  + SUM(NVL(PROFCOST_TRAVEL,0))
+						                  + SUM(NVL(PROFCOST_QUESTION,0))
+						                  + SUM(NVL(ETCCOST,0)) TOTALCOST,
+                         			(SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+						             FROM OPR_COURSECOST A
+						            WHERE A.COSTYYMM = REPLACE(#searchdate#,'-','')
+			                    AND A.COURSECODE = #coursecode#
+						            GROUP BY COURSECODE
+			                ) C
+					      WHERE A.COURSECODE = C.COURSECODE
+					        AND A.ISCOST = 'N'
+					        AND A.COURSECODE = #coursecode#
+					      GROUP BY A.COURSECODE, A.CHIEFORGAN
+			         ) A,
+			         (SELECT COURSECODE, MAX(TOTALCOST)-SUM(EDUCOST) REMAIN
+	                FROM (SELECT A.COURSECODE, A.CHIEFORGAN, COUNT (A.JUMINNO) ORGCNT, MAX(TOTALCOST) TOTALCOST, 
+	                             TRUNC(MAX(B.TOTALCOST)/MAX(B.TOTALINWON) * COUNT(A.JUMINNO),-1)  EDUCOST
+	                        FROM OPR_CRSSTUDENT A, 
+	                             (SELECT COURSECODE, 
+	                                     SUM(NVL(TXTBOOKCOST_INTRO,0))
+										                   + SUM(NVL(TXTBOOKCOST_MSCT,0))
+										                   + SUM(NVL(TXTBOOKCOST_COMMON,0))
+										                   + SUM(NVL(TXTBOOKCOST_AXBOOK,0))
+										                   + SUM(NVL(PROFCOST_PAY,0))
+										                   + SUM(NVL(PROFCOST_TRAVEL,0))
+										                   + SUM(NVL(PROFCOST_QUESTION,0))
+										                   + SUM(NVL(ETCCOST,0)) TOTALCOST,
+	                                     (SELECT COUNT(JUMINNO) FROM OPR_CRSSTUDENT B WHERE A.COURSECODE = B.COURSECODE AND ISCOST = 'N') TOTALINWON
+	                                FROM OPR_COURSECOST A
+	                               WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+	                                 AND COURSECODE = #coursecode#
+	                               GROUP BY COURSECODE
+	                            ) B
+	                      WHERE A.COURSECODE = B.COURSECODE
+	                        AND A.COURSECODE = #coursecode#
+	                        AND A.ISCOST = 'N'
+	                      GROUP BY  A.COURSECODE, A.CHIEFORGAN
+	                    )
+	              GROUP BY COURSECODE
+               ) C,
+			         CMN_MSTORGAN B
+			   WHERE B.CHIEFORGAN = A.CHIEFORGAN(+)
+			     AND A.COURSECODE = C.COURSECODE(+)
+			   ORDER BY A.COURSECODE, B.ORGANGU, B.CHIEFORGAN 
+-->
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_CostDivide" parameterClass="crs_CostDivide">
+		UPDATE OPR_COURSECOSTDIV SET
+			   ORGANCODE  = #organcode# ,
+			   COSTYYMM   = #costyymm#  ,
+			   SEQ        = #seq#       ,
+			   COURSECODE = #coursecode#,
+			   COUSRENAME = #coursename#,
+			   EDUCOUNT   = #educount#  ,
+			   EDUCOST    = #educost#   ,
+			   INSUSER    = #insuser#   ,
+			   INSDATE    = #insdate#   
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_CostDivide" parameterClass="crs_CostDivide">
+		DELETE FROM OPR_COURSECOSTDIV
+		 WHERE COSTYYMM = REPLACE(#searchdate#,'-','')
+		   AND COURSECODE = #coursecode#
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="organcode">
+				ORGANCODE = #organcode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="costyymm">
+				COSTYYMM = #costyymm#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="seq">
+				SEQ = #seq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="cousrename">
+				COUSRENAME = #cousrename#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="educount">
+				EDUCOUNT = #educount#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="educost">
+				EDUCOST = #educost#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

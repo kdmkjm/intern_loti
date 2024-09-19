@@ -1,0 +1,342 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysMenu">
+
+	<typeAlias alias="sysMenu" type="loti.sys.menu.model.SysMenu"/>
+	<typeAlias alias="sysGroup" type="loti.sys.user.model.SysGroup"/>
+	<typeAlias alias="sysUser" type="loti.sys.user.model.SysUser"/>
+	<typeAlias alias="ozPrt" type="loti.sys.menu.model.OZPrtNum"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysMenu" parameterClass="sysMenu" resultClass="sysMenu">
+			SELECT
+				   		MENUNO   ,
+				   		PARENT   ,
+				   		MENUNAME ,
+				   		PROGNAME ,
+				   		EXECPATH ,
+				   		PROGID   ,
+				   		PARMS    ,
+				   		ICONPATH ,
+				   		ICONPATHON ,
+				   		ICONPATHSUB ,
+				   		DECODE(MENUTYPE,'F','폴더','M','프로그램') MENUTYPE,
+				   		EXECTYPE ,
+				   		DISPORDER,
+				   		USE
+			  FROM SYS_MENUINFO
+			  <isNotEmpty prepend="WHERE" property="menuNo">
+				MENUNO = #menuNo#
+			  </isNotEmpty>
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSysMenuList" parameterClass="sysMenu" resultClass="sysMenu">
+			SELECT
+						ROWNUM NUM,
+				   		MENUNO   ,
+				   		PARENT   ,
+				   		MENUNAME ,
+				   		PROGNAME ,
+				   		EXECPATH ,
+				   		PROGID   ,
+				   		PARMS    ,
+				   		ICONPATH ,
+				   		ICONPATHON ,
+				   		ICONPATHSUB ,
+				   		MENUTYPE ,
+				   		EXECTYPE ,
+				   		DISPORDER,
+				   		USE
+			  FROM SYS_MENUINFO
+			<isNotEmpty prepend="WHERE" property="parent">
+				PARENT = #parent#
+			</isNotEmpty>
+				ORDER BY DISPORDER
+
+	</select>
+
+
+	<!--  페이징용 레코드 수 Count -->
+	<select id="selectSysMenuListCount" parameterClass="sysMenu" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM SYS_MENUINFO
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+		</isNotEmpty>
+
+	</select>
+
+	<!--  입력/수정 구분용 레코드 수 Count -->
+	<select id="selectSysMenuCount" parameterClass="sysMenu" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM SYS_MENUINFO
+		WHERE MENUNO = #oldMenuNo#
+	</select>
+
+	<!-- 수료증번호 존재여부  -->
+	<select id="existDocNo" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT COURSECODE||STDSEQ 
+		FROM OPR_PRTNUM
+		WHERE COURSECODE||STDSEQ IN ($oldMenuNo$)
+	</select>
+	
+	<!-- 수료증번호 Max값 가져오기  -->
+	<select id="maxDocSeq" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(DOCSEQ),0) 
+		FROM OPR_PRTNUM
+		WHERE PRTYEAR = (SELECT YEAR FROM OPR_LECTURE WHERE COURSECODE = #courseCode#)
+	</select>
+	
+	<!-- 수료증 번호 발행 -->
+	<insert id="insertPrtnum" parameterClass="ozPrt">
+		INSERT INTO OPR_PRTNUM (
+			   			COURSECODE,
+              STDSEQ,
+              PRTYEAR,
+              DOCSEQ,
+              INSUSER,
+              INSDATE,
+              UPDUSER,
+              UPDDATE)
+		SELECT COURSECODE, #stdseq#, YEAR, #docseq#, #insuser#,
+			   	 TO_CHAR(SYSDATE,'YYYYMMDD'), #upduser#, #upddate#
+	  FROM OPR_LECTURE
+	  WHERE COURSECODE = #coursecode#
+	</insert>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertSysMenu" parameterClass="sysMenu">
+		INSERT INTO SYS_MENUINFO (
+			   			MENUNO   ,
+			   			PARENT   ,
+			   			MENUNAME ,
+			   			PROGNAME ,
+			   			EXECPATH ,
+			   			PROGID   ,
+			   			PARMS    ,
+			   			ICONPATH ,
+			   			ICONPATHON ,
+			   			ICONPATHSUB ,
+			   			MENUTYPE ,
+			   			EXECTYPE ,
+			   			DISPORDER,
+			   			USE
+		) VALUES (
+						SEQ_SYS_MENU.NEXTVAL   ,
+			   			#parent#   ,
+			   			#menuName# ,
+			   			#progName# ,
+			   			#execPath# ,
+			   			#progId#   ,
+			   			#parms#    ,
+			   			#iconPath# ,
+			   			#iconPathOn# ,
+			   			#iconPathSub# ,
+			   			#menuType# ,
+			   			#execType# ,
+			   			#dispOrder#,
+			   			#use#
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSysMenu" parameterClass="sysMenu">
+		UPDATE SYS_MENUINFO SET
+			   PARENT    = #parent#   ,
+			   MENUNAME  = #menuName# ,
+			   PROGNAME  = #progName# ,
+			   EXECPATH  = #execPath# ,
+			   PROGID    = #progId#   ,
+			   PARMS     = #parms#    ,
+			   ICONPATH  = #iconPath# ,
+			   ICONPATHON  = #iconPathOn# ,
+			   ICONPATHSUB  = #iconPathSub# ,
+			   EXECTYPE  = #execType# ,
+			   DISPORDER = #dispOrder#,
+			   USE       = #use#
+			<isNotEmpty prepend="WHERE" property="oldMenuNo">
+				MENUNO = #oldMenuNo#
+			</isNotEmpty>
+			<isEmpty prepend="WHERE" property="oldMenuNo">
+				MENUNO = #menuNo#
+			</isEmpty>
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSysMenu" parameterClass="sysMenu">
+		DELETE FROM SYS_MENUINFO
+		<isNotEmpty prepend="WHERE" property="menuNo">
+				MENUNO = #menuNo#
+		</isNotEmpty>
+	</delete>
+
+
+		<!-- 그룹별  Tree 구성용 메뉴 리스트 -->
+  <!-- 
+	<select id="selectSysGroupMenuList" parameterClass="sysGroup" resultClass="sysMenu">
+			SELECT DECODE(A.GROUPNO, #groupNo# ,'Y','N') CHECKYN, B.*
+			FROM (
+			SELECT GROUPNO, MENUNO
+			FROM SYS_GROUPAUTH
+			WHERE GROUPNO = #groupNo#
+			) A,
+			(
+			SELECT LEVEL, MENUNO, PARENT, MENUNAME, MENUTYPE
+			            FROM     SYS_MENUINFO
+			            START WITH MENUNO = '0'
+			            CONNECT BY NOCYCLE PRIOR MENUNO  = PARENT) B
+
+			WHERE A.MENUNO(+) = B.MENUNO
+	</select>
+	 -->
+	<select id="selectSysGroupMenuList" parameterClass="sysGroup" resultClass="sysMenu">
+			SELECT DECODE(A.GROUPNO, #groupNo#, 'Y', 'N') CHECKYN, GBN, LEVELS, B.MENUNO, PARENT, MENUNAME, MENUTYPE, DISPORDER
+			FROM
+			(
+				SELECT GROUPNO, MENUNO  FROM SYS_GROUPAUTH WHERE GROUPNO = #groupNo#
+			)A,
+			(
+				SELECT GBN, LEVEL AS LEVELS, MENUNO, PARENT, MENUNAME, MENUTYPE ,DISPORDER 
+				FROM(
+					SELECT 1 AA, DECODE(MENUTYPE, 'F','G','P') GBN, MENUNO, PARENT, MENUNAME, MENUTYPE, DISPORDER
+					FROM SYS_MENUINFO
+					WHERE PARENT = 0
+					UNION ALL
+					SELECT 0 AA, DECODE(MENUTYPE, 'F','G','P') GBN, MENUNO, PARENT, MENUNAME, MENUTYPE, DISPORDER
+					FROM SYS_MENUINFO
+					WHERE PARENT != 0 
+				)
+				CONNECT BY PRIOR MENUNO = PARENT
+				START WITH PARENT = '-1' 						
+				ORDER SIBLINGS BY AA, DISPORDER
+			)B	
+			WHERE A.MENUNO(+) = B.MENUNO	
+	</select>
+
+			<!-- 사용자별  Tree 구성용 메뉴 리스트 -->
+	<select id="selectSysUserMenuList" parameterClass="sysUser" resultClass="sysMenu">
+			SELECT DECODE(A.JUMINNO, #juminNo# ,'Y','N') CHECKYN, B.*
+			FROM (
+			SELECT JUMINNO, MENUNO
+			FROM SYS_USERAUTH
+			WHERE JUMINNO = #juminNo#
+			) A,
+			(
+			SELECT LEVEL, MENUNO, PARENT, MENUNAME, MENUTYPE
+			            FROM     SYS_MENUINFO
+			            START WITH MENUNO = '0'
+			            CONNECT BY NOCYCLE PRIOR MENUNO  = PARENT) B
+
+			WHERE A.MENUNO(+) = B.MENUNO
+
+	</select>
+
+	<!--  그룹별 메뉴 권한  삭제 -->
+	<delete id="deleteSysGroupMenu" parameterClass="sysMenu">
+		DELETE FROM SYS_GROUPAUTH
+		WHERE 	GROUPNO = #insGroupNo#
+
+	</delete>
+
+
+		<!-- 그룹별 메뉴권한  입력 -->
+	<insert id="insertSysGroupMenu" parameterClass="sysMenu">
+		INSERT INTO SYS_GROUPAUTH (
+			   			GROUPNO,
+			   			MENUNO
+		) VALUES (
+						#insGroupNo#,
+						#menuNo#
+		)
+	</insert>
+
+		<!--  사용자별 메뉴 권한  삭제 -->
+	<delete id="deleteSysUserMenu" parameterClass="sysMenu">
+		DELETE FROM SYS_USERAUTH
+		WHERE 	JUMINNO = #insJuminNo#
+
+	</delete>
+
+
+		<!-- 사용자별별 메뉴권한  입력 -->
+	<insert id="insertSysUserMenu" parameterClass="sysMenu">
+		INSERT INTO SYS_USERAUTH (
+			   			JUMINNO,
+			   			MENUNO
+		) VALUES (
+						#insJuminNo#,
+						#menuNo#
+		)
+	</insert>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="menuno">
+				MENUNO = #menuno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parent">
+				PARENT = #parent#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menuname">
+				MENUNAME = #menuname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progname">
+				PROGNAME = #progname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="execpath">
+				EXECPATH = #execpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progid">
+				PROGID = #progid#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="parms">
+				PARMS = #parms#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="iconpath">
+				ICONPATH = #iconpath#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="menutype">
+				MENUTYPE = #menutype#
+				</isNotEmpty>
+
+
+				<isNotEmpty prepend="AND" property="exectype">
+				EXECTYPE = #exectype#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="disporder">
+				DISPORDER = #disporder#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="use">
+				USE = #use#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

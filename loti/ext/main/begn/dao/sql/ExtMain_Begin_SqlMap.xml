@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMain_Begin">
+
+	<typeAlias alias="extMain_Begin" type="loti.ext.main.begn.model.ExtMain_Begin"/>
+
+
+<!-- DEL Start:2012/11/29:yunsh -->
+	<!-- BOARD_REQCRS 과정 요청 목록조회쿼리 -->
+<!--<select id="selectExtMain_ReqCrsList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT   
+						BOARD_IDX, TITLE, WDATE
+		  FROM   (SELECT	BOARD_IDX, TITLE, 
+		                	TO_CHAR(TO_DATE(SUBSTR(WDATE, 1, 8)), 'YYYY.MM.DD') WDATE
+		            FROM	BOARD_REQCRS
+		        ORDER BY	BOARD_IDX DESC)
+		 WHERE   ROWNUM <![CDATA[<=]]> 7
+	</select> -->
+<!-- DEL End:2012/11/29:yunsh -->
+	
+	<!-- 월별 교육과정 조회쿼리 -->
+	<select id="selectExtMain_EduMonthInfoList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT
+            COURSECODE, COURSENAME, CRSTYPE1, EDUFROMTO, REQFROMTO, BASEYYMM 
+      FROM 
+           (SELECT     
+                    COURSECODE, EDUTARGET, CRSTYPE1,
+                    COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+                    TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY.MM.DD')||' ~ '||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'YYYY.MM.DD') EDUFROMTO,
+                    CASE 
+                        WHEN CRSTYPE1 = '00003' THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+                        ELSE '' 
+                    END REQFROMTO ,
+                    DECODE(CRSTYPE1, '00003', BASEYYMM, SUBSTR(EDUFROM, 1, 6)) BASEYYMM
+              FROM  OPR_LECTURE
+             WHERE (SUBSTR(EDUFROM, 0, 6) LIKE #baseYYMM# AND CRSTYPE1 NOT LIKE '00003') 
+                OR (BASEYYMM LIKE #baseYYMM# AND CRSTYPE1 LIKE '00003') 
+          ORDER BY  EDUFROMTO)
+		 WHERE	ROWNUM <![CDATA[<=]]> 7
+	</select>
+	
+	
+	<!-- 초기메뉴 조회쿼리 -->
+	<select id="selectExtMain_LeftList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT  
+            A.MENUNO, A.MENUNAME, A.EXECPATH, A.PARENT, C.PARENT GRANDPARENT
+      FROM  SYS_MENUINFO A,
+           (SELECT
+                    JUMINNO, USERNAME, NVL(INITMENU,0) INITMENU
+              FROM  CMN_PUBWORKER
+             WHERE  JUMINNO = #juminNo#) B,
+           (SELECT
+                    MENUNO, MENUNAME, PARENT
+              FROM  SYS_MENUINFO) C
+     WHERE  B.INITMENU = A.MENUNO
+       AND  A.PARENT = C.MENUNO
+	</select>
+	
+	
+	<!-- 과정별 교육과정 조회쿼리 -->
+	<select id="selectExtMain_EduCrsInfoList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT    
+						COURSECODE, COURSENAME, CRSTYPE1, EDUFROMTO, REQFROMTO 
+			FROM (SELECT     
+										COURSECODE, CRSTYPE1, EDUTARGET,
+										COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+										TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY.MM.DD')||' ~ '||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'YYYY.MM.DD') EDUFROMTO,
+										CASE WHEN CRSTYPE1 = '00003' THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+												 ELSE '' END REQFROMTO 
+							FROM	OPR_LECTURE
+						 WHERE	EDUTO > to_char(to_date(sysdate), 'YYYYMMDD')
+						 <isEqual property="crsType1" compareValue="00001">
+						   AND (CRSTYPE1 LIKE '00001'   OR   CRSTYPE1 LIKE '00004')   
+						 </isEqual>
+						 <isEqual property="crsType1" compareValue="00002">
+						   AND	CRSTYPE1 LIKE '00002'   
+						   AND  CRSTYPE2 NOT LIKE '00004' 
+						   AND	CRSTYPE2 NOT LIKE '00005' 
+						 </isEqual>
+						 <isEqual property="crsType1" compareValue="00003">
+						   AND	CRSTYPE1 LIKE '00003'   
+						 </isEqual>
+						 <isEqual property="crsType1" compareValue="00004">
+						   AND	CRSTYPE1 LIKE '00002'   
+						   AND  CRSTYPE2 LIKE '00004'   
+						 </isEqual>
+						 <isEqual property="crsType1" compareValue="00005">
+						   AND	CRSTYPE1 LIKE '00002'   
+						   AND  CRSTYPE2 LIKE '00005'   
+						 </isEqual>
+					ORDER BY	EDUFROMTO)
+		 WHERE	ROWNUM <![CDATA[<=]]> 7
+	</select>	
+	
+	<!-- 운영중인 교육과정 조회쿼리 -->
+	<select id="selectExtMain_EduIngInfoList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT
+            COURSECODE, COURSENAME, CRSTYPE1, EDUFROMTO, REQFROMTO 
+      FROM 
+           (SELECT     
+                    COURSECODE, CRSTYPE1, EDUTARGET,
+                    COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+                    TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY.MM.DD')||' ~ '||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'YYYY.MM.DD') EDUFROMTO,
+                    CASE 
+                        WHEN CRSTYPE1 = '00003' 
+                        THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+                        ELSE '' 
+                    END REQFROMTO 
+              FROM  OPR_LECTURE
+             WHERE  TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD') BETWEEN EDUFROM AND EDUTO
+          ORDER BY  CRSTYPE1, EDUFROMTO)
+		 WHERE	ROWNUM <![CDATA[<=]]> 7
+	</select>
+
+<!-- ADD Start:2012/11/29:yunsh -->
+	<!-- BOARD_NOTICE 공지사항 목록조회쿼리 -->
+	<select id="selectExtMain_BrdNoticeList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT   
+						BOARD_IDX, TITLE, WDATE
+		  FROM   (SELECT	BOARD_IDX, TITLE, 
+		                	TO_CHAR(TO_DATE(SUBSTR(WDATE, 1, 8),'YYYYMMDD'), 'YYYY.MM.DD') WDATE
+		            FROM	BOARD_NOTICE
+		        ORDER BY	BOARD_IDX DESC)
+		 WHERE   ROWNUM <![CDATA[<=]]> 7
+	</select>
+	<!-- BOARD_NOTICE 자료실 목록조회쿼리 -->
+	<select id="selectExtMain_BrdDataList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT   
+						BOARD_IDX, TITLE, WDATE
+		  FROM   (SELECT	BOARD_IDX, TITLE, 
+		                	TO_CHAR(TO_DATE(SUBSTR(WDATE, 1, 8),'YYYYMMDD'), 'YYYY.MM.DD') WDATE
+		            FROM	BOARD_MORGUE
+		        ORDER BY	BOARD_IDX DESC)
+		 WHERE   ROWNUM <![CDATA[<=]]> 7
+	</select>
+	<!-- BOARD_NOTICE 교육후기 목록조회쿼리 -->
+	<select id="selectExtMain_BrdAfNoteList" parameterClass="extMain_Begin" resultClass="extMain_Begin">
+		SELECT   
+						BOARD_IDX, TITLE, WDATE
+		  FROM   (SELECT	BOARD_IDX, TITLE, 
+		                	TO_CHAR(TO_DATE(SUBSTR(WDATE, 1, 8),'YYYYMMDD'), 'YYYY.MM.DD') WDATE
+		            FROM	BOARD_AFNOTE
+		        ORDER BY	BOARD_IDX DESC)
+		 WHERE   ROWNUM <![CDATA[<=]]> 7
+	</select>
+<!-- ADD End:2012/11/29:yunsh -->
+</sqlMap>

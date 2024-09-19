@@ -1,0 +1,305 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/prfLectAcom.do" location="50,50" dimension="267,84" />
+  <StrutsActivity path="/prfBaseInfo.do" location="650,50" dimension="268,84" />
+  <StrutsActivity path="/prfGradeInfo.do" location="650,950" dimension="302,84" />
+  <StrutsActivity path="/prfSatis.do" location="950,750" dimension="260,96" />
+  <StrutsActivity path="/prfPay.do" location="950,250" dimension="221,84" />
+  <StrutsActivity path="/prfPayStandard.do" location="50,350" dimension="292,84" />
+  <StrutsActivity path="/prf/acom/Prf_LectAcom.jsp" location="650,350" dimension="195,48" />
+  <StrutsActivity path="/prf/acom/Prf_LectAcomNew.jsp" location="650,450" dimension="221,48" />
+  <StrutsActivity path="/prf/acom/Prf_LectAcomDetl.jsp" location="950,450" dimension="216,48" />
+  <StrutsActivity path="/prf/acom/Prf_LectGetPrf.jsp" location="50,550" dimension="196,48" />
+  <StrutsActivity path="/prfLectAcom.act" location="350,550" dimension="130,48" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfInfo.jsp" location="650,550" dimension="196,48" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfInfoMod.jsp" location="950,550" dimension="221,48" />
+  <StrutsActivity path="/prfBaseInfo.act" location="50,650" dimension="122,48" />
+  <StrutsActivity path="/prf/baseinfo/Prf_LectureInfo.jsp" location="350,650" dimension="216,48" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfGradeInfo.jsp" location="1250,650" dimension="230,48" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfSatisExcel.jsp" location="1250,450" dimension="218,51" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfSatisList.jsp" location="350,850" dimension="209,51" />
+  <StrutsActivity path="/prf/baseinfo/Prf_ProfSatis.jsp" location="50,850" dimension="191,51" />
+  <StrutsActivity path="/prf/pay/Prf_Pay.jsp" location="650,650" dimension="149,48" />
+  <StrutsActivity path="/prf/pay/Prf_PayDate.jsp" location="1250,350" dimension="174,48" />
+  <StrutsActivity path="/prfPay.act" location="950,650" dimension="95,48" />
+  <StrutsActivity path="/prf/payrule/Prf_PayStandard.jsp" location="50,750" dimension="220,48" />
+  <StrutsActivity path="/prf/payrule/Prf_PayStandardMod.jsp" location="350,750" dimension="245,48" />
+  <StrutsActivity path="/prfPayStandard.act" location="650,750" dimension="145,48" />
+  <StrutsActivity path="/prf/acom/prfLectList.jsp" location="0,204" dimension="175,48" />
+  <StrutsActivity path="/prf/acom/prfLectAdd.jsp" location="275,204" dimension="177,48" />
+  <StrutsActivity path="/prfLect.act" location="552,204" dimension="97,48" />
+  <StrutsTransition id="/prfBaseInfo.do,list,/prf/baseinfo/Prf_ProfInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="784,134" />
+      <AbsolutePoint location="784,219" />
+      <AbsolutePoint location="1543,219" />
+      <AbsolutePoint location="1543,865" />
+      <AbsolutePoint location="814,865" />
+      <AbsolutePoint location="814,598" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,update,/prfLectAcom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="250,134" />
+      <AbsolutePoint location="250,267" />
+      <AbsolutePoint location="445,267" />
+      <AbsolutePoint location="445,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,modify,/prf/acom/Prf_LectAcomNew.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="317,99" />
+      <AbsolutePoint location="525,99" />
+      <AbsolutePoint location="525,474" />
+      <AbsolutePoint location="650,474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,delete,/prfPayStandard.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,422" />
+      <AbsolutePoint location="15,422" />
+      <AbsolutePoint location="15,813" />
+      <AbsolutePoint location="722,813" />
+      <AbsolutePoint location="722,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,move,/prf/baseinfo/Prf_ProfInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="784,92" />
+      <AbsolutePoint location="748,574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,update,/prfPayStandard.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,362" />
+      <AbsolutePoint location="-225,362" />
+      <AbsolutePoint location="-225,933" />
+      <AbsolutePoint location="692,933" />
+      <AbsolutePoint location="692,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfSatis.do,info,/prf/baseinfo/Prf_ProfSatis.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1080,798" />
+      <AbsolutePoint location="145,875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,modify,/prf/payrule/Prf_PayStandardMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="291,434" />
+      <AbsolutePoint location="291,774" />
+      <AbsolutePoint location="350,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,modify,/prf/pay/Prf_Pay.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,297" />
+      <AbsolutePoint location="938,297" />
+      <AbsolutePoint location="938,674" />
+      <AbsolutePoint location="799,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,create,/prf/baseinfo/Prf_ProfInfoMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="918,92" />
+      <AbsolutePoint location="1186,92" />
+      <AbsolutePoint location="1186,513" />
+      <AbsolutePoint location="1060,513" />
+      <AbsolutePoint location="1060,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfGradeInfo.do,list,/prf/baseinfo/Prf_ProfGradeInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="801,992" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,searchDate,/prf/pay/Prf_PayDate.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1060,292" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,list,/prf/acom/Prf_LectAcom.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="220,134" />
+      <AbsolutePoint location="220,297" />
+      <AbsolutePoint location="747,297" />
+      <AbsolutePoint location="747,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,delete,/prfLectAcom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="190,134" />
+      <AbsolutePoint location="190,327" />
+      <AbsolutePoint location="415,327" />
+      <AbsolutePoint location="415,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,delete,/prfPay.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1060,334" />
+      <AbsolutePoint location="1060,349" />
+      <AbsolutePoint location="573,349" />
+      <AbsolutePoint location="573,735" />
+      <AbsolutePoint location="997,735" />
+      <AbsolutePoint location="997,698" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,modify,/prf/baseinfo/Prf_ProfInfoMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="918,62" />
+      <AbsolutePoint location="1246,62" />
+      <AbsolutePoint location="1246,574" />
+      <AbsolutePoint location="1171,574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfSatis.do,list,/prf/baseinfo/Prf_ProfSatisList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1080,798" />
+      <AbsolutePoint location="454,875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,list,/prf/pay/Prf_Pay.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1171,292" />
+      <AbsolutePoint location="1503,292" />
+      <AbsolutePoint location="1503,1111" />
+      <AbsolutePoint location="616,1111" />
+      <AbsolutePoint location="616,696" />
+      <AbsolutePoint location="650,696" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,update,/prfBaseInfo.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="814,50" />
+      <AbsolutePoint location="814,-75" />
+      <AbsolutePoint location="-135,-75" />
+      <AbsolutePoint location="-135,674" />
+      <AbsolutePoint location="50,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,insert,/prfPayStandard.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,392" />
+      <AbsolutePoint location="-105,392" />
+      <AbsolutePoint location="-105,903" />
+      <AbsolutePoint location="752,903" />
+      <AbsolutePoint location="752,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,create,/prf/payrule/Prf_PayStandardMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="321,434" />
+      <AbsolutePoint location="321,713" />
+      <AbsolutePoint location="472,713" />
+      <AbsolutePoint location="472,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,lecInfo,/prf/baseinfo/Prf_LectureInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="747,134" />
+      <AbsolutePoint location="747,267" />
+      <AbsolutePoint location="610,267" />
+      <AbsolutePoint location="610,674" />
+      <AbsolutePoint location="566,674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfSatis.do,excel,/prf/baseinfo/Prf_ProfSatisExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1210,798" />
+      <AbsolutePoint location="1359,798" />
+      <AbsolutePoint location="1359,501" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,insert,/prfBaseInfo.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="784,50" />
+      <AbsolutePoint location="784,-45" />
+      <AbsolutePoint location="-15,-45" />
+      <AbsolutePoint location="-15,713" />
+      <AbsolutePoint location="111,713" />
+      <AbsolutePoint location="111,698" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,create,/prf/pay/Prf_Pay.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,292" />
+      <AbsolutePoint location="587,292" />
+      <AbsolutePoint location="587,652" />
+      <AbsolutePoint location="650,652" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfBaseInfo.do,delete,/prfBaseInfo.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="754,50" />
+      <AbsolutePoint location="754,-150" />
+      <AbsolutePoint location="-285,-150" />
+      <AbsolutePoint location="-285,635" />
+      <AbsolutePoint location="111,635" />
+      <AbsolutePoint location="111,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,insert,/prfPay.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1060,250" />
+      <AbsolutePoint location="1060,144" />
+      <AbsolutePoint location="497,144" />
+      <AbsolutePoint location="497,535" />
+      <AbsolutePoint location="892,535" />
+      <AbsolutePoint location="892,688" />
+      <AbsolutePoint location="950,688" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,insert,/prfLectAcom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="160,134" />
+      <AbsolutePoint location="160,152" />
+      <AbsolutePoint location="475,152" />
+      <AbsolutePoint location="475,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,info,/prf/acom/Prf_LectAcomDetl.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="130,134" />
+      <AbsolutePoint location="130,179" />
+      <AbsolutePoint location="886,179" />
+      <AbsolutePoint location="886,474" />
+      <AbsolutePoint location="950,474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPay.do,update,/prfPay.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1074,334" />
+      <AbsolutePoint location="1074,444" />
+      <AbsolutePoint location="632,444" />
+      <AbsolutePoint location="632,635" />
+      <AbsolutePoint location="997,635" />
+      <AbsolutePoint location="997,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfPayStandard.do,list,/prf/payrule/Prf_PayStandard.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="261,434" />
+      <AbsolutePoint location="261,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,create,/prf/acom/Prf_LectAcomNew.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,122" />
+      <AbsolutePoint location="-45,122" />
+      <AbsolutePoint location="-45,513" />
+      <AbsolutePoint location="760,513" />
+      <AbsolutePoint location="760,498" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/prfLectAcom.do,getPrf,/prf/acom/Prf_LectGetPrf.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,92" />
+      <AbsolutePoint location="-75,92" />
+      <AbsolutePoint location="-75,574" />
+      <AbsolutePoint location="50,574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMain_MyInfo">
+
+	<typeAlias alias="ExtMain_MyInfo" type="loti.ext.main.prsn.model.ExtMain_MyInfo"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMain_MyInfo" parameterClass="ExtMain_MyInfo" resultClass="ExtMain_MyInfo">
+		SELECT 
+            A.MENUNO, A.PARENT, A.MENUNAME, A.DISPORDER
+      FROM  SYS_MENUINFO A
+     WHERE  A.MENUNO = #menuNo# 
+       AND  A.USE = 'Y'
+  ORDER BY  A.DISPORDER
+	</select>
+
+	<!-- 개인정보조회쿼리-->
+	<select id="selectExtMain_MyInfoAuth" parameterClass="ExtMain_MyInfo" resultClass="ExtMain_MyInfo">
+		SELECT  
+            B.JUMINNO, B.USERNAME, B.CELLPHONE, B.TELPHONE, B.EMAIL, B.ONNARAPASS, 
+            TO_CHAR(TO_DATE('19'||SUBSTR(B.BIRTHSEX, 0, 6),'YYYYMMDD'),'YYYY"년" MM"월" DD"일"') USERBIRTH,
+            NVL(B.ISADMIN,'N') ISADMIN, NVL(B.ISEDUCHARGER,'N') ISEDUCHARGER, 
+            NVL(B.ISGUCHARGER,'N') ISGUCHARGER, 
+            NVL(B.INITMENU,0) INITMENU, A.PARENT, A.MENUNAME,
+            (SELECT SIMPLENAME FROM CMN_ORGANMAP WHERE ORGANCODE = C.CHIEFORGAN) POSITION, D.RANKNAME GRADE
+      FROM  CMN_PUBWORKER B,
+                           (SELECT 
+                                    MENUNO, MENUNAME, PARENT
+                              FROM  SYS_MENUINFO) A,
+                           (SELECT 
+                                    ORGANCODE, SIMPLENAME, PARENTORGAN, CHIEFORGAN                    
+                              FROM  CMN_ORGANMAP) C,
+                           (SELECT 
+                                    RANKCODE, RANKNAME                  
+                              FROM  CMN_RANKCODE) D
+     WHERE  B.INITMENU 	= A.MENUNO(+)
+       AND  C.ORGANCODE(+) = B.ORGANCODE
+       AND  B.RANK 		= D.RANKCODE(+)
+			 AND	JUMINNO 		= #juminNo#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMain_MyInfoList" parameterClass="ExtMain_MyInfo" resultClass="ExtMain_MyInfo">
+		SELECT 
+            A.MENUNO, A.PARENT, NVL(A.DISPORDER,0) DISPORDER,
+            A.MENUNAME
+      FROM  SYS_MENUINFO A,
+           (SELECT  DISTINCT
+                    C.PARENT
+              FROM  SYS_GROUPMEMBER A, SYS_GROUPAUTH B, SYS_MENUINFO C
+             WHERE  A.GROUPNO = B.GROUPNO
+               AND  B.MENUNO = C.MENUNO
+               AND  A.JUMINNO LIKE #juminNo#) B
+     WHERE  A.MENUNO = B.PARENT
+       AND  A.PARENT = 0
+       AND  A.USE = 'Y'
+  ORDER BY  DISPORDER
+	</select>
+
+	<!-- 세부목록조회쿼리 -->
+	<select id="selectExtMain_MyInfoDetailList" parameterClass="ExtMain_MyInfo" resultClass="ExtMain_MyInfo">
+		SELECT 
+            A.MENUNO, A.PARENT, A.MENUNAME, A.DISPORDER, A.EXECPATH,
+            DECODE(NVL(B.CHILD,'0'),'0','N','Y') CHILD
+      FROM  SYS_MENUINFO A, 
+           (SELECT 
+                    PARENT, MAX(MENUNAME) CHILD 
+              FROM  SYS_MENUINFO 
+          GROUP BY  PARENT) B,
+           (SELECT  DISTINCT
+                    MENUNO
+              FROM  SYS_GROUPMEMBER A, SYS_GROUPAUTH B
+             WHERE  A.GROUPNO = B.GROUPNO
+               AND  JUMINNO LIKE #juminNo#) C
+     WHERE  A.MENUNO = C.MENUNO
+       AND	A.PARENT = #parent# 
+       AND  A.USE = 'Y'
+       AND  A.MENUNO = B.PARENT(+)
+  ORDER BY  A.DISPORDER
+	</select>
+
+
+	<!-- 나의초기메뉴 변경 -->
+	<insert id="insertExtMain_MyInfo" parameterClass="ExtMain_MyInfo">
+		UPDATE	CMN_PUBWORKER SET
+			   		INITMENU		= #menuNo#
+		 WHERE	JUMINNO			= #juminNo#
+	</insert>
+
+
+	<!-- 개인정보수정 -->
+	<insert id="updateExtMain_MyInfo" parameterClass="ExtMain_MyInfo">
+		UPDATE	CMN_PUBWORKER SET
+			   		EMAIL				= #email#,
+			   		CELLPHONE		= #cellPhone#,
+			   		TELPHONE		= #telPhone#,
+			   		ONNARAPASS	= #onnaraPass#,
+			   		UPDDATE			= to_char(sysdate,'yyyymmdd'),
+			   		UPDWAY			= '1',
+			   		UPDUSER			= #juminNo#
+		 WHERE	JUMINNO			= #juminNo#
+	</insert>
+	
+	<!-- 부모값 조회 -->
+	<select id="selectExtMain_MyInfoParent" parameterClass="ExtMain_MyInfo" resultClass="ExtMain_MyInfo">
+		SELECT   NVL(A.PARENT,0) PARENT,
+		         C.MENUNAME,
+		         NVL(C.PARENT,0) GRANDPARENT,
+		         D.MENUNAME GRANDMENUNAME
+		  FROM   CMN_PUBWORKER B,
+		         (SELECT   MENUNO, MENUNAME, PARENT FROM SYS_MENUINFO) A,
+		         (SELECT   MENUNO, MENUNAME, PARENT FROM SYS_MENUINFO) C,
+		         (SELECT   MENUNO, MENUNAME, PARENT FROM SYS_MENUINFO) D
+		 WHERE   NVL(B.INITMENU,0) = A.MENUNO(+)
+		         AND C.MENUNO = DECODE(A.PARENT, -1, 0, A.PARENT) 
+		         AND D.MENUNO = DECODE(C.PARENT, -1, 0, C.PARENT)
+			 AND	JUMINNO			= #juminNo#
+	</select>
+
+</sqlMap>
+
+

@@ -1,0 +1,697 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/crsSurv.do" location="18,684" dimension="321,96" />
+  <StrutsActivity path="/crsMonth.do" location="350,50" dimension="321,84" />
+  <StrutsActivity path="/extMylcRoom.do" location="1052,0" dimension="310,96" />
+  <StrutsActivity path="/extBordQNA.do" location="503,342" dimension="223,96" />
+  <StrutsActivity path="/extBordMorgue.do" location="50,350" dimension="310,96" />
+  <StrutsActivity path="/extBordAfNote.do" location="1550,50" dimension="312,84" />
+  <StrutsActivity path="/extCrs_ReqCrs.do" location="1550,350" dimension="286,84" />
+  <StrutsActivity path="/downLoad.do" location="1550,1650" dimension="201,84" />
+  <StrutsActivity path="/extCrsCourse.do" location="1250,450" dimension="228,96" />
+  <StrutsActivity path="/extMylcLecture.do" location="1850,650" dimension="330,84" />
+  <StrutsActivity path="/extMainPrsn.do" location="1550,850" dimension="307,84" />
+  <StrutsActivity path="/extMylcSurvey.do" location="950,1650" dimension="299,96" />
+  <StrutsActivity path="/extMylcResearchList.do" location="50,1750" dimension="338,96" />
+  <StrutsActivity path="/crsSurv.act" location="0,900" dimension="94,51" />
+  <StrutsActivity path="/ext/crs/survplan/ExtCrs_SurvEduPlan.jsp" location="194,900" dimension="250,51" />
+  <StrutsActivity path="/ext/crs/survplan/ExtCrs_SurvEduPlanExcelUp.jsp" location="544,900" dimension="292,51" />
+  <StrutsActivity path="/ext/crs/month/ExtCrs_PlanList.jsp" location="650,1050" dimension="236,48" />
+  <StrutsActivity path="/ext/crs/month/ExtCrs_MonthPlan.jsp" location="1550,1050" dimension="251,48" />
+  <StrutsActivity path="/ext/crs/month/ExtCrs_AnceEduCrs.jsp" location="1550,1150" dimension="262,48" />
+  <StrutsActivity path="/ext/mylc/room/ExtMylc_RoomReq.jsp" location="0,246" dimension="239,51" />
+  <StrutsActivity path="/ext/mylc/room/ExtMylc_RoomReqMonth.jsp" location="339,246" dimension="275,51" />
+  <StrutsActivity path="/ext/mylc/room/ExtMylc_RoomReqMod.jsp" location="714,246" dimension="264,51" />
+  <StrutsActivity path="/ext/mylc/room/ExtMylc_RoomReqQry.jsp" location="1078,246" dimension="258,51" />
+  <StrutsActivity path="/ext/mylc/room/ExtMylc_RoomReqInfo.jsp" location="1436,246" dimension="260,51" />
+  <StrutsActivity path="/extMylcRoom.act" location="1796,246" dimension="129,51" />
+  <StrutsActivity path="/ext/bord/qna/ExtBord_QNA.jsp" location="0,588" dimension="202,51" />
+  <StrutsActivity path="/ext/bord/qna/ExtBord_QNAMod.jsp" location="302,588" dimension="227,51" />
+  <StrutsActivity path="/ext/bord/qna/ExtBord_QNAQry.jsp" location="629,588" dimension="221,51" />
+  <StrutsActivity path="/extBordQNA.act" location="950,588" dimension="122,51" />
+  <StrutsActivity path="/ext/bord/data/ExtBord_Morgue.jsp" location="650,750" dimension="221,51" />
+  <StrutsActivity path="/ext/bord/data/ExtBord_MorgueMod.jsp" location="950,750" dimension="246,51" />
+  <StrutsActivity path="/ext/bord/data/ExtBord_MorgueQry.jsp" location="950,950" dimension="240,51" />
+  <StrutsActivity path="/extBordMorgue.act" location="50,1050" dimension="138,51" />
+  <StrutsActivity path="/ext/bord/afnote/ExtBord_AfNote.jsp" location="1850,1350" dimension="240,48" />
+  <StrutsActivity path="/ext/bord/afnote/ExtBord_AfNoteMod.jsp" location="50,1450" dimension="265,48" />
+  <StrutsActivity path="/ext/bord/afnote/ExtBord_AfNoteQry.jsp" location="650,1450" dimension="260,48" />
+  <StrutsActivity path="/extBordAfNote.act" location="1250,1450" dimension="139,48" />
+  <StrutsActivity path="/ext/crs/req/ExtCrs_ReqCrs.jsp" location="1550,1450" dimension="216,48" />
+  <StrutsActivity path="/ext/crs/req/ExtCrs_ReqCrsMod.jsp" location="1850,1450" dimension="241,48" />
+  <StrutsActivity path="/ext/crs/req/ExtCrs_ReqCrsQry.jsp" location="50,1550" dimension="236,48" />
+  <StrutsActivity path="/extCrs_ReqCrs.act" location="350,1550" dimension="144,48" />
+  <StrutsActivity path="/ext/crs/course/ExtCrs_CourseList.jsp" location="950,450" dimension="228,51" />
+  <StrutsActivity path="/ext/crs/course/Crs_CourseCyberQry.jsp" location="950,1550" dimension="272,48" />
+  <StrutsActivity path="/ext/crs/course/Crs_CourseQry.jsp" location="1550,1550" dimension="238,48" />
+  <StrutsActivity path="/ext/mylc/atnd/ExtMylc_LectureList.jsp" location="1850,1550" dimension="260,48" />
+  <StrutsActivity path="/extMylcLecture.act" location="50,1650" dimension="146,48" />
+  <StrutsActivity path="/ext/main/prsn/ExtMain_MyInfo.jsp" location="1550,750" dimension="237,48" />
+  <StrutsActivity path="/extMainPrsn.act" location="350,1250" dimension="130,48" />
+  <StrutsActivity path="/ext/mylc/survey/ExtMylc_Survey.jsp" location="1250,2150" dimension="228,51" />
+  <StrutsActivity path="/ext/mylc/survey/ExtMylc_SatisReply.jsp" location="1550,1250" dimension="272,48" />
+  <StrutsActivity path="/ext/mylc/survey/ExtMylc_Research.jsp" location="950,1850" dimension="239,51" />
+  <StrutsActivity path="/ext/mylc/research/ExtMylc_Research.jsp" location="650,1750" dimension="249,51" />
+  <StrutsActivity path="/ext/main/setp/ExtMain_Setup.jsp" location="350,1650" dimension="230,48" />
+  <StrutsActivity path="/extMainSetp.act" location="650,1650" dimension="129,48" />
+  <StrutsActivity path="/ext/crs/course/ExtCrs_CourseCyberQry.jsp" location="650,1150" dimension="260,51" />
+  <StrutsActivity path="/ext/crs/course/ExtCrs_CourseQry.jsp" location="1250,1150" dimension="229,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseList.jsp" location="1250,750" dimension="173,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseCyberQry.jsp" location="1250,950" dimension="205,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseQry.jsp" location="350,1050" dimension="174,51" />
+  <StrutsActivity path="/ext/main/prsn/ExtMain_Setup.jsp" location="50,1250" dimension="231,48" />
+  <StrutsActivity path="/ext/mylc/survey/ExtMylc_SatisReply_New.jsp" location="1850,1650" dimension="275,51" />
+  <StrutsActivity path="/extBordNotice.do" location="2150,850" dimension="294,96" />
+  <StrutsActivity path="/ext/bord/notice/ExtBord_Notice.jsp" location="2150,1050" dimension="224,51" />
+  <StrutsActivity path="/ext/bord/notice/ExtBord_NoticeMod.jsp" location="2150,1250" dimension="249,51" />
+  <StrutsActivity path="/ext/bord/notice/ExtBord_NoticeQry.jsp" location="1250,1850" dimension="243,51" />
+  <StrutsActivity path="/extBordNotice.act" location="1550,1850" dimension="131,51" />
+  <StrutsTransition id="/crsSurv.do,move,/ext/crs/survplan/ExtCrs_SurvEduPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="239,780" />
+      <AbsolutePoint location="239,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,info,/ext/mylc/room/ExtMylc_RoomReqQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1207,96" />
+      <AbsolutePoint location="1207,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,info,/ext/bord/data/ExtBord_MorgueQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="254,350" />
+      <AbsolutePoint location="254,-135" />
+      <AbsolutePoint location="2105,-135" />
+      <AbsolutePoint location="2105,495" />
+      <AbsolutePoint location="1494,495" />
+      <AbsolutePoint location="1494,603" />
+      <AbsolutePoint location="1438,603" />
+      <AbsolutePoint location="1438,915" />
+      <AbsolutePoint location="1070,915" />
+      <AbsolutePoint location="1070,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,update,/extBordMorgue.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,398" />
+      <AbsolutePoint location="-69,398" />
+      <AbsolutePoint location="-69,787" />
+      <AbsolutePoint location="119,787" />
+      <AbsolutePoint location="119,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,create,/ext/mylc/room/ExtMylc_RoomReqMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1052,65" />
+      <AbsolutePoint location="876,65" />
+      <AbsolutePoint location="876,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,lentInfo,/ext/mylc/room/ExtMylc_RoomReqInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1351,96" />
+      <AbsolutePoint location="1351,271" />
+      <AbsolutePoint location="1436,271" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,insert,/extMylcRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1267,96" />
+      <AbsolutePoint location="1267,179" />
+      <AbsolutePoint location="1847,179" />
+      <AbsolutePoint location="1847,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,modify,/ext/bord/notice/ExtBord_NoticeMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2389,946" />
+      <AbsolutePoint location="2389,1250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsMonth.do,list_ance,/ext/crs/month/ExtCrs_PlanList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="671,92" />
+      <AbsolutePoint location="981,92" />
+      <AbsolutePoint location="981,365" />
+      <AbsolutePoint location="903,365" />
+      <AbsolutePoint location="903,1074" />
+      <AbsolutePoint location="886,1074" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,list,/ext/mylc/room/ExtMylc_RoomReq.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1052,5" />
+      <AbsolutePoint location="119,5" />
+      <AbsolutePoint location="119,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,modify,/ext/mylc/room/ExtMylc_RoomReqMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1052,35" />
+      <AbsolutePoint location="846,35" />
+      <AbsolutePoint location="846,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,info,/ext/bord/notice/ExtBord_NoticeQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2419,946" />
+      <AbsolutePoint location="2419,2103" />
+      <AbsolutePoint location="1371,2103" />
+      <AbsolutePoint location="1371,1901" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,modify,/ext/mylc/atnd/ExtMylc_LectureList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2075,734" />
+      <AbsolutePoint location="2075,1306" />
+      <AbsolutePoint location="2315,1306" />
+      <AbsolutePoint location="2315,1574" />
+      <AbsolutePoint location="2110,1574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,info,/ext/bord/afnote/ExtBord_AfNoteQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1862,92" />
+      <AbsolutePoint location="2247,92" />
+      <AbsolutePoint location="2247,741" />
+      <AbsolutePoint location="1885,741" />
+      <AbsolutePoint location="1885,1342" />
+      <AbsolutePoint location="780,1342" />
+      <AbsolutePoint location="780,1450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,list,/ext/crs/req/ExtCrs_ReqCrs.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1693,434" />
+      <AbsolutePoint location="1693,465" />
+      <AbsolutePoint location="2495,465" />
+      <AbsolutePoint location="2495,2013" />
+      <AbsolutePoint location="1837,2013" />
+      <AbsolutePoint location="1837,1474" />
+      <AbsolutePoint location="1766,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,create,/ext/bord/data/ExtBord_MorgueMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="284,350" />
+      <AbsolutePoint location="284,-45" />
+      <AbsolutePoint location="1970,-45" />
+      <AbsolutePoint location="1970,595" />
+      <AbsolutePoint location="1826,595" />
+      <AbsolutePoint location="1826,699" />
+      <AbsolutePoint location="1087,699" />
+      <AbsolutePoint location="1087,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,info,/ext/mylc/atnd/ExtMylc_LectureList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2015,734" />
+      <AbsolutePoint location="2015,1246" />
+      <AbsolutePoint location="1434,1246" />
+      <AbsolutePoint location="1434,1613" />
+      <AbsolutePoint location="1980,1613" />
+      <AbsolutePoint location="1980,1598" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,insert,/extCrs_ReqCrs.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1771,350" />
+      <AbsolutePoint location="1771,154" />
+      <AbsolutePoint location="-210,154" />
+      <AbsolutePoint location="-210,1365" />
+      <AbsolutePoint location="392,1365" />
+      <AbsolutePoint location="392,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsMonth.do,move,/ext/crs/month/ExtCrs_MonthPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="350,92" />
+      <AbsolutePoint location="-15,92" />
+      <AbsolutePoint location="-15,583" />
+      <AbsolutePoint location="1472,583" />
+      <AbsolutePoint location="1472,1074" />
+      <AbsolutePoint location="1550,1074" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,delete,/extCrs_ReqCrs.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1836,414" />
+      <AbsolutePoint location="2465,414" />
+      <AbsolutePoint location="2465,1635" />
+      <AbsolutePoint location="422,1635" />
+      <AbsolutePoint location="422,1598" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,create,/ext/bord/notice/ExtBord_NoticeMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2444,898" />
+      <AbsolutePoint location="2555,898" />
+      <AbsolutePoint location="2555,1275" />
+      <AbsolutePoint location="2399,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsSurv.do,excel_view,/ext/crs/survplan/ExtCrs_SurvEduPlanExcelUp.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="339,765" />
+      <AbsolutePoint location="554,765" />
+      <AbsolutePoint location="554,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcSurvey.do,list,/ext/mylc/survey/ExtMylc_Survey.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,update,/extMylcRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1362,35" />
+      <AbsolutePoint location="1877,35" />
+      <AbsolutePoint location="1877,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,list,/ext/bord/qna/ExtBord_QNA.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="536,438" />
+      <AbsolutePoint location="536,465" />
+      <AbsolutePoint location="101,465" />
+      <AbsolutePoint location="101,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,update,/extBordQNA.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="704,438" />
+      <AbsolutePoint location="704,516" />
+      <AbsolutePoint location="1041,516" />
+      <AbsolutePoint location="1041,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,delete,/extBordNotice.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2319,850" />
+      <AbsolutePoint location="2319,-180" />
+      <AbsolutePoint location="-444,-180" />
+      <AbsolutePoint location="-444,1946" />
+      <AbsolutePoint location="1637,1946" />
+      <AbsolutePoint location="1637,1901" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,insert,/extMylcLecture.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1985,734" />
+      <AbsolutePoint location="1985,1016" />
+      <AbsolutePoint location="614,1016" />
+      <AbsolutePoint location="614,1613" />
+      <AbsolutePoint location="123,1613" />
+      <AbsolutePoint location="123,1650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,list,/ext/bord/data/ExtBord_Morgue.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="195,446" />
+      <AbsolutePoint location="195,565" />
+      <AbsolutePoint location="614,565" />
+      <AbsolutePoint location="614,765" />
+      <AbsolutePoint location="650,765" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,update,/extMylcLecture.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2015,650" />
+      <AbsolutePoint location="2015,-75" />
+      <AbsolutePoint location="-105,-75" />
+      <AbsolutePoint location="-105,1674" />
+      <AbsolutePoint location="50,1674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,update,/extBordAfNote.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1735,134" />
+      <AbsolutePoint location="1735,336" />
+      <AbsolutePoint location="1542,336" />
+      <AbsolutePoint location="1542,1474" />
+      <AbsolutePoint location="1389,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrsCourse.do,cyberinfo,/ext/crs/course/Crs_CourseCyberQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1364,546" />
+      <AbsolutePoint location="1364,747" />
+      <AbsolutePoint location="527,747" />
+      <AbsolutePoint location="527,1574" />
+      <AbsolutePoint location="950,1574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsSurv.do,excel_up,/crsSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="19,780" />
+      <AbsolutePoint location="19,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,create,/ext/bord/qna/ExtBord_QNAMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="503,390" />
+      <AbsolutePoint location="415,390" />
+      <AbsolutePoint location="415,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,insert,/extBordAfNote.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1741,134" />
+      <AbsolutePoint location="1741,345" />
+      <AbsolutePoint location="943,345" />
+      <AbsolutePoint location="943,1480" />
+      <AbsolutePoint location="1250,1480" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,modify,/ext/bord/data/ExtBord_MorgueMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="314,350" />
+      <AbsolutePoint location="314,209" />
+      <AbsolutePoint location="1023,209" />
+      <AbsolutePoint location="1023,392" />
+      <AbsolutePoint location="925,392" />
+      <AbsolutePoint location="925,775" />
+      <AbsolutePoint location="950,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,reply,/ext/bord/qna/ExtBord_QNAMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="554,438" />
+      <AbsolutePoint location="554,613" />
+      <AbsolutePoint location="529,613" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,month,/ext/mylc/room/ExtMylc_RoomReqMonth.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1177,96" />
+      <AbsolutePoint location="1177,179" />
+      <AbsolutePoint location="476,179" />
+      <AbsolutePoint location="476,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,modify,/ext/bord/afnote/ExtBord_AfNoteMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1706,50" />
+      <AbsolutePoint location="1706,-210" />
+      <AbsolutePoint location="-142,-210" />
+      <AbsolutePoint location="-142,1474" />
+      <AbsolutePoint location="50,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsSurv.do,insert,/crsSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="49,780" />
+      <AbsolutePoint location="49,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,modify,/extMainPrsn.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,885" />
+      <AbsolutePoint location="1502,885" />
+      <AbsolutePoint location="1502,1276" />
+      <AbsolutePoint location="480,1276" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,list,/ext/bord/afnote/ExtBord_AfNote.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1862,114" />
+      <AbsolutePoint location="2195,114" />
+      <AbsolutePoint location="2195,816" />
+      <AbsolutePoint location="1925,816" />
+      <AbsolutePoint location="1925,1350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcRoom.do,delete,/extMylcRoom.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1237,96" />
+      <AbsolutePoint location="1237,209" />
+      <AbsolutePoint location="1817,209" />
+      <AbsolutePoint location="1817,246" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsSurv.do,excel,/crsSurv.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="79,780" />
+      <AbsolutePoint location="79,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,create,/ext/mylc/atnd/ExtMylc_LectureList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2045,734" />
+      <AbsolutePoint location="2045,1306" />
+      <AbsolutePoint location="1464,1306" />
+      <AbsolutePoint location="1464,1833" />
+      <AbsolutePoint location="2010,1833" />
+      <AbsolutePoint location="2010,1598" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcResearchList.do,list,/ext/mylc/survey/ExtMylc_Research.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="219,1846" />
+      <AbsolutePoint location="219,1875" />
+      <AbsolutePoint location="950,1875" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrsCourse.do,info,/ext/crs/course/Crs_CourseQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1381,450" />
+      <AbsolutePoint location="1381,-385" />
+      <AbsolutePoint location="2615,-385" />
+      <AbsolutePoint location="2615,1513" />
+      <AbsolutePoint location="1669,1513" />
+      <AbsolutePoint location="1669,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,delete,/extBordQNA.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="584,438" />
+      <AbsolutePoint location="584,699" />
+      <AbsolutePoint location="1011,699" />
+      <AbsolutePoint location="1011,639" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,update,/extCrs_ReqCrs.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,392" />
+      <AbsolutePoint location="1411,392" />
+      <AbsolutePoint location="1411,-325" />
+      <AbsolutePoint location="-384,-325" />
+      <AbsolutePoint location="-384,1417" />
+      <AbsolutePoint location="459,1417" />
+      <AbsolutePoint location="459,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,create,/ext/crs/req/ExtCrs_ReqCrsMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1836,392" />
+      <AbsolutePoint location="2525,392" />
+      <AbsolutePoint location="2525,1417" />
+      <AbsolutePoint location="1970,1417" />
+      <AbsolutePoint location="1970,1450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,third,/ext/main/prsn/ExtMain_MyInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1613,850" />
+      <AbsolutePoint location="1613,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsSurv.do,list,/ext/crs/survplan/ExtCrs_SurvEduPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="209,780" />
+      <AbsolutePoint location="209,900" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,insert,/extBordMorgue.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,381" />
+      <AbsolutePoint location="-189,381" />
+      <AbsolutePoint location="-189,1075" />
+      <AbsolutePoint location="50,1075" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,create,/ext/bord/afnote/ExtBord_AfNoteMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1862,124" />
+      <AbsolutePoint location="2057,124" />
+      <AbsolutePoint location="2057,642" />
+      <AbsolutePoint location="536,642" />
+      <AbsolutePoint location="536,1474" />
+      <AbsolutePoint location="315,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,insert,/extBordQNA.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="674,438" />
+      <AbsolutePoint location="674,565" />
+      <AbsolutePoint location="1011,565" />
+      <AbsolutePoint location="1011,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,delete,/extMylcLecture.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1850,729" />
+      <AbsolutePoint location="489,729" />
+      <AbsolutePoint location="489,966" />
+      <AbsolutePoint location="330,966" />
+      <AbsolutePoint location="330,1674" />
+      <AbsolutePoint location="196,1674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsMonth.do,move_ance,/ext/crs/month/ExtCrs_AnceEduCrs.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="350,62" />
+      <AbsolutePoint location="-309,62" />
+      <AbsolutePoint location="-309,1116" />
+      <AbsolutePoint location="1681,1116" />
+      <AbsolutePoint location="1681,1150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsMonth.do,list,/ext/crs/month/ExtCrs_PlanList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="671,86" />
+      <AbsolutePoint location="993,86" />
+      <AbsolutePoint location="993,422" />
+      <AbsolutePoint location="874,422" />
+      <AbsolutePoint location="874,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,detail,/ext/main/prsn/ExtMain_MyInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1643,850" />
+      <AbsolutePoint location="1643,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,info,/ext/crs/req/ExtCrs_ReqCrsQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1681,350" />
+      <AbsolutePoint location="1681,312" />
+      <AbsolutePoint location="-45,312" />
+      <AbsolutePoint location="-45,1574" />
+      <AbsolutePoint location="50,1574" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,modify,/ext/bord/qna/ExtBord_QNAMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="514,438" />
+      <AbsolutePoint location="514,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,update,/extBordNotice.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2297,850" />
+      <AbsolutePoint location="2297,838" />
+      <AbsolutePoint location="-273,838" />
+      <AbsolutePoint location="-273,2278" />
+      <AbsolutePoint location="1615,2278" />
+      <AbsolutePoint location="1615,1901" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,list,/ext/main/prsn/ExtMain_MyInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1703,850" />
+      <AbsolutePoint location="1703,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcSurvey.do,info,/ext/mylc/survey/ExtMylc_SatisReply.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1249,1698" />
+      <AbsolutePoint location="1404,1698" />
+      <AbsolutePoint location="1404,1417" />
+      <AbsolutePoint location="1686,1417" />
+      <AbsolutePoint location="1686,1298" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,modify,/ext/crs/req/ExtCrs_ReqCrsMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1836,362" />
+      <AbsolutePoint location="2585,362" />
+      <AbsolutePoint location="2585,1474" />
+      <AbsolutePoint location="2091,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,insert,/extBordNotice.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2349,850" />
+      <AbsolutePoint location="2349,-295" />
+      <AbsolutePoint location="-354,-295" />
+      <AbsolutePoint location="-354,2246" />
+      <AbsolutePoint location="1593,2246" />
+      <AbsolutePoint location="1593,1901" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMylcLecture.do,list,/ext/mylc/atnd/ExtMylc_LectureList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2106,734" />
+      <AbsolutePoint location="2106,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrs_ReqCrs.do,reco,/ext/crs/req/ExtCrs_ReqCrsQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1766,434" />
+      <AbsolutePoint location="1766,665" />
+      <AbsolutePoint location="-15,665" />
+      <AbsolutePoint location="-15,1513" />
+      <AbsolutePoint location="168,1513" />
+      <AbsolutePoint location="168,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extCrsCourse.do,list,/ext/crs/course/ExtCrs_CourseList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,486" />
+      <AbsolutePoint location="1178,486" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,insert,/extMainPrsn.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1802,850" />
+      <AbsolutePoint location="1802,571" />
+      <AbsolutePoint location="2155,571" />
+      <AbsolutePoint location="2155,-250" />
+      <AbsolutePoint location="-234,-250" />
+      <AbsolutePoint location="-234,1387" />
+      <AbsolutePoint location="429,1387" />
+      <AbsolutePoint location="429,1298" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordMorgue.do,delete,/extBordMorgue.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="205,350" />
+      <AbsolutePoint location="205,334" />
+      <AbsolutePoint location="893,334" />
+      <AbsolutePoint location="893,891" />
+      <AbsolutePoint location="133,891" />
+      <AbsolutePoint location="133,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordAfNote.do,delete,/extBordAfNote.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1729,134" />
+      <AbsolutePoint location="1729,330" />
+      <AbsolutePoint location="1243,330" />
+      <AbsolutePoint location="1243,1474" />
+      <AbsolutePoint location="1250,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extMainPrsn.do,info,/ext/main/prsn/ExtMain_MyInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1673,850" />
+      <AbsolutePoint location="1673,798" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordQNA.do,info,/ext/bord/qna/ExtBord_QNAQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="644,438" />
+      <AbsolutePoint location="644,588" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/extBordNotice.do,list,/ext/bord/notice/ExtBord_Notice.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2297,946" />
+      <AbsolutePoint location="2297,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

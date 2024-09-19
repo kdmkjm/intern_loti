@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupCourse">
+
+	<typeAlias alias="cmn_PopupCourse" type="loti.cmn.common.model.Cmn_PopupCourse"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCmn_PopupCourseList" parameterClass="cmn_PopupCourse" resultClass="cmn_PopupCourse">
+		SELECT  
+            A.COURSECODE, 
+            CASE
+                WHEN A.CRSTYPE1 = '00003' THEN A.BASEYYMM
+                WHEN A.CRSTYPE1 != '00003' THEN SUBSTR(EDUFROM, 1, 6)
+            END COURSEYEAR, 
+            A.YEAR,
+            A.COURSENAME || '(' || TO_NUMBER (SUBSTR (A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            B.USERNAME CRSUSER, CHARGER
+      FROM  OPR_LECTURE A, (  SELECT   JUMINNO, USERNAME FROM CMN_PUBWORKER) B
+     WHERE  A.CHARGER = B.JUMINNO(+)
+    <isNotEmpty property="isCyber">
+	    <isEqual property="isCyber" compareValue="true">
+	     AND	A.CRSTYPE1 LIKE '00003'
+	    </isEqual> 
+	    <isEqual property="isCyber" compareValue="false">
+	     AND	A.CRSTYPE1 NOT LIKE '00003'
+	    </isEqual> 
+    </isNotEmpty>
+		<isNotEmpty prepend="AND" property="searchCharger">
+						charger LIKE #searchCharger#
+		</isNotEmpty>
+		<isEqual property="searchType" compareValue="code">
+			<isNotEmpty prepend="AND" property="searchCode">
+	       		COURSECODE LIKE #searchCode#
+			</isNotEmpty>
+		</isEqual>
+		<isEqual property="searchType" compareValue="name">
+			<isNotEmpty prepend="AND" property="searchDateKeyword">
+						BASEYYMM LIKE #searchDateKeyword# || '%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="searchKeyword">
+						UPPER(COURSENAME) LIKE '%' || UPPER(#searchKeyword#) || '%'
+			</isNotEmpty>
+		</isEqual>
+  ORDER BY  2, A.EDUFROM, COURSENAME
+	</select>
+	
+	<select id="selectCourseName" parameterClass="cmn_PopupCourse" resultClass="cmn_PopupCourse">
+	    SELECT DISTINCT COURSENAME, SUBSTR(COURSECODE,1,10) COURSECODE,
+		          REGEXP_REPLACE(REPLACE(CRSTYPE1,'00003',''),'0000[0-9]','1') CRSTYPE1
+		FROM OPR_LECTURE 
+		WHERE YEAR = #searchYear#
+		<isEqual property="isCyber" compareValue="N">
+		    AND CRSTYPE1 != '00003'
+		</isEqual>
+		ORDER BY CRSTYPE1 NULLS LAST, COURSENAME ASC
+	</select>
+	
+	<select id="selectCourseCardinal" parameterClass="cmn_PopupCourse" resultClass="cmn_PopupCourse">
+		SELECT coursename
+		     , DECODE(SUBSTR(coursecode, 11, 1), 0, SUBSTR(coursecode, 12, 1), SUBSTR(coursecode, 11, 2)) || '기' AS COURSECARDINAL
+		  FROM OPR_LECTURE 
+		 WHERE coursecode LIKE #searchCourseName# || '%'
+		 ORDER BY coursecode
+	</select>
+</sqlMap>
+
+

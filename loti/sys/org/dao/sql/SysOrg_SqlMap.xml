@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysOrg">
+
+	<typeAlias alias="sysOrg" type="loti.sys.org.model.SysOrg"/>
+	<typeAlias alias="sidoLdap" type="loti.sys.org.model.SidoLdap"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysOrg" parameterClass="sysOrg" resultClass="sysOrg">
+			SELECT 	
+				   		ORGANCODE  ,
+				   		SIMPLENAME ,
+				   		ORGANNAME  ,
+				   		DEPTGUBN   ,
+				   		PARENTORGAN,
+				   		ORGANORDER ,
+				   		TOPPARENT  ,
+				   		CHIEFORGAN ,
+				   		INUSE      ,
+				   		ISLDAP     ,
+				   		DISPORDER  
+			  FROM CMN_ORGANMAP
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSysOrgList" parameterClass="sysOrg" resultClass="sysOrg">
+			SELECT 	ORGANCODE ,    
+							SIMPLENAME,  
+							ORGANNAME ,   
+							ORGANORDER, 
+            	DEPTGUBN,  
+            	TOPPARENT, 
+            	PARENTORGAN, 
+            	CHIEFORGAN , 
+            	ISLDAP,   
+              INUSE , 
+              LEVEL   
+			  FROM CMN_ORGANMAP
+	     WHERE CHIEFORGAN = #selorgancode#     
+	     <isNotEmpty property="usedisplay">   
+	       AND INUSE = #usedisplay#
+	     </isNotEmpty>
+       START WITH ORGANCODE = '6430000'
+     CONNECT BY PRIOR ORGANCODE = PARENTORGAN 
+       ORDER SIBLINGS BY ORGANORDER 		  
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectSysOrgListCount" parameterClass="sysOrg" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_ORGANMAP
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectSysOrgCount" parameterClass="sysOrg" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_ORGANMAP
+		WHERE ORGANCODE = #organcode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSysOrg" parameterClass="sysOrg">
+		INSERT INTO CMN_ORGANMAP (	
+			   			ORGANCODE  ,	
+			   			SIMPLENAME ,	
+			   			ORGANNAME  ,	
+			   			DEPTGUBN   ,	
+			   			PARENTORGAN,	
+			   			ORGANORDER ,	
+			   			TOPPARENT  ,	
+			   			CHIEFORGAN ,	
+			   			INUSE      ,	
+			   			ISLDAP     ,	
+			   			DISPORDER  	
+		) VALUES (
+						 
+			   			#organcode#  ,	
+			   			#simplename# ,	
+			   			#organname#  ,	
+			   			#deptgubn#   ,	
+			   			#parentorgan#,	
+			   			#organorder# ,	
+			   			#topparent#  ,	
+			   			#chieforgan# ,	
+			   			#inuse#      ,	
+			   			#isldap#     ,	
+			   			#disporder#  	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSysOrg" parameterClass="sysOrg">
+		UPDATE CMN_ORGANMAP SET
+		<isEqual property="gbn" compareValue="1">
+			   DEPTGUBN    = #deptgubn#   
+		</isEqual>
+		<isEqual property="gbn" compareValue="2">
+			   INUSE       = #inuse#      
+		</isEqual>
+		<isEqual property="gbn" compareValue="0">
+			   SIMPLENAME  = #simplename# ,
+			   ORGANNAME   = #organname#  ,
+			   DEPTGUBN    = #deptgubn#   ,
+			   PARENTORGAN = #parentorgan#,
+			   ORGANORDER  = #organorder# ,
+			   TOPPARENT   = #topparent#  ,
+			   CHIEFORGAN  = #chieforgan# ,
+			   INUSE       = #inuse#      ,
+			   ISLDAP      = #isldap#     ,
+			   DISPORDER   = #disporder#  
+		</isEqual>	
+		WHERE ORGANCODE = #organcode#	
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="resetSysOrg" parameterClass="java.lang.String">
+		UPDATE CMN_ORGANMAP SET
+			   DEPTGUBN    = ''  ,
+			   INUSE       = '1'     ,
+			   ISLDAP      = '1'     
+		WHERE  CHIEFORGAN = #pmselorgancode#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSysOrg" parameterClass="sysOrg">
+		DELETE FROM CMN_ORGANMAP
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 시도LDAP 최종 업데이트 일자 순번 조회쿼리 -->
+	<select id="selectSyncMax" parameterClass="sidoLdap" resultClass="sidoLdap">
+		SELECT LOG_DATE MAXLOGDATE, LOG_SEQ MAXLOGSEQ	
+			FROM CMMANLDLASTWRK	
+		 WHERE SYS_GBN = 'R'	
+	</select>	
+	
+	<!-- 시도LDAP 최종 업데이트 일자 순번 조회쿼리 -->
+	<select id="selectSidoLdapList" parameterClass="sidoLdap" resultClass="sidoLdap">
+	<!--
+		SELECT A.LOG_DATE LOGDATE, 
+		       A.LOG_SEQ LOGSEQ, 
+		       A.USER_GB USERGB, 
+		       A.DN,	
+					 A.CODE, 
+					 A.TYPE, 
+					 B.ATTR_NAME ATTRNAME, 
+					 B.ATTR_VAL  ATTRVAL	
+			FROM CMMANLDSYINF A, CMMANLDSYDTL B			
+		 WHERE A.LOG_DATE = B.LOG_DATE 					
+			 AND A.LOG_SEQ = B.LOG_SEQ 
+			 AND A.USER_GB IN ('0','1')   					
+			 AND B.ATTR_NAME IN ('ou', 'topOUCode', 'parentOUCode', 'ouCode', 'orgFullName', 'ouOrder', 'cn', 'uid', 'displayName', 'positionCode','titleCode','mail','mobile')
+			 AND ((A.LOG_DATE = #maxlogdate#  AND  A.LOG_SEQ > #maxlogseq#)  or  A.LOG_DATE > #maxlogdate# )
+     ORDER BY A.LOG_DATE, A.LOG_SEQ 
+
+ 2011 03 28 수정
+  SELECT A.LOG_DATE LOGDATE, A.LOG_SEQ LOGSEQ, A.USER_GB USERGB, A.DN, 
+     					DECODE(A.USER_GB, '1', SUBSTR(A.CODE, 0, 7), A.CODE) CODE,
+         			A.TYPE, B.ATTR_NAME ATTRNAME, 
+     					DECODE(A.USER_GB, '1', SUBSTR(B.ATTR_VAL, 0, 7), B.ATTR_VAL) ATTRVAL
+    FROM CMMANLDSYINF A, 
+         (SELECT * FROM CMMANLDSYDTL
+           WHERE ATTR_NAME IN
+            ('ou', 'topOUCode', 'parentOUCode', 'ouCode', 'orgFullName',
+             'ouOrder', 'cn', 'uid', 'displayName', 'positionCode',
+             'titleCode', 'mail', 'mobile')
+             AND ((LOG_DATE = #maxlogdate# AND LOG_SEQ > #maxlogseq#) OR LOG_DATE > #maxlogdate#)
+         ) B   
+   WHERE A.LOG_DATE = B.LOG_DATE(+)
+     AND A.LOG_SEQ = B.LOG_SEQ(+)
+     AND A.USER_GB IN ('0', '1')
+     AND ((A.LOG_DATE = #maxlogdate# AND A.LOG_SEQ > #maxlogseq#) OR A.LOG_DATE > #maxlogdate#)
+ORDER BY A.LOG_DATE, A.LOG_SEQ
+ 2011 03 28 수정
+     -->
+    SELECT A.LOG_DATE LOGDATE, A.LOG_SEQ LOGSEQ, A.USER_GB USERGB, A.DN, 
+     					DECODE(A.USER_GB, '1', SUBSTR(A.CODE, 0, 7), A.CODE) CODE,
+         			A.TYPE, B.ATTR_NAME ATTRNAME, 
+     					DECODE(A.USER_GB, '1', SUBSTR(B.ATTR_VAL, 0, 7), B.ATTR_VAL) ATTRVAL
+    FROM CMMANLDSYINF A, 
+         (SELECT * FROM CMMANLDSYDTL
+           WHERE ATTR_NAME IN
+            ('ou', 'topOUCode', 'parentOUCode', 'ouCode', 'orgFullName',
+             'ouOrder', 'cn', 'uid', 'displayName', 'positionCode',
+             'titleCode', 'mail', 'mobile')
+             AND ((LOG_DATE = #maxlogdate# AND LOG_SEQ > #maxlogseq#) OR LOG_DATE > #maxlogdate#)
+         ) B   
+   WHERE A.LOG_DATE = B.LOG_DATE(+)
+     AND A.LOG_SEQ = B.LOG_SEQ(+)
+     AND (A.USER_GB = '0' OR (A.USER_GB = '1' AND LENGTH(A.CODE) = 7) )
+     AND ((A.LOG_DATE = #maxlogdate# AND A.LOG_SEQ > #maxlogseq#) OR A.LOG_DATE > #maxlogdate#)
+ORDER BY A.LOG_DATE, A.LOG_SEQ
+	</select>		
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertWorker" parameterClass="sidoLdap">
+		INSERT INTO CMN_PUBWORKER (	
+			   			JUMINNO,	
+			   			PASSWD,	
+			   			USERNAME,	
+			   			CELLPHONE,	
+			   			GRADE,	
+			   			RANK,	
+			   			JOBKIND,	
+			   			ISADMIN,	
+			   			ISEDUCHARGER,	
+			   			EMAIL,	
+			   			INSDATE,
+			   			INSWAY,
+			   			INSUSER,
+			   			INITMENU,
+			   			ORGANCODE  	
+		) VALUES (
+			   			#juminno#,	
+			   			#passwd#,	
+			   			#username#,	
+			   			#cellphone#,	
+			   			#grade#,	
+			   			#rank#,	
+			   			#jobkind#,
+			   			#isadmin#,	
+			   			#iseducharger#,	
+			   			#email#,	
+			   			sysdate,
+			   			'',	
+			   			#userid#,
+							'',
+			   			#organcode#  	
+		)
+	</insert>
+
+	<!--  레코드 수정 -->
+	<update id="updateWorker" parameterClass="sidoLdap">
+		UPDATE CMN_PUBWORKER SET
+		<isNotEmpty property="passwd">
+			   PASSWD = #passwd#,
+	  </isNotEmpty>
+	  <isNotEmpty property="username">
+			   USERNAME = #username#,
+		</isNotEmpty>
+		<isNotEmpty property="cellphone">	   
+			   CELLPHONE = #cellphone#,
+		</isNotEmpty>
+		<isNotEmpty property="grade">	
+			   GRADE = #grade#,
+		</isNotEmpty>
+		<isNotEmpty property="rank">
+			   RANK = #rank#,
+		</isNotEmpty>
+		<isNotEmpty property="jobkind">
+			   JOBKIND = #jobkind#,
+		</isNotEmpty>
+		<isNotEmpty property="email">		
+			   EMAIL = #email#,
+		</isNotEmpty>
+	  <isNotEmpty property="organcode">
+		   	 ORGANCODE = #organcode#,
+		</isNotEmpty>	
+   			 UPDDATE = sysdate,
+   			 UPDWAY = '',
+   			 UPDUSER = #userid#,
+   			 DELDATE = '',
+   			 DELWAY = '',
+   			 DELUSER = ''
+		WHERE JUMINNO = #code#	
+	</update>	
+
+	<!--  중복 체크 -->
+	<select id="selectOrganCheck" parameterClass="sidoLdap" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) as CNT
+			FROM	CMN_LDAPORGAN
+		 WHERE	ORGANCODE = #organcode# 
+	</select>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteOrgan" parameterClass="sidoLdap">
+		DELETE FROM CMN_LDAPORGAN
+		 WHERE ORGANCODE = #organcode#
+	</delete>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertOrgan" parameterClass="sidoLdap">
+		INSERT INTO CMN_LDAPORGAN (	
+			   			ORGANCODE,	
+			   			SIMPLENAME,	
+			   			ORGANNAME,	
+			   			PARENTORGAN,	
+			   			TOPPARENT,	
+			   			CHIEFORGAN,	
+			   			INUSE
+		) VALUES (
+			   			#organcode#  ,	
+			   			#simplename# ,	
+			   			#organname#  ,	
+			   			#parentorgan#,		
+			   			#topparent#  ,	
+			   			#chieforgan# ,	
+			   			#inuse#     	
+		)
+	</insert>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertORGANFromLDAP" parameterClass="java.lang.String">
+		INSERT INTO CMN_ORGANMAP (    
+            ORGANCODE,    
+            SIMPLENAME,    
+            ORGANNAME,    
+            PARENTORGAN,    
+            TOPPARENT,    
+            CHIEFORGAN,    
+            INUSE
+	)
+    (SELECT 
+            ORGANCODE,
+            SIMPLENAME,
+            ORGANNAME,
+            PARENTORGAN,
+            TOPPARENT,
+            CHIEFORGAN,
+            INUSE
+      FROM  CMN_LDAPORGAN 
+     WHERE  ORGANCODE NOT IN (SELECT ORGANCODE FROM CMN_ORGANMAP) )
+	</insert>
+
+	<!--  레코드 수정 -->
+	<update id="updateOrgan" parameterClass="sidoLdap">
+		UPDATE CMN_LDAPORGAN SET
+			<isNotEmpty property="simplename">
+			   SIMPLENAME = #simplename#,
+			</isNotEmpty>
+			<isNotEmpty property="organname">
+			   ORGANNAME = #organname#,	
+			</isNotEmpty>
+			<isNotEmpty property="parentorgan">
+			   PARENTORGAN = #parentorgan#,
+			</isNotEmpty>
+			<isNotEmpty property="topparent">
+			   TOPPARENT = #topparent#,
+			</isNotEmpty>		   
+			   INUSE = #inuse#	
+		WHERE ORGANCODE = #code#	
+	</update>		
+	
+	<!--  레코드 수정 -->
+	<update id="updateCmnOrganMap" parameterClass="java.lang.String">	
+		UPDATE /*+bypass_ujvc*/
+	    (SELECT A.SIMPLENAME A1,
+	            B.SIMPLENAME B1,
+	            A.ORGANNAME A2,
+	            B.ORGANNAME B2,
+	            A.PARENTORGAN A3,
+	            B.PARENTORGAN B3,
+	            A.TOPPARENT A4,
+	            B.TOPPARENT B4,
+	            A.CHIEFORGAN A5,
+	            B.CHIEFORGAN B5
+	       FROM CMN_ORGANMAP A,
+	            CMN_LDAPORGAN B
+	      WHERE A.ORGANCODE = B.ORGANCODE
+	    ) SET A1 = B1, 
+	          A2 = B2,
+	          A3 = B3,
+	          A4 = B4,
+	          A5 = B5
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="updateSidoLdap" parameterClass="sidoLdap">	
+		UPDATE CMMANLDLASTWRK
+			 SET LOG_DATE = #logdate#, 
+			     LOG_SEQ =#logseq# 
+		 WHERE SYS_GBN = 'R'
+	</update>
+	
+		<!--  레코드 삭제 -->
+	<delete id="deletWorker" parameterClass="sidoLdap">
+		DELETE FROM CMN_PUBWORKER 
+		 WHERE JUMINNO = #code#
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="organcode">
+				ORGANCODE = #organcode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="simplename">
+				SIMPLENAME = #simplename#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="organname">
+				ORGANNAME = #organname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="deptgubn">
+				DEPTGUBN = #deptgubn#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="parentorgan">
+				PARENTORGAN = #parentorgan#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="organorder">
+				ORGANORDER = #organorder#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="topparent">
+				TOPPARENT = #topparent#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="chieforgan">
+				CHIEFORGAN = #chieforgan#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="inuse">
+				INUSE = #inuse#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="isldap">
+				ISLDAP = #isldap#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="disporder">
+				DISPORDER = #disporder#
+				</isNotEmpty>
+				
+				<isNotEmpty prepend="AND" property="selorgancode">
+				DISPORDER = #selorgancode#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

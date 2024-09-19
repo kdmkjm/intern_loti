@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscSMSStatusList">
+
+<typeAlias alias="rscSMSStatusList" type="loti.rsc.smsstatus.model.RscSMSStatusList"/>
+
+	<select id="selectRscSMSStatusMSSQL" parameterClass="rscSMSStatusList" resultClass="rscSMSStatusList">
+			SELECT SUM(A.CHK_CNT) AS CHK_CNT, SUM(A.OK_CNT) AS OK_CNT, SUM(A.FAL_CNT) AS FAL_CNT
+			FROM 
+				(SELECT COUNT(*) AS CHK_CNT, '0' AS OK_CNT, '0' AS FAL_CNT
+				FROM EM_TRAN
+				WHERE TRAN_ETC1 = #searchSendNo#
+				AND TRAN_ETC3 = 'officeedu'
+				UNION ALL
+				SELECT  COUNT(TRAN_PR) AS CHK_CNT, 
+				ISNULL(SUM(CASE WHEN TRAN_RSLT = '0' THEN 1 ELSE 0  END),0) AS  OK_CNT,
+				ISNULL(SUM(CASE WHEN TRAN_RSLT  ='0' THEN 0 ELSE 1 END),0) AS FAL_CNT
+				FROM  $mssqlTableNm$
+				WHERE TRAN_ETC1 = #searchSendNo#
+				AND TRAN_ETC3 = 'officeedu'
+				)A
+	</select>
+	
+	<select id="infoRscSMSStatusMSSQL" parameterClass="rscSMSStatusList" resultClass="rscSMSStatusList">
+			SELECT A.CHK_NAME AS CHK_NAME
+			FROM
+				(SELECT CASE WHEN TRAN_RSLT IS NULL THEN '대기'  END AS CHK_NAME
+				FROM  EM_TRAN
+				WHERE TRAN_ETC1 = #searchSendNo#
+				AND TRAN_ETC2 = #searchSendSeq#
+				AND TRAN_ETC3 = 'officeedu'
+				UNION ALL
+				SELECT CASE WHEN TRAN_RSLT = '0' THEN '성공' ELSE '실패'  END AS CHK_NAME
+				FROM  $mssqlTableNm$
+				WHERE TRAN_ETC1 = #searchSendNo#
+				AND TRAN_ETC2 = #searchSendSeq#
+				AND TRAN_ETC3 = 'officeedu'
+				)A
+	</select>
+
+</sqlMap>
+	

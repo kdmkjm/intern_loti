@@ -1,0 +1,392 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_LectureMgmt">
+
+	<typeAlias alias="crs_LectureMgmt" type="loti.crs.prof.model.Crs_LectureMgmt"/>
+	<typeAlias alias="tst_Survey" type="loti.tst.survey.model.Tst_Survey"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_LectureMgmt" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+	<!--		SELECT 	
+			  A.COURSECODE,
+			  A.COURSENAME,
+			  A.EDUFROM  ,
+			  A.EDUTO   ,
+			  '2009-12-01' AS LECTDATE,
+			  '3' AS TIMESEQ      
+			FROM OPR_LECTURE A
+			WHERE A.COURSECODE = #courseCode#
+			
+			
+						SELECT 	
+				   		A.COURSECODE,
+				   		A.COURSENAME,
+				   		A.EDUFROM  ,
+				   		A.EDUTO   ,
+				   		B.SUBJNAME,
+				   		REPLACE(#lectdate#,'-','') AS LECTDATE,
+				   		#timeseq# AS TIMESEQ      
+			  FROM OPR_LECTURE A,
+			       OPR_SUBJECT B
+			 WHERE A.COURSECODE = B.COURSECODE
+			   AND A.COURSECODE = #courseCode#
+			   AND B.SUBJSEQ = #subjseq#
+	-->		 
+			SELECT 	
+				   		A.COURSECODE,
+				   		A.COURSENAME,
+				   		A.EDUFROM  ,
+				   		A.EDUTO   ,
+				   		REPLACE(#lectdate#,'-','') AS LECTDATE,
+				   		#timeseq# AS TIMESEQ      
+			  FROM OPR_LECTURE A
+			 WHERE A.COURSECODE = #courseCode#
+			 
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_LectureMgmtList" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+			SELECT 	ROWNUM NUM, 
+				   		A.COURSECODE,
+				   		A.LECTDATE  ,
+				   		A.TIMESEQ   ,
+				   		A.SUBJSEQ   ,
+				   		A.TIMESUBJECT AS SUBJNAME ,
+				   		FROMTIME  ,
+				   		TO_NUMBER(SUBSTR(TOTIME,1,2))-1 || ':50' TOTIME,
+				   		FLOOR( MOD( TO_DATE(TOTIME, 'HH24:MI') - TO_DATE(FROMTIME, 'HH24:MI'), 1) * 24 ) AS LECTTIME,
+				   		B.PROFNAME  ,
+				   		B.PROFASSIGN,
+				   		B.ISINNERPROF,
+				   		B.PROFCNT,
+				   		B.ISPAYED,
+				   		B.LECTUREFLAG,
+				   		NVL(B.PROFPAYFLAG,'0') PROFPAYFLAG,
+				   		B.PROFNO,
+				   		A.ORD       
+			  FROM OPR_TIMETABLE A,
+			       (SELECT COURSECODE, 
+			       				 LECTDATE, 
+			       				 TIMESEQ, 
+			       				 A.PROFNO,
+			       				 MAX(ISINNERPROF) AS ISINNERPROF,
+			       				 MIN(PROFASSIGN) AS PROFASSIGN, 
+			       				 MIN(A.PROFNAME) AS PROFNAME,
+			       				 COUNT(PROFNO) AS PROFCNT,
+			       				 SUM(DECODE(ISPAYED,'N',1,0)) AS ISPAYED,
+			       				 SUM(DECODE(LECTUREFLAG,'N',1,0)) AS LECTUREFLAG,
+			       				 MAX(DECODE(NVL(PROFPAYFLAG,'0'),'N','N','Y','Y',0)) AS PROFPAYFLAG
+			       		FROM OPR_LECTPROF A, PRF_PROFESSOR B
+			       	 WHERE A.PROFNO = B.PROFESSORNO
+			       	   AND COURSECODE LIKE #searchCourseCode#
+			       	   AND LECTDATE = REPLACE(#searchdate#,'-','')
+			       	 GROUP BY COURSECODE, LECTDATE, TIMESEQ, PROFNO
+			       	)B
+			       	
+			 WHERE A.COURSECODE = B.COURSECODE(+)
+			   AND A.LECTDATE = B.LECTDATE(+)
+			   AND A.TIMESEQ = B.TIMESEQ(+)
+				 AND A.COURSECODE LIKE #searchCourseCode#
+			   AND A.LECTDATE = REPLACE(#searchdate#,'-','')
+			 ORDER BY TIMESEQ
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_LectProfCount" parameterClass="crs_LectureMgmt" resultClass="java.lang.Integer">
+			SELECT COUNT(*) as CNT 
+			  FROM OPR_LECTPROF 
+			 WHERE COURSECODE = #courseCode#
+			   AND LECTDATE = REPLACE(#lectdate#,'-','')
+			   AND TIMESEQ = #timeseq#
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_LectProfList" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+			SELECT PROFNO,
+			       PROFNAME,
+			       PROFASSIGN     
+			  FROM OPR_LECTPROF 
+			 WHERE COURSECODE = #courseCode#
+			   AND LECTDATE = REPLACE(#lectdate#,'-','')
+			   AND TIMESEQ = #timeseq#
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_ProfssorList" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+			 SELECT PROFESSORNO AS PROFNO, 
+			 				PROFNAME, 
+			 				WORKPLACE AS PROFASSIGN
+			 FROM 	PRF_PROFESSOR
+			 WHERE 	PROFESSORNO IN ($profno$)
+	</select>
+	
+		<!-- 목록조회쿼리 -->
+	<select id="selectCrs_SearchProfList" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+			SELECT PROFESSORNO AS PROFNO,
+			       PROFNAME,
+			       WORKPLACE,
+			       WORKPOS       
+			  FROM PRF_PROFESSOR 
+			 WHERE NVL(DELYN, 'N') != 'Y'
+				 AND PROFNAME LIKE '%'||#searchKeyword#||'%'
+			    OR WORKPLACE LIKE '%'||#searchKeyword#||'%'
+	</select>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_LectureMgmtListCount" parameterClass="crs_LectureMgmt" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_TIMETABLE
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_LectureMgmtCount" parameterClass="crs_LectureMgmt" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_TIMETABLE
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_SurveyInfo" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT SURVEYNO
+		FROM TST_COURSEMATCH
+		WHERE COURSECODE = #searchKeyword#
+		<!-- 조회조건 Key 추가 -->
+	</select>	
+	
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_ReplyCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(REPLYSEQ)
+		  FROM TST_RSPTINFO
+	   WHERE SURVEYNO = #surveyno#
+       AND COURSECODE = #coursecode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 외래강사 엑셀 저장 조회쿼리 -->
+	<select id="selectCrs_LectureMgmtListExcel" parameterClass="crs_LectureMgmt" resultClass="crs_LectureMgmt">
+		SELECT  
+            LECTDATE    COL_A,
+            TYPENAME    COL_B,
+            COURSENAME  COL_C,
+            PROFNAME    COL_D,
+            WORKPLACE   COL_E,
+            WORKPOS     COL_F,
+            SUBJNAME    COL_G,
+            FROMTIME    COL_H,
+            TOTIME      COL_I,
+            PROFLEVEL   COL_J
+      FROM  DUAL, 
+           (SELECT
+           			0           NUM,  
+                    '강의일자'  LECTDATE,
+                    '구분'      TYPENAME,
+                    '과정명'    COURSENAME,
+                    '강사명'    PROFNAME,
+                    '소속'      WORKPLACE,
+                    '직위'      WORKPOS,
+                    '과목명'    SUBJNAME,
+                    '교육시작'  FROMTIME,
+                    '교육종료'  TOTIME,
+                    '강사등급'  PROFLEVEL        
+              FROM  DUAL
+         UNION ALL
+            SELECT  
+                    1	NUM,
+                    B.LECTDATE, 
+                    B.TYPENAME,
+                    B.COURSENAME || '(' || TO_NUMBER(SUBSTR(B.COURSECODE, 11, 2)) || '기)' COURSENAME,
+                    A.PROFNAME,
+                    A.WORKPLACE,
+                    A.WORKPOS,
+                    B.SUBJNAME,
+                    B.FROMTIME,
+                    SUBSTR(B.TOTIME, 0, 2)-1 || ':50' TOTIME,
+                    B.LEVELNAME
+              FROM  PRF_PROFESSOR A, 
+                   (SELECT 
+                            B.LECTDATE,
+                            F.TYPENAME,
+                            B.COURSECODE,
+                            A.COURSENAME,
+                            A.TIMESUBJECT AS SUBJNAME,
+                            B.PROFNO,
+                            C.FROMTIME,
+                            C.TOTIME,
+                            E.LEVELNAME
+                      FROM  OPR_LECTURE A, OPR_LECTPROF B, OPR_TIMETABLE C, OPR_SUBJECT D, PRF_PAYTABLE E,
+                           (SELECT 
+                                    TYPE1, TYPENAME 
+                              FROM  CMN_COURSETYPE 
+                             WHERE  TYPE2 = '00000'
+                           ) F
+                     WHERE  B.COURSECODE = A.COURSECODE
+                       AND  B.COURSECODE = C.COURSECODE
+                       AND  B.LECTDATE = C.LECTDATE
+                       AND  B.TIMESEQ = C.TIMESEQ
+                       AND  C.COURSECODE = D.COURSECODE
+                       AND  C.SUBJSEQ = D.SUBJSEQ
+                       AND  A.CRSTYPE1 = F.TYPE1
+                       AND  B.PROFLEVEL = E.PROFLEVEL
+                       AND  B.LECTDATE = REPLACE(#searchdate#,'-','')
+                 ) B
+             WHERE  A.PROFESSORNO = B.PROFNO
+          ORDER BY  NUM, LECTDATE, COURSENAME, FROMTIME, TOTIME
+         )
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_LectureMgmt" parameterClass="crs_LectureMgmt">
+		INSERT INTO OPR_LECTPROF (	
+			   			COURSECODE,	
+			   			LECTDATE  ,	
+			   			TIMESEQ   ,	
+			   			PROFNO   ,	
+			   			PROFNAME  ,	
+			   			PROFASSIGN    ,	
+			   			PROFLEVEL  ,	
+			   			ISPAYED       	
+		) (SELECT #courseCode#,	
+			   			REPLACE(#lectdate#,'-','') ,	
+			   			#timeseq#   ,	
+			   			PROFESSORNO   ,	
+			   			PROFNAME  ,
+			   			WORKPLACE,	
+			   			PROFLEVEL   ,	
+							'N' 
+				 FROM PRF_PROFESSOR
+				WHERE PROFESSORNO = #profno#      	
+		)
+	</insert>
+	
+	<insert id="insertCrs_LectPay" parameterClass="crs_LectureMgmt">
+		INSERT INTO PRF_LECTPAY(	
+			   			COURSECODE,	
+			   			LECTDATE  ,	
+			   			PROFNO   ,	
+			   			YEAR,
+			   			PROFNAME  ,	
+			   			PROFLEVEL,
+			   			LECTHOUR    	
+		) (SELECT #courseCode#,	
+			   			REPLACE(#lectdate#,'-',''),	
+			   			A.PROFESSORNO   ,	
+			   			SUBSTR(#lectdate#,1,4),
+			   			A.PROFNAME  ,
+			   			A.PROFLEVEL, 
+			   			B.LECTHOUR   
+				 FROM PRF_PROFESSOR A,
+				      (SELECT A.PROFNO, SUM(FLOOR( MOD( TO_DATE(TOTIME, 'HH24:MI') - TO_DATE(FROMTIME, 'HH24:MI'), 1) * 24 )) LECTHOUR 
+				         FROM OPR_LECTPROF A, OPR_TIMETABLE B
+				        WHERE A.COURSECODE = B.COURSECODE
+				          AND A.LECTDATE = B.LECTDATE
+				          AND A.TIMESEQ = B.TIMESEQ
+				          AND A.COURSECODE = #courseCode# 
+				          AND A.LECTDATE = REPLACE(#lectdate#,'-','')
+				          AND A.PROFNO = #profno# 
+				          AND A.PROFPAYFLAG = 'Y'
+				        GROUP BY A.PROFNO
+				      ) B
+				WHERE A.PROFESSORNO = B.PROFNO
+				  AND A.PROFESSORNO = #profno#      	
+		)
+	</insert>	
+	
+	<!--  레코드 수정 -->
+	<update id="updateCrs_LectureSave" parameterClass="crs_LectureMgmt">
+		UPDATE OPR_LECTPROF SET
+			   LECTUREFLAG = #lectureflag#,
+			   PROFPAYFLAG = #profpayflag#
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+	</update>	
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_LectureMgmt" parameterClass="crs_LectureMgmt">
+		UPDATE OPR_TIMETABLE SET
+			   PROFNAME = #profname#||(SELECT DECODE(COUNT(PROFNO),1,'','외'||(COUNT(PROFNO)-1)) FROM OPR_LECTPROF WHERE COURSECODE=#courseCode# AND LECTDATE=REPLACE(#lectdate#,'-','') AND TIMESEQ=#timeseq#),
+			   PROFASSIGN = (SELECT WORKPLACE FROM PRF_PROFESSOR WHERE PROFESSORNO =#profno#)
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+	</update>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectureMgmt" parameterClass="crs_LectureMgmt">
+		DELETE FROM OPR_LECTPROF 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')
+		   AND TIMESEQ = #timeseq#    
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectPay" parameterClass="crs_LectureMgmt">
+		DELETE FROM PRF_LECTPAY 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = REPLACE(#lectdate#,'-','')	
+		   AND PROFNO = #profno#	     
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lectdate">
+				LECTDATE = #lectdate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="timeseq">
+				TIMESEQ = #timeseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="subjseq">
+				SUBJSEQ = #subjseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="fromtime">
+				FROMTIME = #fromtime#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="totime">
+				TOTIME = #totime#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profname">
+				PROFNAME = #profname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profassign">
+				PROFASSIGN = #profassign#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="ord">
+				ORD = #ord#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

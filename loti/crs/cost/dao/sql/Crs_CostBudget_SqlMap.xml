@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_CostBudget">
+
+	<typeAlias alias="crs_CostBudget" type="loti.crs.cost.model.Crs_CostBudget"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CostBudget" parameterClass="crs_CostBudget" resultClass="crs_CostBudget">
+			SELECT 	
+				   		YEAR              ,
+				   		TXTBOOKCOST_INTRO TXTBOOKCOSTINTRO,
+				   		TXTBOOKCOST_MSCT  TXTBOOKCOSTMSCT,
+				   		TXTBOOKCOST_COMMON TXTBOOKCOSTCOMMON,
+				   		TXTBOOKCOST_AXBOOK TXTBOOKCOSTAXBOOK,
+				   		PROFCOST_PAY      PROFCOSTPAY,
+				   		PROFCOST_TRAVEL   PROFCOSTTRAVEL,
+				   		PROFCOST_QUESTION PROFCOSTQUESTION,
+				   		ETCCOST           ,
+				   		INSUSER           ,
+				   		INSDATE           ,
+				   		UPDUSER           ,
+				   		UPDDATE           
+			  FROM OPR_YEARBUDGET
+			 WHERE YEAR = #searchdate#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostBudgetList" parameterClass="crs_CostBudget" resultClass="crs_CostBudget">
+			SELECT 	ROWNUM NUM, 
+				   		YEAR              ,
+				   		TXTBOOKCOST_INTRO ,
+				   		TXTBOOKCOST_MSCT  ,
+				   		TXTBOOKCOST_COMMON,
+				   		TXTBOOKCOST_AXBOOK,
+				   		PROFCOST_PAY      ,
+				   		PROFCOST_TRAVEL   ,
+				   		PROFCOST_QUESTION ,
+				   		ETCCOST           ,
+				   		INSUSER           ,
+				   		INSDATE           ,
+				   		UPDUSER           ,
+				   		UPDDATE           
+			  FROM OPR_YEARBUDGET
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_CostBudgetListCount" parameterClass="crs_CostBudget" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_YEARBUDGET
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_CostBudgetCount" parameterClass="crs_CostBudget" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		  FROM OPR_YEARBUDGET
+		 WHERE YEAR = #year#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_CostBudget" parameterClass="crs_CostBudget">
+		INSERT INTO OPR_YEARBUDGET (	
+			   			YEAR              ,	
+			   			TXTBOOKCOST_INTRO ,	
+			   			TXTBOOKCOST_MSCT  ,	
+			   			TXTBOOKCOST_COMMON,	
+			   			TXTBOOKCOST_AXBOOK,	
+			   			PROFCOST_PAY      ,	
+			   			PROFCOST_TRAVEL   ,	
+			   			PROFCOST_QUESTION ,	
+			   			ETCCOST           ,	
+			   			INSUSER           ,	
+			   			INSDATE           ,	
+			   			UPDUSER           ,	
+			   			UPDDATE           	
+		) VALUES (
+						 
+			   			#year#             ,	
+			   			REPLACE(#txtbookcostIntro#,',','') ,	
+			   			REPLACE(#txtbookcostMsct#,',','')  ,	
+			   			REPLACE(#txtbookcostCommon#,',',''),	
+			   			REPLACE(#txtbookcostAxbook#,',',''),	
+			   			REPLACE(#profcostPay#,',','')      ,	
+			   			REPLACE(#profcostTravel#,',','')   ,	
+			   			REPLACE(#profcostQuestion#,',','') ,	
+			   			REPLACE(#etccost#,',','')          ,	
+			   			#insuser#          ,	
+			   			#insdate#          ,	
+			   			#upduser#          ,	
+			   			#upddate#          	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_CostBudget" parameterClass="crs_CostBudget">
+		UPDATE OPR_YEARBUDGET SET
+			   TXTBOOKCOST_INTRO  = REPLACE(#txtbookcostIntro#,',','') ,
+			   TXTBOOKCOST_MSCT   = REPLACE(#txtbookcostMsct#,',','')  ,
+			   TXTBOOKCOST_COMMON = REPLACE(#txtbookcostCommon#,',',''),
+			   TXTBOOKCOST_AXBOOK = REPLACE(#txtbookcostAxbook#,',',''),
+			   PROFCOST_PAY       = REPLACE(#profcostPay#,',','')      ,
+			   PROFCOST_TRAVEL    = REPLACE(#profcostTravel#,',','')   ,
+			   PROFCOST_QUESTION  = REPLACE(#profcostQuestion#,',','') ,
+			   ETCCOST            = REPLACE(#etccost#,',','')          ,
+			   INSUSER            = #insuser#          ,
+			   INSDATE            = #insdate#          ,
+			   UPDUSER            = #upduser#          ,
+			   UPDDATE            = #upddate#     
+		WHERE YEAR = #year#     
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_CostBudget" parameterClass="crs_CostBudget">
+		DELETE FROM OPR_YEARBUDGET
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="year">
+				YEAR = #year#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostIntro">
+				TXTBOOKCOST_INTRO = #txtbookcostIntro#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostMsct">
+				TXTBOOKCOST_MSCT = #txtbookcostMsct#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostCommon">
+				TXTBOOKCOST_COMMON = #txtbookcostCommon#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostAxbook">
+				TXTBOOKCOST_AXBOOK = #txtbookcostAxbook#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostPay">
+				PROFCOST_PAY = #profcostPay#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostTravel">
+				PROFCOST_TRAVEL = #profcostTravel#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostQuestion">
+				PROFCOST_QUESTION = #profcostQuestion#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="etccost">
+				ETCCOST = #etccost#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="upduser">
+				UPDUSER = #upduser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="upddate">
+				UPDDATE = #upddate#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

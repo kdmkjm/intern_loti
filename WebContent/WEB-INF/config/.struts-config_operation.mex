@@ -1,0 +1,500 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/oprStudentListRcv.do" location="50,450" dimension="281,96" />
+  <StrutsActivity path="/oprStudentRcvResult.do" location="1850,50" dimension="295,96" />
+  <StrutsActivity path="/oprTransResult.do" location="2150,250" dimension="279,84" />
+  <StrutsActivity path="/oprStudentFix.do" location="950,450" dimension="259,96" />
+  <StrutsActivity path="/oprStudent.do" location="950,850" dimension="262,96" />
+  <StrutsActivity path="/oprAttend.do" location="1550,50" dimension="250,96" />
+  <StrutsActivity path="/oprPassAcom.do" location="1550,250" dimension="265,96" />
+  <StrutsActivity path="/oprStudentSearch.do" location="1550,450" dimension="292,96" />
+  <StrutsActivity path="/oprCrsSendList.do" location="1850,650" dimension="246,96" />
+  <StrutsActivity path="/oprSendingList.do" location="50,1350" dimension="233,96" />
+  <StrutsActivity path="/regToken.do" location="1250,1250" dimension="223,96" />
+  <StrutsActivity path="/onnaraSend.do" location="950,1850" dimension="237,96" />
+  <StrutsActivity path="/recToken.do" location="1550,1250" dimension="222,96" />
+  <StrutsActivity path="/oprStats.do" location="1850,1250" dimension="230,96" />
+  <StrutsActivity path="/oprOrgStd.do" location="950,1650" dimension="230,96" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListRcv.jsp" location="650,450" dimension="208,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListInsert.jsp" location="50,150" dimension="218,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListXlsUp.jsp" location="950,50" dimension="219,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentRcvResult.jsp" location="1850,1050" dimension="222,51" />
+  <StrutsActivity path="/opr/recv/Opr_StudentRcvFileInfo.jsp" location="50,1550" dimension="229,51" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult_OL.jsp" location="2150,1650" dimension="229,48" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult.jsp" location="350,1550" dimension="207,48" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult_OD_OR.jsp" location="350,1850" dimension="253,48" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult_OC.jsp" location="50,1850" dimension="231,48" />
+  <StrutsActivity path="/opr/fix/Opr_StudentFix.jsp" location="950,650" dimension="177,51" />
+  <StrutsActivity path="/oprStudentFix.act" location="1250,150" dimension="130,51" />
+  <StrutsActivity path="/opr/fix/Opr_StudentSelect.jsp" location="50,750" dimension="194,51" />
+  <StrutsActivity path="/oprStudent.act" location="1250,650" dimension="115,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentMgmt.jsp" location="350,1050" dimension="222,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentModifyInfo.jsp" location="650,1550" dimension="248,51" />
+  <StrutsActivity path="/opr/student/Opr_StuCancleHistory.jsp" location="1550,1450" dimension="239,51" />
+  <StrutsActivity path="/opr/student/Opr_StuCancle.jsp" location="1250,1450" dimension="201,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentHistory.jsp" location="350,750" dimension="227,51" />
+  <StrutsActivity path="/opr/student/Opr_StudentList.jsp" location="1850,1450" dimension="207,51" />
+  <StrutsActivity path="/opr/attend/Opr_AttendMgmt.jsp" location="1550,650" dimension="210,51" />
+  <StrutsActivity path="/opr/attend/Opr_AttendMgmtDetail.jsp" location="1550,850" dimension="241,51" />
+  <StrutsActivity path="/oprAttend.act" location="650,1050" dimension="109,51" />
+  <StrutsActivity path="/opr/pass/Opr_PassMgmt.jsp" location="950,1050" dimension="186,51" />
+  <StrutsActivity path="/opr/pass/Opr_CyberPass.jsp" location="1250,1050" dimension="184,51" />
+  <StrutsActivity path="/opr/pass/Opr_CyberPassXlsUp.jsp" location="1550,1050" dimension="214,51" />
+  <StrutsActivity path="/opr/acom/Opr_PassAcomExcel.jsp" location="2150,1350" dimension="219,51" />
+  <StrutsActivity path="/opr/acom/Opr_PassAcom.jsp" location="650,1250" dimension="192,51" />
+  <StrutsActivity path="/opr/acom/Opr_CyberNotPassAcom.jsp" location="950,1450" dimension="243,51" />
+  <StrutsActivity path="/opr/search/Opr_StudentSearch.jsp" location="950,1250" dimension="219,51" />
+  <StrutsActivity path="/opr/recv/Opr_CrsSendList.jsp" location="1850,850" dimension="191,51" />
+  <StrutsActivity path="/opr/sending/InsaSendingList.jsp" location="50,1750" dimension="224,48" />
+  <StrutsActivity path="/opr/sending/Opr_SendingList.jsp" location="350,1350" dimension="211,51" />
+  <StrutsActivity path="/opr/sending/Onnara_SSO.jsp" location="650,1450" dimension="206,48" />
+  <StrutsActivity path="/opr/stats/Opr_StatsMgmt.jsp" location="350,1650" dimension="190,51" />
+  <StrutsActivity path="/opr/orgstd/Opr_OrgStdStatsExcel.jsp" location="2150,550" dimension="232,51" />
+  <StrutsActivity path="/opr/orgstd/Opr_OrgStdStats.jsp" location="2150,1150" dimension="205,51" />
+  <StrutsActivity path="/opr/orgstd/Opr_OrgStdPlan.jsp" location="2150,950" dimension="202,51" />
+  <StrutsActivity path="/opr/orgstd/Opr_OrgStdCourse.jsp" location="2150,750" dimension="216,51" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult_OR.jsp" location="650,1750" dimension="230,48" />
+  <StrutsActivity path="/opr/recv/Opr_TransResult_OD.jsp" location="2150,1750" dimension="230,48" />
+  <StrutsActivity path="/opr/recv/Opr_TransResultFileInfo.jsp" location="2150,450" dimension="247,48" />
+  <StrutsActivity path="/opr/recv/Opr_StudentListXlslUp.jsp" location="650,50" dimension="222,51" />
+  <StrutsActivity path="/crs/org/Crs_Org.jsp" location="0,306" dimension="139,51" />
+  <StrutsActivity path="/crs/org/Crs_OrgMod.jsp" location="239,306" dimension="164,51" />
+  <StrutsActivity path="/crs/org/Crs_TimeTblMod.jsp" location="503,306" dimension="186,51" />
+  <StrutsActivity path="/crs/org/Crs_OrgCyberMod.jsp" location="789,306" dimension="195,51" />
+  <StrutsActivity path="/common/dao_result.jsp" location="1084,306" dimension="162,51" />
+  <StrutsActivity path="/crsOrg.act" location="1346,306" dimension="90,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseList.jsp" location="315,1182" dimension="173,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblDay.jsp" location="0,890" dimension="202,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblMonth.jsp" location="302,890" dimension="217,51" />
+  <StrutsActivity path="/crs/prof/Crs_LectureMgmt.jsp" location="0,598" dimension="195,51" />
+  <StrutsActivity path="/crs/org/Crs_SetProf_Frame.jsp" location="295,598" dimension="196,51" />
+  <StrutsActivity path="/crs/org/Crs_SetProf.jsp" location="591,598" dimension="158,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCalc.jsp" location="36,1182" dimension="170,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostBudget.jsp" location="600,890" dimension="185,51" />
+  <StrutsActivity path="/opr/student/Grade_pop.jsp" location="650,750" dimension="179,51" />
+  <StrutsActivity path="/opr/student/Job_pop.jsp" location="50,1050" dimension="166,51" />
+  <StrutsActivity path="/opr/orgStd/Opr_OrgStdPlan.jsp" location="1250,1650" dimension="204,51" />
+  <StrutsActivity path="/opr/orgStd/Opr_OrgStdCourse.jsp" location="1550,1650" dimension="218,51" />
+  <StrutsActivity path="/opr/orgStd/Opr_OrgStdStats.jsp" location="1850,1650" dimension="207,51" />
+  <StrutsActivity path="/opr/recv/Opr_OFileInfo.jsp" location="2150,1550" dimension="188,48" />
+  <StrutsActivity path="/oprPass.do" location="350,150" dimension="226,96" />
+  <StrutsTransition id="/oprStudent.do,oprStuCancle,/opr/student/Opr_StuCancle.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1208,946" />
+      <AbsolutePoint location="1208,1475" />
+      <AbsolutePoint location="1250,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentRcvResult.do,list,/opr/recv/Opr_StudentRcvResult.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2015,146" />
+      <AbsolutePoint location="2015,565" />
+      <AbsolutePoint location="1806,565" />
+      <AbsolutePoint location="1806,916" />
+      <AbsolutePoint location="1961,916" />
+      <AbsolutePoint location="1961,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprCrsSendList.do,list,/opr/recv/Opr_CrsSendList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1973,746" />
+      <AbsolutePoint location="1973,850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprAttend.do,modify,/oprAttend.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1705,146" />
+      <AbsolutePoint location="1705,165" />
+      <AbsolutePoint location="2474,165" />
+      <AbsolutePoint location="2474,1116" />
+      <AbsolutePoint location="734,1116" />
+      <AbsolutePoint location="734,1101" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/onnaraSend.do,sso,/opr/sending/Onnara_SSO.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,1913" />
+      <AbsolutePoint location="330,1913" />
+      <AbsolutePoint location="330,1474" />
+      <AbsolutePoint location="650,1474" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,uploadExcel,/opr/pass/Opr_CyberPassXlsUp.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="576,216" />
+      <AbsolutePoint location="1451,216" />
+      <AbsolutePoint location="1451,1075" />
+      <AbsolutePoint location="1550,1075" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/regToken.do,sso,/opr/sending/Onnara_SSO.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1250,1316" />
+      <AbsolutePoint location="753,1316" />
+      <AbsolutePoint location="753,1450" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprOrgStd.do,course,/opr/orgstd/Opr_OrgStdCourse.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1065,1650" />
+      <AbsolutePoint location="1065,1516" />
+      <AbsolutePoint location="-105,1516" />
+      <AbsolutePoint location="-105,665" />
+      <AbsolutePoint location="873,665" />
+      <AbsolutePoint location="873,775" />
+      <AbsolutePoint location="2150,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentListRcv.do,list,/opr/recv/Opr_StudentListRcv.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="331,486" />
+      <AbsolutePoint location="650,486" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprAttend.do,info,/opr/attend/Opr_AttendMgmtDetail.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,116" />
+      <AbsolutePoint location="-45,116" />
+      <AbsolutePoint location="-45,716" />
+      <AbsolutePoint location="1670,716" />
+      <AbsolutePoint location="1670,850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,cyber_move,/opr/pass/Opr_CyberPass.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="576,186" />
+      <AbsolutePoint location="1059,186" />
+      <AbsolutePoint location="1059,438" />
+      <AbsolutePoint location="1410,438" />
+      <AbsolutePoint location="1410,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprOrgStd.do,plan,/opr/orgstd/Opr_OrgStdPlan.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,1716" />
+      <AbsolutePoint location="-15,1716" />
+      <AbsolutePoint location="-15,816" />
+      <AbsolutePoint location="2251,816" />
+      <AbsolutePoint location="2251,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPassAcom.do,excel,/opr/acom/Opr_PassAcomExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1682,346" />
+      <AbsolutePoint location="1682,372" />
+      <AbsolutePoint location="-15,372" />
+      <AbsolutePoint location="-15,765" />
+      <AbsolutePoint location="-45,765" />
+      <AbsolutePoint location="-45,1616" />
+      <AbsolutePoint location="2353,1616" />
+      <AbsolutePoint location="2353,1401" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprTransResult.do,OR_fileInfo,/opr/recv/Opr_TransResult_OD_OR.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2429,262" />
+      <AbsolutePoint location="2654,262" />
+      <AbsolutePoint location="2654,2021" />
+      <AbsolutePoint location="476,2021" />
+      <AbsolutePoint location="476,1898" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprTransResult.do,OD_fileInfo,/opr/recv/Opr_TransResult_OD_OR.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2429,322" />
+      <AbsolutePoint location="2594,322" />
+      <AbsolutePoint location="2594,1813" />
+      <AbsolutePoint location="476,1813" />
+      <AbsolutePoint location="476,1850" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprAttend.do,attend,/oprAttend.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1675,50" />
+      <AbsolutePoint location="1675,-25" />
+      <AbsolutePoint location="-135,-25" />
+      <AbsolutePoint location="-135,1165" />
+      <AbsolutePoint location="704,1165" />
+      <AbsolutePoint location="704,1101" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,modifyInfo,/opr/student/Opr_StudentModifyInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,905" />
+      <AbsolutePoint location="873,905" />
+      <AbsolutePoint location="873,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprTransResult.do,OC_fileInfo,/opr/recv/Opr_TransResult_OC.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2150,292" />
+      <AbsolutePoint location="2111,292" />
+      <AbsolutePoint location="2111,1961" />
+      <AbsolutePoint location="165,1961" />
+      <AbsolutePoint location="165,1898" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,cancelHistory,/opr/student/Opr_StuCancleHistory.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1212,916" />
+      <AbsolutePoint location="1518,916" />
+      <AbsolutePoint location="1518,1475" />
+      <AbsolutePoint location="1550,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,list,/opr/student/Opr_StudentMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1043,946" />
+      <AbsolutePoint location="1043,965" />
+      <AbsolutePoint location="461,965" />
+      <AbsolutePoint location="461,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentListRcv.do,insert,/opr/recv/Opr_StudentListInsert.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="190,450" />
+      <AbsolutePoint location="190,201" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,move,/opr/pass/Opr_PassMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="350,216" />
+      <AbsolutePoint location="-345,216" />
+      <AbsolutePoint location="-345,1016" />
+      <AbsolutePoint location="1043,1016" />
+      <AbsolutePoint location="1043,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPassAcom.do,list,/opr/acom/Opr_PassAcom.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1815,292" />
+      <AbsolutePoint location="1830,292" />
+      <AbsolutePoint location="1830,5" />
+      <AbsolutePoint location="-105,5" />
+      <AbsolutePoint location="-105,565" />
+      <AbsolutePoint location="259,565" />
+      <AbsolutePoint location="259,1275" />
+      <AbsolutePoint location="650,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,modify,/oprStudent.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1212,886" />
+      <AbsolutePoint location="1337,886" />
+      <AbsolutePoint location="1337,701" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,info,/opr/student/Opr_StudentHistory.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,875" />
+      <AbsolutePoint location="463,875" />
+      <AbsolutePoint location="463,801" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,justList,/opr/student/Opr_StudentList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1111,946" />
+      <AbsolutePoint location="1111,1016" />
+      <AbsolutePoint location="1806,1016" />
+      <AbsolutePoint location="1806,1475" />
+      <AbsolutePoint location="1850,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprOrgStd.do,list,/opr/orgstd/Opr_OrgStdStats.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="950,1686" />
+      <AbsolutePoint location="913,1686" />
+      <AbsolutePoint location="913,1165" />
+      <AbsolutePoint location="2150,1165" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,cyberList,/opr/pass/Opr_CyberPass.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="433,246" />
+      <AbsolutePoint location="433,565" />
+      <AbsolutePoint location="1380,565" />
+      <AbsolutePoint location="1380,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprAttend.do,move,/opr/attend/Opr_AttendMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1675,146" />
+      <AbsolutePoint location="1675,216" />
+      <AbsolutePoint location="1985,216" />
+      <AbsolutePoint location="1985,616" />
+      <AbsolutePoint location="1655,616" />
+      <AbsolutePoint location="1655,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,excel_view,/opr/pass/Opr_CyberPassXlsUp.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="518,246" />
+      <AbsolutePoint location="518,265" />
+      <AbsolutePoint location="1488,265" />
+      <AbsolutePoint location="1488,965" />
+      <AbsolutePoint location="1657,965" />
+      <AbsolutePoint location="1657,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPassAcom.do,notpass,/opr/acom/Opr_CyberNotPassAcom.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1704,346" />
+      <AbsolutePoint location="1704,408" />
+      <AbsolutePoint location="935,408" />
+      <AbsolutePoint location="935,1475" />
+      <AbsolutePoint location="950,1475" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprOrgStd.do,excel,/opr/orgstd/Opr_OrgStdStatsExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1180,1716" />
+      <AbsolutePoint location="2564,1716" />
+      <AbsolutePoint location="2564,575" />
+      <AbsolutePoint location="2382,575" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentSearch.do,list,/opr/search/Opr_StudentSearch.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,520" />
+      <AbsolutePoint location="1230,520" />
+      <AbsolutePoint location="1230,1275" />
+      <AbsolutePoint location="1169,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprAttend.do,list,/opr/attend/Opr_AttendMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1550,86" />
+      <AbsolutePoint location="1518,86" />
+      <AbsolutePoint location="1518,675" />
+      <AbsolutePoint location="1550,675" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStats.do,excel,/opr/stats/Opr_StatsMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2072,1346" />
+      <AbsolutePoint location="2072,1565" />
+      <AbsolutePoint location="943,1565" />
+      <AbsolutePoint location="943,1656" />
+      <AbsolutePoint location="540,1656" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentSearch.do,info,/opr/search/Opr_StudentSearch.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1828,546" />
+      <AbsolutePoint location="1828,1222" />
+      <AbsolutePoint location="1059,1222" />
+      <AbsolutePoint location="1059,1250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentListRcv.do,excel_up,/opr/recv/Opr_StudentListXlsUp.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="220,450" />
+      <AbsolutePoint location="220,432" />
+      <AbsolutePoint location="999,432" />
+      <AbsolutePoint location="999,101" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentFix.do,modify,/oprStudentFix.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1209,498" />
+      <AbsolutePoint location="1315,498" />
+      <AbsolutePoint location="1315,201" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentFix.do,selectlist,/opr/fix/Opr_StudentSelect.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1164,546" />
+      <AbsolutePoint location="1164,738" />
+      <AbsolutePoint location="147,738" />
+      <AbsolutePoint location="147,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprPass.do,list,/opr/pass/Opr_PassMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="463,246" />
+      <AbsolutePoint location="463,516" />
+      <AbsolutePoint location="913,516" />
+      <AbsolutePoint location="913,1075" />
+      <AbsolutePoint location="950,1075" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprTransResult.do,list,/opr/recv/Opr_TransResult.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2429,292" />
+      <AbsolutePoint location="2504,292" />
+      <AbsolutePoint location="2504,1416" />
+      <AbsolutePoint location="453,1416" />
+      <AbsolutePoint location="453,1550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,updatestdno,/oprStudent.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1142,850" />
+      <AbsolutePoint location="1142,675" />
+      <AbsolutePoint location="1250,675" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStats.do,stats,/opr/stats/Opr_StatsMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2080,1298" />
+      <AbsolutePoint location="2474,1298" />
+      <AbsolutePoint location="2474,2051" />
+      <AbsolutePoint location="15,2051" />
+      <AbsolutePoint location="15,1675" />
+      <AbsolutePoint location="350,1675" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprTransResult.do,OL_fileInfo,/opr/recv/Opr_TransResult_OL.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="2412,334" />
+      <AbsolutePoint location="2412,1674" />
+      <AbsolutePoint location="2379,1674" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprSendingList.do,list,/opr/sending/Opr_SendingList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="283,1386" />
+      <AbsolutePoint location="350,1386" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentFix.do,list,/opr/fix/Opr_StudentFix.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1079,546" />
+      <AbsolutePoint location="1079,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudent.do,excel,/oprStudent.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1212,856" />
+      <AbsolutePoint location="1307,856" />
+      <AbsolutePoint location="1307,701" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStudentRcvResult.do,fileInfo,/opr/recv/Opr_StudentRcvFileInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1997,50" />
+      <AbsolutePoint location="1997,-100" />
+      <AbsolutePoint location="-210,-100" />
+      <AbsolutePoint location="-210,1575" />
+      <AbsolutePoint location="50,1575" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprSendingList.do,send,/opr/sending/InsaSendingList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="50,1398" />
+      <AbsolutePoint location="-270,1398" />
+      <AbsolutePoint location="-270,1774" />
+      <AbsolutePoint location="50,1774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/oprStats.do,crsName,/opr/stats/Opr_StatsMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1965,1346" />
+      <AbsolutePoint location="1965,1365" />
+      <AbsolutePoint location="615,1365" />
+      <AbsolutePoint location="615,1686" />
+      <AbsolutePoint location="540,1686" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

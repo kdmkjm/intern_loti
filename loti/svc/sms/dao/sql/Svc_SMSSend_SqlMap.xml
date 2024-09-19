@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Svc_SMSSend">
+
+	<typeAlias alias="svc_SMSSend" type="loti.svc.sms.model.Svc_SMSSend"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSvc_SMSSend" parameterClass="svc_SMSSend" resultClass="svc_SMSSend">
+			SELECT 	
+				   		SENDDATETIME,
+				   		SENDUSER    ,
+				   		SENDCONTENTS,
+				   		SENDPHONE   ,
+				   		SENDGUBN    
+			  FROM CMN_SMSLOG
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSvc_SMSSendList" parameterClass="svc_SMSSend" resultClass="svc_SMSSend">
+			SELECT 	ROWNUM NUM, 
+				   		SENDDATETIME,
+				   		SENDUSER    ,
+				   		SENDCONTENTS,
+				   		SENDPHONE   ,
+				   		SENDGUBN    
+			  FROM CMN_SMSLOG
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectSvc_SMSPrfList" parameterClass="svc_SMSSend" resultClass="svc_SMSSend">
+			SELECT 	JUMINNO, 
+				   		MAX(PROFNAME) USERNAME,
+				   		MAX(EMAIL) EMAIL,
+				   		MAX(CELLPHONE) CELLPHONE,
+				   		MAX(WORKPLACE) WORKNAME,
+				   		MAX(WORKPOS) WORKPOS    
+			  FROM	PRF_PROFESSOR
+			 WHERE	NVL(DELYN, 'N') != 'Y' 
+			   AND  NVL(INFODELYN, 'N') != 'Y' 
+			<isNotEmpty prepend="AND" property="searchKeyword">
+					      PROFNAME like '%' || #searchKeyword# || '%' 
+           OR  WORKPLACE like '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+			 GROUP BY JUMINNO
+			 ORDER BY USERNAME
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectSvc_SMSStudentList" parameterClass="svc_SMSSend" resultClass="svc_SMSSend">
+			SELECT 	JUMINNO, 
+				   		MAX(STDNAME) USERNAME,
+				   		MAX(EMAIL) EMAIL,
+				   		MAX(CELLPHONE) CELLPHONE,
+				   		MAX(ASSIGNNAME) WORKNAME,
+				   		MAX(RANKNAME) WORKPOS,
+              MAX(STDNO) STDNO   
+			  FROM OPR_CRSSTUDENT
+       WHERE COURSECODE = #searchCourseCode#
+			 GROUP BY JUMINNO
+			 ORDER BY USERNAME
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectSvc_SMSSendListCount" parameterClass="svc_SMSSend" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_SMSLOG
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectSvc_SMSSendCount" parameterClass="svc_SMSSend" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_SMSLOG
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSvc_SMSSend" parameterClass="svc_SMSSend">
+		INSERT INTO CMN_SMSLOG (	
+			   			SENDDATETIME,	
+			   			SENDUSER    ,	
+			   			SENDCONTENTS,	
+			   			SENDPHONE   ,	
+			   			SENDGUBN    	
+		) VALUES (
+						 
+			   			#senddatetime#,	
+			   			#senduser#    ,	
+			   			#sendcontents#,	
+			   			#sendphone#   ,	
+			   			#sendgubn#    	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSvc_SMSSend" parameterClass="svc_SMSSend">
+		UPDATE CMN_SMSLOG SET
+			   SENDDATETIME = #senddatetime#,
+			   SENDUSER     = #senduser#    ,
+			   SENDCONTENTS = #sendcontents#,
+			   SENDPHONE    = #sendphone#   ,
+			   SENDGUBN     = #sendgubn#    
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSvc_SMSSend" parameterClass="svc_SMSSend">
+		DELETE FROM CMN_SMSLOG
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="senddatetime">
+				SENDDATETIME = #senddatetime#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="senduser">
+				SENDUSER = #senduser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendcontents">
+				SENDCONTENTS = #sendcontents#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendphone">
+				SENDPHONE = #sendphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendgubn">
+				SENDGUBN = #sendgubn#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

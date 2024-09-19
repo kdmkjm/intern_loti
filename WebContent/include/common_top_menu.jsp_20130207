@@ -1,0 +1,177 @@
+<%@ page language="java" %>
+<%@ page contentType="text/html" %>
+<%@ page pageEncoding="EUC-KR" %>
+
+<%@ taglib uri="/WEB-INF/tld/struts-bean.tld" prefix="bean" %>
+<%@ taglib uri="/WEB-INF/tld/struts-html.tld" prefix="html" %>
+<%@ taglib uri="/WEB-INF/tld/struts-logic.tld" prefix="logic" %>
+<%@ taglib uri="/WEB-INF/tld/c.tld" prefix="c" %>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<meta http-equiv="Content-Type" content="text/html; charset=euc-kr">
+<%-- common include --%>
+<%@ include file="/include/jsp_common_inc.jspf" %>
+
+<script type="text/javascript" src='<html:rewrite page="/common/js/prototype.js"/>'></script>
+<script type="text/javascript" src='<html:rewrite page="/common/js/jquery-1.7.1.min.js"/>'></script>
+<script type="text/javascript" src='<html:rewrite page="/common/js/DD_belated-min.js"/>'></script>
+<script type="text/javascript" src='<html:rewrite page="/common/js/js/default.js"/>'></script>
+
+<script language="JavaScript">
+<!--
+	function showLeftMenu(menuNo)
+	{
+		var url='mainMenu.act?task=left_list&parent='+menuNo;
+		goMenuLinkLeft(url);
+	}
+	
+	goMenuLinkLeft = function(url) 
+	{
+	var obj = parent.iframe_Left ;
+	    	obj.location.href = '${pageContext.request.contextPath}/'+url;
+	}
+	function goMain()
+	{
+		//parent.location.href='index_f.jsp';
+		parent.location.href='${pageContext.request.contextPath}/index.act';
+	}
+
+//-->
+//<![CDATA[
+	var gnbIndex = 0;
+	$().ready(function(){
+		if($('#gnb > ul > .on')){
+			gnbIndex = $('#gnb > ul > li').index($('#gnb > ul > .on'));
+			if(gnbIndex==-1)gnbIndex=0;
+			$('#gnb > ul > li').removeClass("on");
+			$("#gnb > ul > li:eq("+gnbIndex+")").addClass("on");
+		}
+		$('#gnb > ul > li > a').mouseover(function(){
+			gnbIndex = $('#gnb > ul > li > a').index($(this));
+			if(gnbIndex==-1)gnbIndex=0;
+			$('#gnb > ul > li').removeClass("on");
+			$("#gnb > ul > li:eq("+gnbIndex+")").addClass("on");
+		});
+	});
+	
+//]]>
+</script>
+
+<!-- 스킵네비게이션 -->
+<div id="accessibility"> 
+  <ul>
+    <li><a href="#gnb">주메뉴 바로가기</a></li>
+    <li><a href="#content">콘텐츠 바로가기</a></li>
+  </ul>
+</div>
+<hr />
+<!--상단메뉴 시작-->
+<div id="mainWrapper">
+  <div class="wrap">
+	<div id="header"> 
+	  <h1><a href="#" onclick="goMain();"><img src='<html:rewrite page="/images/logo.gif"/>' alt="생명과태양의땅충북 자치연수원 교육관리시스템" border="0" /></a></h1>
+	  <ul class="lnb">
+	    <li class="end"><strong><c:out value="${userName}"/></strong></li>
+	    <li><font color="#013fb3"><c:out value="[${organName}]"/></font></li>
+	    <li><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extMainPrsn.act?task=list'">개인정보수정</a></li>
+<%--    <li><div onclick="onHelp();" style="cursor:hand"/>온라인도움말</div></li>  --%>
+	    <li class="end"><img src='<html:rewrite page="/images/logout.gif"/>' alt="로그아웃" style="cursor:hand" onclick="location.href='<html:rewrite page="/mainMenu.act?task=logout"/>'"/></li>
+	  </ul>
+	  <h2 class="skip">주메뉴</h2>
+      <div class="menu_bg">
+		<div id="gnb">
+		  <ul class="depth2">
+			<c:forEach var="menuList" items="${rsTopMenuList}" varStatus="i" >
+			<li class="top${i.index+1}m"><a href="#" onMouseOut="MM_swapImgRestore()" onMouseOver="MM_swapImage('Image${menuList.num}','','<html:rewrite page="${menuList.iconPathOn}"/>',1)" onclick="showLeftMenu('${menuList.menuNo}');">
+		      <img name="Image${menuList.num}" border="0" src='<html:rewrite page="${menuList.iconPath}"/>'  height="42" alt="${menuList.menuName}" /></a>
+		      <c:if test="${menuList.menuNo == 25}">
+		      <ul class="top1m1m">
+		        <li class="top1m1m1"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/plnSurv.act?task=list'"><span>교육수요조사</span></a></li>
+		        <li class="top1m1m2"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsSurv.act?task=list'"><span>교육수요조사접수</span></a></li>
+		        <li class="top1m1m3"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/eduPlan.act?task=list'"><span>계획서</span></a></li>
+		        <li class="top1m1m4"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/fixPlan.act?task=list'"><span>계획서확정</span></a></li>
+		        <li class="top1m1m5"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsOrg.act?task=list'"><span>교육과정편성</span></a></li>
+		        <li class="top1m1m6"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsCourse.act?task=list'"><span>교육과정검색</span></a></li>
+		        <li class="top1m1m7"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsMonth.act?task=move'"><span>월별교육일정</span></a></li>
+		        <li class="top1m1m8"><a href="/mainMenu.act?task=left_list&parent=25" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsMonth.act?task=move_ance'"><span>과정별교육일정</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 26}">
+		      <ul class="top2m1m">
+		        <li class="top2m1m1"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extCrsCourse.act?task=list'"><span>과정조회</span></a></li>
+		        <li class="top2m1m2"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprStats.act?task=crsName'"><span>교육생현황통계</span></a></li>
+		        <li class="top2m1m3"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsTimeTblDay.act?task=list'"><span>교육시간표</span></a></li>
+		        <li class="top2m1m4"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprStudentListRcv.act?task=insert'"><span>교육선발명단입력</span></a></li>
+		        <li class="top2m1m5"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprStudentFix.act?task=list'"><span>교육인원확정</span></a></li>
+		        <li class="top2m1m6"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprOrgStd.act?task=list'"><span>교육신청자현황</span></a></li>
+		        <li class="top2m1m7"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/opr/student/Opr_StudentMgmt.jsp'"><span>교육생관리</span></a></li>
+		        <li class="top2m1m8"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprStudentSearch.act?task=list'"><span>교육생검색</span></a></li>
+		        <li class="top2m1m9"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprAttend.act?task=list'"><span>근태관리</span></a></li>
+		        <li class="top2m1m10"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprPass.act?task=list'"><span>이수관리</span></a></li>
+		        <li class="top2m1m11"><a href="/mainMenu.act?task=left_list&parent=26" target="iframe_Left" onclick="parent.iframe_Main.location.href='/oprCrsSendList.act?task=list'"><span>인사행정연계</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 28}">
+		      <ul class="top3m1m">
+		        <li class="top3m1m1"><a href="/mainMenu.act?task=left_list&parent=28" target="iframe_Left" onclick="parent.iframe_Main.location.href='/prfBaseInfo.act?task=list'"><span>강사정보</span></a></li>
+		        <li class="top3m1m2"><a href="/mainMenu.act?task=left_list&parent=28" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsLectureMgmt.act?task=list'"><span>출강관리</span></a></li>
+		        <li class="top3m1m3"><a href="/mainMenu.act?task=left_list&parent=28" target="iframe_Left" onclick="parent.iframe_Main.location.href='/prfPay.act?task=list'"><span>강사수당</span></a></li>
+		        <li class="top3m1m4"><a href="/mainMenu.act?task=left_list&parent=28" target="iframe_Left" onclick="parent.iframe_Main.location.href='/prfPayStandard.act?task=list'"><span>지급기준</span></a></li>
+		        <li class="top3m1m5"><a href="/mainMenu.act?task=left_list&parent=28" target="iframe_Left" onclick="parent.iframe_Main.location.href='/prfLectAcom.act?task=list'"><span>강의실적확인</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 102}">
+		      <ul class="top4m1m">
+		        <li class="top4m1m1"><a href="/mainMenu.act?task=left_list&parent=102" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsCostCalc.act?task=list'"><span>교육비관리</span></a></li>
+		        <li class="top4m1m2"><a href="/mainMenu.act?task=left_list&parent=102" target="iframe_Left" onclick="parent.iframe_Main.location.href='/crsCostDivide.act?task=list'"><span>교육비분할</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 29}">
+		      <ul class="top5m1m">
+		        <li class="top5m1m1"><a href="/mainMenu.act?task=left_list&parent=29" target="iframe_Left" onclick="parent.iframe_Main.location.href='/tstScore.act?task=list'"><span>성적관리</span></a></li>
+		        <li class="top5m1m2"><a href="/mainMenu.act?task=left_list&parent=29" target="iframe_Left" onclick="parent.iframe_Main.location.href='/tstSurvey.act?task=list'"><span>설문지작성</span></a></li>
+		        <li class="top5m1m3"><a href="/mainMenu.act?task=left_list&parent=29" target="iframe_Left" onclick="parent.iframe_Main.location.href='/tstSatis.act?task=info'"><span>만족도관리</span></a></li>
+		        <li class="top5m1m4"><a href="/mainMenu.act?task=left_list&parent=29" target="iframe_Left" onclick="parent.iframe_Main.location.href='/tstSatis.act?task=oprList'"><span>설문만족도현황</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 30}">
+		      <ul class="top6m1m">
+		        <li class="top6m1m1"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscInst.act?task=list'"><span>기자재관리</span></a></li>
+		        <li class="top6m1m2"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscBook.act?task=list'"><span>교재관리</span></a></li>
+		        <li class="top6m1m3"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscLib.act?task=list'"><span>도서관리</span></a></li>
+		        <li class="top6m1m4"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscLibSearch.act?task=userSearch'"><span>도서검색</span></a></li>
+		        <li class="top6m1m5"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscRoom.act?task=month'"><span>교육장관리</span></a></li>
+		        <li class="top6m1m6"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extMylcRoom.act?task=lentInfo'"><span>교육장대여신청</span></a></li>
+		        <li class="top6m1m7"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extMainPrsn.act?task=list'"><span>개인정보수정</span></a></li>
+		        <li class="top6m1m8"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/svcStdPortal.act?task=list'"><span>담당자초기메뉴</span></a></li>
+		        <li class="top6m1m9"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/certPrt.act?task=list'"><span>증명서인쇄</span></a></li>
+		        <li class="top6m1m10"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/svcSMSSend.act?task=list'"><span>SMS/EMAIL발송</span></a></li>
+		        <li class="top6m1m11"><a href="/mainMenu.act?task=left_list&parent=30" target="iframe_Left" onclick="parent.iframe_Main.location.href='/rscSMSStatusList.act?task=list'"><span>SMS발송현황</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 78}">
+		      <ul class="top7m1m">
+		        <li class="top7m1m1"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extBordNotice.act?task=list'"><span>공지사항</span></a></li>
+		        <li class="top7m1m2"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extBordQNA.act?task=list'"><span>Q&A</span></a></li>
+		        <li class="top7m1m3"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extBordMorgue.act?task=list'"><span>자료실</span></a></li>
+		        <li class="top7m1m4"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extBordAfNote.act?task=list'"><span>교육후기</span></a></li>
+		        <li class="top7m1m5"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extMylcSurvey.act?task=list'"><span>설문조사(상시)</span></a></li>
+		        <li class="top7m1m6"><a href="/mainMenu.act?task=left_list&parent=78" target="iframe_Left" onclick="parent.iframe_Main.location.href='/extCrs_ReqCrs.act?task=list'"><span>과정요청</span></a></li>
+		      </ul>
+		      </c:if>
+		      <c:if test="${menuList.menuNo == 1}">
+		      <ul class="top8m1m">
+		        <li class="top8m1m1"><a href="/mainMenu.act?task=left_list&parent=1" target="iframe_Left" onclick="parent.iframe_Main.location.href='/sysUser.act?task=move'"><span>사용자/그룹관리</span></a></li>
+		        <li class="top8m1m2"><a href="/mainMenu.act?task=left_list&parent=1" target="iframe_Left" onclick="parent.iframe_Main.location.href='/sysMenu.act?task=list'"><span>메뉴/권한관리</span></a></li>
+		        <li class="top8m1m3"><a href="/mainMenu.act?task=left_list&parent=1" target="iframe_Left" onclick="parent.iframe_Main.location.href='/sysOrg.act?task=list'"><span>조직도</span></a></li>
+		        <li class="top8m1m4"><a href="/mainMenu.act?task=left_list&parent=1" target="iframe_Left" onclick="parent.iframe_Main.location.href='/sysCode.act?task=list'"><span>기본코드관리</span></a></li>
+		        <li class="top8m1m5"><a href="/mainMenu.act?task=left_list&parent=1" target="iframe_Left" onclick="parent.iframe_Main.location.href='/sysAgent.act?task=agent'"><span>Agent관리</span></a></li>
+		      </ul>
+		      </c:if>
+		    </li>
+			</c:forEach>
+		  </ul>
+		</div>
+	  </div>
+	</div>
+  </div>
+</div>

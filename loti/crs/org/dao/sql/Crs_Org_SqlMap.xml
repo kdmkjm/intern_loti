@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_Org">
+
+	<typeAlias alias="crs_Org" type="loti.crs.org.model.Crs_Org"/>
+	<typeAlias alias="crs_Subject" type="loti.crs.org.model.Crs_Subject"/>
+	<typeAlias alias="crs_TimeTbl" type="loti.crs.org.model.Crs_TimeTbl"/>
+	<typeAlias alias="fileDataBean" type="loti.insarang.conn.FileDataBean"/>
+	<typeAlias alias="oc_DataBean" type="loti.insarang.conn.OC_DataBean"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_Org" parameterClass="crs_Org" resultClass="crs_Org">
+			SELECT
+				   		COURSECODE    ,
+				   		YEAR          ,
+				   		COURSENAME    ,
+				   		CRSTYPE1      ,
+				   		CRSTYPE2      ,
+				   		CRSTYPE3      ,
+				   		CRSTYPE1||CRSTYPE2||CRSTYPE3   CRSTYPE   ,
+				   		EDUOBJECTIVES ,
+				   		EDUWAY        ,
+				   		EDUTARGET     ,
+				   		EDUCOUNT      ,
+				   		CHARGER       ,
+				   		LECROOMNO     ,
+				   		TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY-MM-DD') EDUFROM       ,
+				   		TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'YYYY-MM-DD') EDUTO         ,
+				   		TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'YYYY-MM-DD') REQFROM       ,
+				   		TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'YYYY-MM-DD') REQTO         ,
+				   		SUBSTR(BASEYYMM, 1, 4)||'-'||SUBSTR(BASEYYMM, 5) BASEYYMM      ,
+				   		CHPTCOUNT     ,
+				   		APVHOUR       ,
+				   		CYBERPRGSRATE ,
+				   		CYBERMINHOUR  ,
+				   		CYBERFINBASE  ,
+				   		CYBERFINNOTICE,
+				   		OPRDEPART     ,
+				   		OPRDEPTTELNO  ,
+				   		INSUSER       ,
+				   		INSDATE       ,
+				   		UPDUSER       ,
+				   		UPDDATE       ,
+				   		SENDER        ,
+				   		SENDDATE	  	,
+				   		DECODE(GREATEST(TO_CHAR(SYSDATE,'YYYYMMDD'),EDUTO),EDUTO, 'N','Y') FINISHFLAG,
+				   		TO_NUMBER(SUBSTR(COURSECODE,11)) TURNNO,
+			   			DAYCOUNT	  	,
+			   			TERMDESC
+			  FROM 		OPR_LECTURE
+			  WHERE		COURSECODE = #courseCode#
+	</select>
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectFixCrs_OrgOcDataList" parameterClass="crs_Org" resultClass="oc_DataBean">
+			SELECT
+				   		A.COURSECODE    ,
+				   		A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME,
+				   		C.EDUGBN				,
+				   		A.EDUFROM       ,
+				   		A.EDUTO         ,
+				   		CASE    
+							    WHEN A.CRSTYPE1 = '00003' THEN APVHOUR*60
+							    ELSE (SELECT SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0))*60 FROM OPR_LECSUBJECT B WHERE B.COURSECODE = A.COURSECODE GROUP BY B.COURSECODE) 
+							END EDUHOUR			,
+				   		A.EDUCOUNT      ,
+				   		A.EDUCOST				,
+				   		A.STAYFLAG			,
+				   		A.LUNCHFLAG			,
+				   		TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') SENDDATE,
+				   		A.EDUTARGET     ,
+				   		C.EDUTYPE				,
+				   		DECODE(A.CRSTYPE1,'00003','2','1') EDUMETHOD
+			  FROM 	OPR_LECTURE A, 
+			        (SELECT TYPE1, MAX(EDUGBN) EDUGBN, MAX(EDUTYPE) EDUTYPE FROM CMN_COURSETYPE GROUP BY TYPE1) C
+			  WHERE A.CRSTYPE1 = C.TYPE1
+			    AND A.COURSECODE = #courseCode#
+	</select>	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_OrgList" parameterClass="crs_Org" resultClass="crs_Org">
+		SELECT
+            A.COURSECODE    ,
+            A.YEAR          ,
+            COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+            A.CRSTYPE1      ,
+            A.EDUTARGET     ,
+            A.EDUCOUNT      ,
+            A.EDUFROM       ,
+            A.EDUTO         ,
+            SUBSTR(BASEYYMM, 1, 4)||'-'||SUBSTR(BASEYYMM, 5) BASEYYMM      ,
+            DECODE(A.SENDDATE,NULL,'N','','N','Y') ISFIX,
+            DECODE(A.CRSTYPE1,'00003','Y','N') ISCYBER,
+            A.DAYCOUNT,
+            A.MODIFYFLAG,
+            DECODE(GREATEST(TO_CHAR(SYSDATE,'YYYYMMDD'),A.EDUTO),A.EDUTO, 'N','Y') FINISHFLAG,
+           (SELECT 
+                    SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) 
+              FROM  OPR_LECSUBJECT B 
+             WHERE  B.COURSECODE = A.COURSECODE 
+          GROUP BY  B.COURSECODE) EDUTIME
+      FROM  OPR_LECTURE A, 
+           (SELECT 
+                    TYPE1, MAX(EDUGBN) EDUGBN, MAX(EDUTYPE) EDUTYPE 
+              FROM  CMN_COURSETYPE 
+          GROUP BY  TYPE1) C
+     WHERE  A.CRSTYPE1 = C.TYPE1
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+						<isNotEmpty prepend="AND" property="selPlanYear">
+				YEAR = #selPlanYear#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType1">
+				CRSTYPE1 = #crsType1#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType2">
+				CRSTYPE2 = #crsType2#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType3">
+				CRSTYPE3 = #crsType3#
+			</isNotEmpty>
+			 ORDER BY BASEYYMM, COURSENAME, COURSECODE
+	</select>
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_OrgTime" parameterClass="crs_Org" resultClass="crs_Org">
+	            SELECT
+                           COURSECODE    ,
+                           YEAR          ,
+                           TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY-MM-DD') EDUFROM,
+                           EDUFROM DISEDUFROM,
+                           EDUTO DISEDUTO,
+                           USERNAME CHARGER,
+                           COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+                           TO_CHAR(SYSDATE,'YYYY-MM-DD') TODAY,
+                           DECODE(GREATEST(TO_CHAR(SYSDATE,'YYYYMMDD'),EDUTO),EDUTO,'N','Y') AS FINISHFLAG
+              FROM         OPR_LECTURE A, 
+              						 (SELECT JUMINNO, USERNAME
+                              FROM CMN_PUBWORKER
+                             WHERE ISEDUCHARGER = 'Y') B
+              WHERE        A.CHARGER = B.JUMINNO(+)
+              AND        	 COURSECODE = #courseCode#
+	</select>
+
+	<!-- 엑셀다운로드용 목록조회쿼리 -->
+	<select id="selectCrs_OrgListExcel" parameterClass="crs_Org" resultClass="crs_Org">
+				SELECT                     CRSTYPE1      COL_A,
+				                           CRSTYPE2      COL_B,
+				                           CRSTYPE3      COL_C,
+				                           COURSENAME    COL_D,
+				                           EDUTARGET     COL_E,
+				                           EDUDAY        COL_F,
+				                           TURNNO        COL_G,
+				                           EDUCOUNT      COL_H,
+				                           EDUFROM       COL_I,
+				                           EDUTO         COL_J,
+				                           LECROOMNO     COL_K,
+				                           CHARGER       COL_L
+				FROM
+				(
+				            SELECT      0 NUM,
+				            				       '대분류' CRSTYPE1      ,
+				                           '중분류' CRSTYPE2      ,
+				                           '소분류' CRSTYPE3      ,
+				                           '과정명' COURSENAME,
+				                           '교육대상' EDUTARGET     ,
+																	 '일수' EDUDAY,
+																	 '회수' TURNNO, 
+				                           '교육인원' EDUCOUNT      ,
+				                           '교육기간 시작' EDUFROM       ,
+				                           '교육기간 종료' EDUTO,			
+				                           '강의실' LECROOMNO     ,	                           
+				                           '담당자' CHARGER       
+				              FROM         DUAL
+				              UNION
+				              SELECT       ROWNUM NUM,
+           												 (SELECT TYPENAME FROM CMN_COURSETYPE B WHERE A.CRSTYPE1 = B.TYPE1 AND TYPE2='00000' AND TYPE3='00000') CRSTYPE1,     
+           												 (SELECT TYPENAME FROM CMN_COURSETYPE C WHERE A.CRSTYPE1 = C.TYPE1 AND A.CRSTYPE2= C.TYPE2 AND TYPE3='00000' AND TYPE2!='00000') CRSTYPE2,
+           												 (SELECT TYPENAME FROM CMN_COURSETYPE D WHERE A.CRSTYPE1 = D.TYPE1 AND A.CRSTYPE2= D.TYPE2 AND A.CRSTYPE3=D.TYPE3 AND TYPE3!='00000')CRSTYPE3,
+				                           COURSENAME,
+				                           EDUTARGET     ,				                           
+																	 TO_CHAR(DAYCOUNT) EDUDAY,
+																	 TO_CHAR(TO_NUMBER(SUBSTR(COURSECODE,11))) TURNNO,
+				                           TO_CHAR(EDUCOUNT)    EDUCOUNT  ,
+				                           EDUFROM       ,
+				                           EDUTO				 ,
+				                           C.NAME LECROOMNO     ,
+				                           B.USERNAME CHARGER       
+				              FROM         OPR_LECTURE A,
+				                           CMN_PUBWORKER B,
+				                           (SELECT CODE, NAME  FROM SYS_SYSTEMCODE WHERE CODEDIV='00021') C
+				              WHERE        A.CHARGER = B.JUMINNO
+				                AND        A.LECROOMNO = C.CODE(+)
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+						<isNotEmpty prepend="AND" property="selPlanYear">
+				YEAR = #selPlanYear#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType1">
+				CRSTYPE1 = #crsType1#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType2">
+				CRSTYPE2 = #crsType2#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType3">
+				CRSTYPE3 = #crsType3#
+			</isNotEmpty>
+			 ORDER BY NUM
+			 )
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_OrgListCount" parameterClass="crs_Org" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_LECTURE
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_OrgCount" parameterClass="crs_Org" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_LECTURE
+		WHERE		COURSECODE = #courseCode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 신규 기수 생성용 과정코드 생성  -->
+	<select id="selectNewCrsCode" parameterClass="crs_Org" resultClass="java.lang.String">
+		SELECT SUBSTR(COURSECODE,0,10)|| LPAD((MAX(SUBSTR(COURSECODE,11,2))+1),2,'0')||'000' COURSCODE
+		FROM OPR_LECTURE
+		WHERE SUBSTR(COURSECODE,0,10) = SUBSTR(#courseCode#,0,10)
+		GROUP BY SUBSTR(COURSECODE,0,10)
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 신규 과정코드 생성  -->
+	<select id="selectNewCourseCode" parameterClass="crs_Org" resultClass="java.lang.String">
+		SELECT '643'||#year#||LPAD(MAX(SUBSTR(COURSECODE,8,3)) + 1,3,'0')||'01'||'000' COURSECODE
+		FROM OPR_LECTURE
+		WHERE YEAR = #year#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_Org" parameterClass="crs_Org">
+		INSERT INTO OPR_LECTURE (
+			   			COURSECODE    ,
+			   			YEAR          ,
+			   			COURSENAME    ,
+			   			CRSTYPE1      ,
+			   			CRSTYPE2      ,
+			   			CRSTYPE3      ,
+			   			EDUOBJECTIVES ,
+			   			EDUWAY        ,
+			   			EDUTARGET     ,
+			   			EDUCOUNT      ,
+			   			CHARGER       ,
+			   			LECROOMNO     ,
+			   			EDUFROM       ,
+			   			EDUTO         ,
+			   			REQFROM       ,
+			   			REQTO         ,
+			   			BASEYYMM      ,
+			   			CHPTCOUNT     ,
+			   			APVHOUR       ,
+			   			CYBERPRGSRATE ,
+			   			CYBERMINHOUR  ,
+			   			CYBERFINBASE  ,
+			   			CYBERFINNOTICE,
+			   			OPRDEPART     ,
+			   			OPRDEPTTELNO  ,
+			   			INSUSER       ,
+			   			INSDATE       ,
+			   			UPDUSER       ,
+			   			UPDDATE		  	,
+			   			MODIFYFLAG		,
+			   			DAYCOUNT	  	,
+			   			TERMDESC
+
+		) VALUES (
+
+			   			#courseCode#    ,
+			   			#year#          ,
+			   			#courseName#    ,
+			   			SUBSTR(#crsType#,1,5)    ,
+			   			SUBSTR(#crsType#,6,5)    ,
+			   			SUBSTR(#crsType#,11,5)    ,
+			   			#eduObjectives# ,
+			   			#eduWay#        ,
+			   			#eduTarget#     ,
+			   			#eduCount#      ,
+			   			#charger#       ,
+			   			#lecRoomNo#     ,
+			   			#eduFrom#       ,
+			   			#eduTo#         ,
+			   			#reqFrom#       ,
+			   			#reqTo#         ,
+			   			#baseYYMM#      ,
+			   			#chptCount#     ,
+			   			#apvHour#       ,
+			   			#cyberPrgsRate# ,
+			   			#cyberMinHour#  ,
+			   			#cyberFinBase#  ,
+			   			#cyberFinNotice#,
+			   			#oprDepart#     ,
+			   			#oprDeptTelno#  ,
+			   			#insUser#       ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD')       ,
+			   			#updUser#       ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD') ,
+			   			'Y'							,
+			   			#dayCount#  ,
+			   			#termDesc#       
+
+		)
+	</insert>
+	
+		<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE       
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      				,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD') 
+		)
+	</insert>
+	
+		<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile_ODOR" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE         ,
+			   			COURSECODE      ,
+			   			BTCILCKTIME     ,
+			   			TOTALCNT				,
+			   			CODESTR					,
+			   			GBN							,
+			   			SENDDT			
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      				,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			   			#courseCode#    ,
+			   			#btCilckTime#   ,
+			   			#totalCnt#			,
+			   			#codeStr#    		,
+			   			#gbn#   				,
+			   			#sendDt#
+		)
+	</insert>
+
+
+	<!-- 수정여부  구분용  레코드 수 Count -->
+	<select id="selectCrsModifyCount" parameterClass="crs_Org" resultClass="java.lang.Integer">
+		SELECT COUNT(*)
+		FROM OPR_LECTURE
+		WHERE COURSECODE = #courseCode#
+		AND EDUCOUNT = #eduCount#
+		AND EDUFROM = #eduFrom#
+		AND EDUTO = #eduTo#
+		<isNotEmpty property="reqFrom">
+		AND REQFROM = #reqFrom#
+		</isNotEmpty>
+		<isNotEmpty property="reqTo">
+		AND REQTO = #reqTo#
+		</isNotEmpty>	
+		<isNotEmpty property="baseYYMM">
+		AND BASEYYMM = #baseYYMM#
+		</isNotEmpty>				
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_Org" parameterClass="crs_Org">
+		UPDATE OPR_LECTURE SET
+			   COURSECODE     = #courseCode#    ,
+			   YEAR           = #year#          ,
+			   COURSENAME     = #courseName#    ,
+			   CRSTYPE1       = SUBSTR(#crsType#,1,5)      ,
+			   CRSTYPE2       = SUBSTR(#crsType#,6,5)      ,
+			   CRSTYPE3       = SUBSTR(#crsType#,11,5)      ,
+			   EDUOBJECTIVES  = #eduObjectives# ,
+			   EDUWAY         = #eduWay#        ,
+			   EDUTARGET      = #eduTarget#     ,
+			   EDUCOUNT       = #eduCount#      ,
+			   CHARGER        = #charger#       ,
+			   LECROOMNO      = #lecRoomNo#     ,
+			   EDUFROM        = #eduFrom#       ,
+			   EDUTO          = #eduTo#         ,
+			   REQFROM        = #reqFrom#       ,
+			   REQTO          = #reqTo#         ,
+			   BASEYYMM       = #baseYYMM#      ,
+			   CHPTCOUNT      = #chptCount#     ,
+			   APVHOUR        = #apvHour#       ,
+			   CYBERPRGSRATE  = #cyberPrgsRate# ,
+			   CYBERMINHOUR   = #cyberMinHour#  ,
+			   CYBERFINBASE   = #cyberFinBase#  ,
+			   CYBERFINNOTICE = #cyberFinNotice#,
+			   OPRDEPART      = #oprDepart#     ,
+			   OPRDEPTTELNO   = #oprDeptTelno#  ,
+			   UPDUSER        = #updUser#       ,
+			   UPDDATE        = TO_CHAR(SYSDATE,'YYYYMMDD'),
+			   MODIFYFLAG	  	= #modifyFlag#,
+			   DAYCOUNT       = #dayCount#,
+			   TERMDESC	  		= #termDesc#
+			   WHERE		COURSECODE = #courseCode#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_Org" parameterClass="crs_Org">
+		DELETE FROM OPR_LECTURE
+		WHERE		COURSECODE = #courseCode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!--  교육과정 확정 전송 -->
+	<update id="fixCrs_Org" parameterClass="crs_Org">
+		UPDATE OPR_LECTURE SET
+				SENDDATE = TO_CHAR(SYSDATE,'YYYYMMDD'),
+				SENDER	=	#sender#,
+				MODIFYFLAG = 'N'
+			   	WHERE		COURSECODE = #courseCode#
+	</update>
+
+
+	<!--  과정등록 교과목 목록조회쿼리 -->
+	<select id="selectCrs_SubjectList" parameterClass="crs_Org" resultClass="crs_Subject">
+			SELECT 	ROWNUM NUM,
+				   		COURSECODE ,
+				   		SUBJSEQ    ,
+				   		SUBJNAME   ,
+				   		SUBJTYPE   ,
+				   		LECHOUR		 ,
+				   		PATHOUR    ,
+				   		ETCHOUR    ,
+				   		EDUCONTENTS,
+				   		ORD
+			  FROM 		OPR_LECSUBJECT
+			  WHERE 	COURSECODE = #courseCode#
+			  ORDER BY ORD, SUBJSEQ
+	</select>
+
+
+	<!-- 과정등록 교과목 입력 -->
+	<insert id="insertCrs_Subject" parameterClass="crs_Subject">
+			INSERT INTO OPR_LECSUBJECT (
+					   			COURSECODE ,
+					   			SUBJSEQ    ,
+					   			SUBJNAME   ,
+					   			SUBJTYPE   ,
+									LECHOUR    ,
+									PATHOUR    ,
+									ETCHOUR    ,
+					   			EDUCONTENTS,
+					   			ORD
+			) VALUES (
+
+					   			#courseCode# ,
+					   			(SELECT (NVL(MAX(SUBJSEQ),0) + 1)
+					   			FROM OPR_LECSUBJECT
+					   			WHERE COURSECODE = #courseCode# )    ,
+					   			#subjName#   ,
+					   			#subjType#   ,
+					   			#lecHour#    ,
+					   			#patHour#    ,
+					   			#etcHour#    ,
+					   			#eduContents#,
+					   			#ord#
+			)
+
+	</insert>
+
+
+	<!--  과정등록 교과목 삭제 -->
+	<delete id="deleteCrs_Subject" parameterClass="crs_Org">
+		DELETE FROM OPR_LECSUBJECT
+		WHERE COURSECODE = #courseCode#
+	</delete>
+
+	<!--  시간표등록 과목 목록조회쿼리 -->
+	<select id="selectCrs_SubjectTime" parameterClass="crs_Org" resultClass="crs_Subject">
+			SELECT 		'' SUBJSEQ		,
+						'' SUBJNAME	,
+						0  ORD
+			FROM		DUAL
+			UNION
+			SELECT 		TO_CHAR(SUBJSEQ)    ,
+				   		SUBJNAME	,
+				   		ORD
+			FROM 		OPR_LECSUBJECT
+			WHERE 	COURSECODE = #courseCode#
+			UNION
+			SELECT 		'98' SUBJSEQ		,
+						'중식' SUBJNAME	,
+						98  ORD
+			FROM		DUAL
+			UNION
+			SELECT 		'99' SUBJSEQ		,
+						'석식' SUBJNAME	,
+						99  ORD
+			FROM		DUAL
+
+			  ORDER BY ORD
+	</select>
+
+
+	<!--  시간표 목록조회쿼리 -->
+	<select id="selectCrs_TimeTblList" parameterClass="crs_TimeTbl" resultClass="crs_TimeTbl">
+			SELECT 	ROWNUM NUM,
+				   		A.COURSECODE,
+				   		A.LECTDATE  ,
+				   		A.TIMESEQ   ,
+				   		SUBJSEQ   ,
+				   		FROMTIME  ,
+				   		TOTIME    ,
+				   		SUBSTR(TOTIME,0,2) - SUBSTR(FROMTIME,0,2) HOUR,
+				   		PROFNAME  ,
+				   		PROFASSIGN,
+				   		ORD,
+				   		PROFNO,
+				   		TO_CHAR(SYSDATE,'YYYY-MM-DD') TODAY,
+				   		DECODE(GREATEST(A.LECTDATE, TO_CHAR(SYSDATE,'YYYYMMDD')), A.LECTDATE, 'Y','N') MODYN
+			FROM OPR_TIMETABLE A,
+			     (SELECT COURSECODE, LECTDATE, TIMESEQ, 
+       						 SUBSTR(XMLAGG(XMLELEMENT("NM",','||PROFNO)ORDER BY PROFNO).EXTRACT('//text()'),2) PROFNO
+              FROM OPR_LECTPROF 
+             WHERE COURSECODE = #courseCode#
+               AND LECTDATE = #lectDate#
+             GROUP BY COURSECODE, LECTDATE, TIMESEQ
+            ) B
+      WHERE A.COURSECODE = B.COURSECODE(+)
+        AND A.LECTDATE = B.LECTDATE(+)
+        AND A.TIMESEQ = B.TIMESEQ(+)
+			  AND A.COURSECODE = #courseCode#
+			  AND A.LECTDATE = #lectDate#
+			ORDER BY FROMTIME
+	</select>
+
+	<!--  시간표 날자 체크 -->
+	<select id="selectCrs_TimeTbl" parameterClass="crs_TimeTbl" resultClass="java.lang.Integer">
+			SELECT COUNT(*) CHKDATE
+			FROM OPR_LECTURE
+			WHERE COURSECODE = #courseCode#
+			AND #lectDate# BETWEEN EDUFROM AND EDUTO
+	</select>
+	
+	<!--  시간표 맥스값 가져오기 -->
+	<select id="selectCrs_MaxTimeTbl" parameterClass="crs_TimeTbl" resultClass="java.lang.String">
+			SELECT MAX(TIMESEQ)
+			  FROM OPR_TIMETABLE
+			 WHERE COURSECODE = #courseCode#
+				 AND LECTDATE = #lectDate#
+	</select>
+
+		<!-- 시간표 입력 -->
+	<insert id="insertCrs_TimeTbl" parameterClass="crs_TimeTbl">
+		INSERT INTO OPR_TIMETABLE (
+			   			COURSECODE,
+			   			LECTDATE  ,
+			   			TIMESEQ   ,
+			   			SUBJSEQ   ,
+			   			FROMTIME  ,
+			   			TOTIME    ,
+			   			PROFNAME  ,
+			   			PROFASSIGN
+		) VALUES (
+
+			   			#courseCode#,
+			   			#lectDate#  ,
+			   			(SELECT NVL(MAX(TIMESEQ),0)+1
+						FROM OPR_TIMETABLE
+						WHERE COURSECODE = #courseCode#
+						AND LECTDATE = #lectDate#),
+			   			#subjSeq#   ,
+			   			#fromTime#  ,
+			   			#toTime#    ,
+			   			#profName#  ,
+			   			#profAssign#
+		)
+	</insert>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_LectProf" parameterClass="crs_TimeTbl">
+		INSERT INTO OPR_LECTPROF (	
+			   			COURSECODE,	
+			   			LECTDATE  ,	
+			   			TIMESEQ   ,	
+			   			PROFNO   ,	
+			   			PROFNAME  ,	
+			   			PROFASSIGN    ,	
+			   			PROFLEVEL  ,	
+			   			ISPAYED       	
+		) (SELECT #courseCode#,	
+			   			#lectDate#  ,	
+			   			#timeSeq#   ,	
+			   			PROFESSORNO   ,	
+			   			PROFNAME  ,
+			   			WORKPLACE,	
+			   			PROFLEVEL   ,	
+							'N' 
+				 FROM PRF_PROFESSOR
+				WHERE PROFESSORNO = #profno#      	
+		)
+	</insert>
+	
+	<insert id="insertCrs_LectPay" parameterClass="crs_TimeTbl">
+		INSERT INTO PRF_LECTPAY(	
+			   			COURSECODE,	
+			   			LECTDATE  ,	
+			   			PROFNO   	,	
+			   			YEAR			,
+			   			PROFNAME  ,	
+			   			PROFLEVEL ,
+			   			LECTHOUR 	   	
+		) (SELECT #courseCode#,	
+			   			#lectDate#  ,	
+			   			A.PROFESSORNO   ,	
+			   			SUBSTR(#lectDate#,1,4),
+			   			A.PROFNAME  ,
+			   			A.PROFLEVEL,
+			   			B.LECTHOUR   
+				 FROM PRF_PROFESSOR A, 
+				      (SELECT A.PROFNO, SUM(FLOOR( MOD( TO_DATE(TOTIME, 'HH24:MI') - TO_DATE(FROMTIME, 'HH24:MI'), 1) * 24 )) LECTHOUR 
+				         FROM OPR_LECTPROF A, OPR_TIMETABLE B
+				        WHERE A.COURSECODE = B.COURSECODE
+				          AND A.LECTDATE = B.LECTDATE
+				          AND A.TIMESEQ = B.TIMESEQ
+				          AND A.COURSECODE = #courseCode# 
+				          AND A.LECTDATE = #lectDate#
+				          AND A.PROFNO = #profno# 
+				        GROUP BY A.PROFNO
+				      ) B
+				WHERE A.PROFESSORNO = B.PROFNO
+				  AND A.PROFESSORNO = #profno#      	
+		)
+	</insert>	
+
+	<!-- 시간표 삭제 -->
+	<delete id="deleteCrs_TimeTbl" parameterClass="crs_Org">
+		DELETE 	FROM OPR_TIMETABLE
+		WHERE 	COURSECODE = #courseCode#
+		AND		LECTDATE = #lectDate#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectProfAll" parameterClass="crs_Org">
+		DELETE FROM OPR_LECTPROF 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = #lectDate#  
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectProf" parameterClass="crs_TimeTbl">
+		DELETE FROM OPR_LECTPROF 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = #lectDate#  
+		   AND TIMESEQ = #timeSeq#  
+		   AND PROFNO = #profno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>	
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectPayAll" parameterClass="crs_Org">
+		DELETE FROM PRF_LECTPAY 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = #lectDate#	    		     
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_LectPay" parameterClass="crs_TimeTbl">
+		DELETE FROM PRF_LECTPAY 
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = #lectDate#	
+		   AND PROFNO = #profno#	    		     
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="year">
+				YEAR = #year#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="coursename">
+				COURSENAME = #coursename#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype1">
+				CRSTYPE1 = #crstype1#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype2">
+				CRSTYPE2 = #crstype2#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype3">
+				CRSTYPE3 = #crstype3#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduobjectives">
+				EDUOBJECTIVES = #eduobjectives#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduway">
+				EDUWAY = #eduway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="edutarget">
+				EDUTARGET = #edutarget#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="educount">
+				EDUCOUNT = #educount#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="charger">
+				CHARGER = #charger#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="lecroomno">
+				LECROOMNO = #lecroomno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="edufrom">
+				EDUFROM = #edufrom#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduto">
+				EDUTO = #eduto#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="reqfrom">
+				REQFROM = #reqfrom#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="reqto">
+				REQTO = #reqto#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="baseyymm">
+				BASEYYMM = #baseyymm#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="chptcount">
+				CHPTCOUNT = #chptcount#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="apvhour">
+				APVHOUR = #apvhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberprgsrate">
+				CYBERPRGSRATE = #cyberprgsrate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberminhour">
+				CYBERMINHOUR = #cyberminhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinbase">
+				CYBERFINBASE = #cyberfinbase#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinnotice">
+				CYBERFINNOTICE = #cyberfinnotice#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepart">
+				OPRDEPART = #oprdepart#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepttelno">
+				OPRDEPTTELNO = #oprdepttelno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upduser">
+				UPDUSER = #upduser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upddate">
+				UPDDATE = #upddate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="sender">
+				SENDER = #sender#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="senddate">
+				SENDDATE = #senddate#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

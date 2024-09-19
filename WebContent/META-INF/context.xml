@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context debug="0" docBase="loti" path="" reloadable="false">
+	<Logger className="org.apache.catalina.logger.FileLogger" prefix="localhost_loti_log." suffix=".txt" timestamp="true" />
+	<Resource MaxActive="20"
+	          auth="Container"
+		      driverClassName="oracle.jdbc.driver.OracleDriver" 
+		      factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory"
+		      maxIdle="2"
+		      name="loti"
+		      password="cbloti123"
+		      removeAbandoned="true"
+		      type="javax.sql.DataSource"
+		      url="jdbc:oracle:thin:@172.16.0.38:15211:ORCL"
+		      username="CBLOTI" />
+	<!-- <Resource name="loti" auth="Container" type="javax.sql.DataSource" 
+		username="cbloti" password="cbloti123" driverClassName="oracle.jdbc.driver.OracleDriver" 
+		factory="org.apache.tomcat.dbcp.dbcp.BasicDataSourceFactory" url="jdbc:oracle:thin:@107.0.111.87:1521:cbloti" 
+		MaxActive="20" maxIdle="2" removeAbandoned="true" /> -->
+	<!-- <Resource auth="Container" driverClassName="oracle.jdbc.driver.OracleDriver" 
+		factory="oracle.jdbc.pool.OracleDataSourceFactory" name="jdbc/loti" password="cbloti123" 
+		type="javax.sql.DataSource" url="jdbc:oracle:thin:@127.0.0.1:1521:cbloti" 
+		user="cbloti"/> -->
+</Context>

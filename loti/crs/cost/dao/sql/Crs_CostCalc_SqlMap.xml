@@ -1,0 +1,1009 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_CostCalc">
+
+	<typeAlias alias="crs_CostCalc" type="loti.crs.cost.model.Crs_CostCalc"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CostCalcYYMM" parameterClass="crs_CostCalc" resultClass="crs_CostCalc">
+	    SELECT MIN(FROMYYMM) FROMYYMM, 
+	           MAX(TOYYMM) TOYYMM   
+	      FROM (SELECT MIN(BASEYYMM) FROMYYMM,
+	                   MAX(BASEYYMM) TOYYMM 
+	              FROM OPR_COURSECOST A,
+	                   OPR_LECTURE B
+	             WHERE A.COURSECODE = B.COURSECODE
+	                   AND A.TIMES = #times#
+	             UNION ALL
+	            SELECT MIN(CYBERYYMM) FROMYYMM, 
+	                   MAX(CYBERYYMM) TOYYMM 
+	              FROM OPR_CYBERCOSTMST A
+	             WHERE TIMES = #times#
+	           ) A
+	</select>
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CostCalcMaxTimes" parameterClass="crs_CostCalc" resultClass="crs_CostCalc">
+			SELECT NVL(MAX(TIMES),0)+1 TIMES  
+			  FROM OPR_COURSECOST 
+			 WHERE COSTYYMM = REPLACE(#costyymm#,'-','')
+	</select>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CostCalcInfoList" parameterClass="crs_CostCalc" resultClass="crs_CostCalc">
+			SELECT TIMES, 
+			       COSTYYMM ,
+			       A.COURSECODE,
+			       B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+			       B.EDUFROM,
+			       B.EDUTO,
+			       (TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST) AS TOTALCOST,
+			       TXTBOOKCOST_INTRO TXTBOOKCOSTINTRO,
+			       TXTBOOKCOST_MSCT TXTBOOKCOSTMSCT,
+			       TXTBOOKCOST_COMMON TXTBOOKCOSTCOMMON,
+			       TXTBOOKCOST_AXBOOK TXTBOOKCOSTAXBOOK,
+			       PROFCOST_PAY PROFCOSTPAY,
+			       PROFCOST_TRAVEL PROFCOSTTRAVEL,
+			       PROFCOST_QUESTION PROFCOSTQUESTION,
+			       IMCHACOST,
+			       ETCCOST
+			  FROM OPR_COURSECOST A,
+			       OPR_LECTURE B
+			 WHERE A.COURSECODE = B.COURSECODE 
+			 	 AND A.TIMES LIKE #searchtimes#
+				 AND A.COSTYYMM LIKE REPLACE(#costyymm#,'-','')||'%' 	   
+			   AND B.CRSTYPE1 != '00003'
+			   AND B.ISPASS = 'Y'
+			UNION ALL
+			SELECT A.CYBERTIMES,
+			       A.CYBERYYMM, 
+			       'C',
+			       '민간컨텐츠과정('||TO_NUMBER(SUBSTR(A.CYBERYYMM,5,2))||'월)' COURSENAME,
+			       '',
+			       '',
+			       MAX(EDUCOST) AS TOTALCOST,
+			       0,0,0,0,0,0,0,0,
+			       MAX(EDUCOST) ETCCOST
+			  FROM OPR_CYBERCOSTMST A,
+			       OPR_CYBERCOST B 
+			 WHERE A.CYBERYYMM = B.CYBERYYMM 
+			   AND A.CYBERTIMES = B.CYBERTIMES 
+			   AND A.TIMES LIKE #searchtimes# 
+				 AND A.COSTYYMM LIKE REPLACE(#costyymm#,'-','')||'%'  
+			 GROUP BY A.CYBERTIMES, A.CYBERYYMM
+			 ORDER BY EDUFROM, EDUTO 
+	</select>
+	
+	<select id="selectCrs_CostCalcModList" parameterClass="crs_CostCalc" resultClass="crs_CostCalc">
+      SELECT A.COURSECODE,
+             A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+             C.TIMES,
+             C.COSTYYMM,
+             0 CYBERTIMES,
+             '' CYBERYYMM,
+             A.EDUFROM,
+             A.EDUTO,
+             (NVL(TXTBOOKCOST_INTRO,0) + NVL(B.TXTBOOKCOST_MSCT,0) + NVL(TXTBOOKCOST_COMMON,0) + NVL(TXTBOOKCOST_AXBOOK,0) + NVL(B.PROFCOST_PAY,0) + NVL(B.PROFCOST_TRAVEL,0) + NVL(PROFCOST_QUESTION,0) + NVL(IMCHACOST,0) + NVL(ETCCOST,0)) AS TOTALCOST,
+             NVL(TXTBOOKCOST_INTRO,0) TXTBOOKCOSTINTRO,
+             NVL(B.TXTBOOKCOST_MSCT,0) TXTBOOKCOSTMSCT,
+             NVL(TXTBOOKCOST_COMMON,0) TXTBOOKCOSTCOMMON,
+             NVL(TXTBOOKCOST_AXBOOK,0) TXTBOOKCOSTAXBOOK,
+             NVL(B.PROFCOST_PAY,0) PROFCOSTPAY,
+             NVL(B.PROFCOST_TRAVEL,0) PROFCOSTTRAVEL,
+             NVL(PROFCOST_QUESTION,0) PROFCOSTQUESTION,
+             NVL(IMCHACOST,0) IMCHACOST,
+             NVL(ETCCOST,0) ETCCOST
+        FROM OPR_LECTURE A, 
+             (SELECT A.COURSECODE, SUM(LECTPAY) PROFCOST_PAY, SUM(TRAVEL) PROFCOST_TRAVEL, SUM(MSCTFEE) TXTBOOKCOST_MSCT
+                FROM PRF_LECTPAY A, OPR_LECTURE B
+               WHERE A.COURSECODE = B.COURSECODE
+                 AND (SUBSTR(B.EDUFROM, 1, 6) BETWEEN REPLACE(#fromyymm#,'-','') AND REPLACE(#toyymm#,'-','')   )
+                 AND B.CRSTYPE1 IN('00001' ,'00002', '00004', '00005')
+               GROUP BY A.COURSECODE
+              ) B,
+              OPR_COURSECOST C                   
+        WHERE A.COURSECODE = B.COURSECODE(+) 
+          AND A.COURSECODE = C.COURSECODE(+)
+          AND (SUBSTR(A.EDUFROM, 1, 6) BETWEEN REPLACE(#fromyymm#,'-','') AND REPLACE(#toyymm#,'-','')   )        
+          AND A.CRSTYPE1 IN('00001' ,'00002', '00004', '00005')
+          AND A.ISPASS = 'Y'
+          AND (TIMES IS NULL OR (TIMES = #times# AND C.COSTYYMM LIKE REPLACE (#costyymm#, '-', '')))
+        UNION ALL
+       SELECT 'C',
+              '민간컨텐츠과정('||TO_NUMBER(SUBSTR(A.CYBERYYMM,5,2))||'월)' COURSENAME,
+              MAX(B.TIMES),
+              MAX(B.COSTYYMM),
+              A.CYBERTIMES,
+              A.CYBERYYMM,
+              '',
+              '',
+              MAX(EDUCOST) TOTALCOST,
+              0,0,0,0,0,0,0,0,
+              MAX(EDUCOST) ETCCOST
+         FROM OPR_CYBERCOST  A,
+              OPR_CYBERCOSTMST B 
+        WHERE A.CYBERYYMM = B.CYBERYYMM(+) 
+          AND A.CYBERTIMES = B.CYBERTIMES(+) 
+          AND A.CYBERYYMM BETWEEN REPLACE(#fromyymm#,'-','') AND REPLACE(#toyymm#,'-','') 
+          AND (TIMES IS NULL OR (TIMES = #times# AND B.COSTYYMM LIKE REPLACE (#costyymm#, '-', ''))) 
+        GROUP BY A.CYBERTIMES, A.CYBERYYMM   
+        ORDER BY EDUFROM, EDUTO         
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CostCalcList" parameterClass="crs_CostCalc" resultClass="crs_CostCalc">
+			SELECT TIMES, 
+			       COSTYYMM, 
+			       SUM(COURSECOUNT) COURSECOUNT, 
+			       SUM(CYBERCOUNT) CYBERCOUNT, 
+			       SUM(TOTALCOST) TOTALCOST,
+			       (SELECT DECODE(COUNT(COSTYYMM),0,'Y','N') FROM OPR_COURSECOSTDIV WHERE COSTYYMM = A.COSTYYMM)CHKCOST
+			  FROM (SELECT TIMES, 
+			               COSTYYMM ,
+			               COUNT(COURSECODE) COURSECOUNT,
+			               0 CYBERCOUNT,
+			               SUM(TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST) TOTALCOST
+			          FROM OPR_COURSECOST
+			         WHERE COSTYYMM LIKE REPLACE(#searchdate#,'-','')||'%'
+			           AND COURSECODE != 'C'
+			         GROUP BY TIMES, COSTYYMM
+			        UNION ALL
+			        SELECT A.TIMES,
+			               A.COSTYYMM, 
+			               0 COURSECOUNT,
+			               COUNT(B.COURSECODE) CYBERCOUNT,
+			               MAX(EDUCOST) TOTALCOST
+			          FROM OPR_CYBERCOSTMST A,
+			               OPR_CYBERCOST B 
+			         WHERE A.CYBERYYMM = B.CYBERYYMM 
+			           AND A.CYBERTIMES = B.CYBERTIMES  
+			           AND COSTYYMM LIKE REPLACE(#searchdate#,'-','')||'%'
+			         GROUP BY TIMES, COSTYYMM
+			       ) A
+			 GROUP BY TIMES, COSTYYMM 
+			 ORDER BY COSTYYMM, TIMES
+	</select>
+	
+	
+	<!-- 과정별 교육비 목록 조회 -->
+	<select id="selectCrs_CostCourseList" parameterClass="java.lang.String" resultClass="crs_CostCalc">
+			SELECT A.COURSECODE,
+             B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+             TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) TURNNO,
+			       B.EDUFROM,
+			       B.EDUTO,
+			      (TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST) AS TOTALCOST,
+			       TXTBOOKCOST_INTRO TXTBOOKCOSTINTRO,
+			       TXTBOOKCOST_MSCT TXTBOOKCOSTMSCT,
+			       TXTBOOKCOST_COMMON TXTBOOKCOSTCOMMON,
+			       TXTBOOKCOST_AXBOOK TXTBOOKCOSTAXBOOK,
+			       PROFCOST_PAY PROFCOSTPAY,
+			       PROFCOST_TRAVEL PROFCOSTTRAVEL,
+			       PROFCOST_QUESTION PROFCOSTQUESTION,
+			       IMCHACOST,
+			       ETCCOST
+			  FROM OPR_COURSECOST A,
+			       OPR_LECTURE B
+			 WHERE A.COURSECODE = B.COURSECODE 
+			   AND A.COURSECODE LIKE SUBSTR(#searchCourseCode#,1,10)||'%' 
+			   AND B.ISPASS = 'Y'
+			 UNION    
+			SELECT A.COURSECODE,
+			   		 B.COURSENAME|| '(' || TO_NUMBER (SUBSTR (A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+			       TO_NUMBER (SUBSTR (A.COURSECODE, 11, 2)) TURNNO, B.EDUFROM, B.EDUTO,
+			       A.EDUCOST AS TOTALCOST,
+			       0 TXTBOOKCOSTINTRO, 0 TXTBOOKCOSTMSCT,
+			       0 TXTBOOKCOSTCOMMON,
+			       0 TXTBOOKCOSTAXBOOK, 0 PROFCOSTPAY,
+			       0 PROFCOSTTRAVEL, 0 PROFCOSTQUESTION,
+			       0 IMCHACOST,
+			       A.EDUCOST
+			  FROM OPR_CYBERCOST A, OPR_LECTURE B
+			 WHERE A.COURSECODE = B.COURSECODE
+			   AND A.COURSECODE LIKE SUBSTR (#searchCourseCode#, 1, 10)||'%'
+			   AND B.ISPASS = 'Y'			   
+	</select>	
+	
+	
+	<!-- 과정별 교육비 합계 조회 -->
+	<select id="selectCrs_CostCourseTotalList" parameterClass="java.lang.String" resultClass="crs_CostCalc">
+		SELECT  TO_CHAR(SUM(TOTALCOST))          TOTALCOST,
+            TO_CHAR(SUM(TXTBOOKCOSTINTRO))   TXTBOOKCOSTINTRO, 
+            TO_CHAR(SUM(TXTBOOKCOSTMSCT))    TXTBOOKCOSTMSCT,
+            TO_CHAR(SUM(TXTBOOKCOSTCOMMON))  TXTBOOKCOSTCOMMON,
+            TO_CHAR(SUM(TXTBOOKCOSTAXBOOK))  TXTBOOKCOSTAXBOOK, 
+            TO_CHAR(SUM(PROFCOSTPAY))        PROFCOSTPAY,
+            TO_CHAR(SUM(PROFCOSTTRAVEL))     PROFCOSTTRAVEL,
+            TO_CHAR(SUM(PROFCOSTQUESTION))   PROFCOSTQUESTION,
+            TO_CHAR(SUM(IMCHACOST))          IMCHACOST,
+            TO_CHAR(SUM(ETCCOST))            ETCCOST
+      FROM 
+      		 (SELECT (TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST) AS TOTALCOST,
+                    TXTBOOKCOST_INTRO   TXTBOOKCOSTINTRO,
+                    TXTBOOKCOST_MSCT    TXTBOOKCOSTMSCT,
+                    TXTBOOKCOST_COMMON  TXTBOOKCOSTCOMMON,
+                    TXTBOOKCOST_AXBOOK  TXTBOOKCOSTAXBOOK,
+                    PROFCOST_PAY        PROFCOSTPAY,
+                    PROFCOST_TRAVEL     PROFCOSTTRAVEL,
+                    PROFCOST_QUESTION   PROFCOSTQUESTION,
+                    IMCHACOST,
+                    ETCCOST
+              FROM OPR_COURSECOST A, OPR_LECTURE B
+             WHERE A.COURSECODE = B.COURSECODE 
+               AND A.COURSECODE LIKE SUBSTR(#searchCourseCode#,1,10)||'%' 
+               AND B.ISPASS = 'Y'
+             UNION    
+            SELECT A.EDUCOST AS TOTALCOST,
+                   0 TXTBOOKCOSTINTRO, 
+                   0 TXTBOOKCOSTMSCT,
+                   0 TXTBOOKCOSTCOMMON,
+                   0 TXTBOOKCOSTAXBOOK, 
+                   0 PROFCOSTPAY,
+                   0 PROFCOSTTRAVEL, 
+                   0 PROFCOSTQUESTION,
+                   0 IMCHACOST,
+                   A.EDUCOST ETCCOST
+              FROM OPR_CYBERCOST A, OPR_LECTURE B
+             WHERE A.COURSECODE = B.COURSECODE
+               AND A.COURSECODE LIKE SUBSTR (#searchCourseCode#, 1, 10)||'%'
+               AND B.ISPASS = 'Y'
+           )
+	</select>	
+	
+	
+	<!-- 엑셀다운로드용 목록조회쿼리 -->
+	<select id="selectCrs_CostCalcExcel" parameterClass="java.lang.String" resultClass="crs_CostCalc">
+	  SELECT  COL_A,
+            COL_B,
+            COL_C,
+            COL_D,
+            COL_E,
+            COL_F,
+            COL_G,
+            COL_H,
+            COL_I,
+            COL_J,
+            COL_K,
+            COL_L,
+            COL_M,
+            COL_N,
+            COL_O
+      FROM
+           (SELECT  0 NUM,
+                    '교육기간'         COL_A,
+                    '회차'             COL_B,
+                    '과정수'           COL_C,
+                    '합계'             COL_D,
+                    '소계(교육+원고료+교재+부교재)' COL_E,
+                    '교육안내'         COL_F,
+                    '원고료'           COL_G,
+                    '공통교재(감수료)' COL_H, 
+                    '부교재'           COL_I,
+                    '소계(수당+여비+출제수당)' COL_J,
+                    '수당'             COL_K,            
+                    '원거리여비'       COL_L,                               
+                    '출제수당'         COL_M,
+                    '임차료'           COL_N ,
+                    '기타교육경비(교육부재료등)' COL_O      
+              FROM  DUAL
+         UNION ALL
+            SELECT  NUM,
+                    TO_CHAR(COL_A) COL_A,
+                    TO_CHAR(COL_B) COL_B,
+                    TO_CHAR(COL_C) COL_C,
+                    TO_CHAR(COL_D) COL_D,
+                    TO_CHAR(COL_E) COL_E,
+                    TO_CHAR(COL_F) COL_F,
+                    TO_CHAR(COL_G) COL_G,
+                    TO_CHAR(COL_H) COL_H,
+                    TO_CHAR(COL_I) COL_I,
+                    TO_CHAR(COL_J) COL_J,
+                    TO_CHAR(COL_K) COL_K,
+                    TO_CHAR(COL_L) COL_L,
+                    TO_CHAR(COL_M) COL_M,
+                    TO_CHAR(COL_N) COL_N,
+                    TO_CHAR(COL_O) COL_O
+              FROM 
+                   (SELECT  0 NUM,
+                            '예산' COL_A,
+                            '' COL_B,
+                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM LIKE #searchdate#-1||'%' AND COURSECODE NOT LIKE 'C')+(SELECT COUNT(COURSECODE) FROM OPR_CYBERCOST WHERE CYBERYYMM LIKE #searchdate#-1||'%'), '999,999,999') COL_C ,
+                            TO_CHAR(NVL(TXTBOOKCOST_INTRO,0) + NVL(TXTBOOKCOST_MSCT,0) + NVL(TXTBOOKCOST_COMMON,0) + NVL(TXTBOOKCOST_AXBOOK,0) + NVL(PROFCOST_PAY,0) + NVL(PROFCOST_TRAVEL,0) + NVL(PROFCOST_QUESTION,0) + NVL(IMCHACOST,0) + NVL(ETCCOST,0), '999,999,999') COL_D,
+                            TO_CHAR(NVL(TXTBOOKCOST_INTRO,0) + NVL(TXTBOOKCOST_MSCT,0) + NVL(TXTBOOKCOST_COMMON,0) + NVL(TXTBOOKCOST_AXBOOK,0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(TXTBOOKCOST_INTRO,0)  , '999,999,999') COL_F,
+                            TO_CHAR(NVL(TXTBOOKCOST_MSCT,0)   , '999,999,999') COL_G,
+                            TO_CHAR(NVL(TXTBOOKCOST_COMMON,0) , '999,999,999') COL_H,
+                            TO_CHAR(NVL(TXTBOOKCOST_AXBOOK,0) , '999,999,999') COL_I,
+                            TO_CHAR(NVL(PROFCOST_PAY,0) + NVL(PROFCOST_TRAVEL,0) + NVL(PROFCOST_QUESTION,0), '999,999,999') COL_J, 
+                            TO_CHAR(NVL(PROFCOST_PAY,0)       , '999,999,999') COL_K,
+                            TO_CHAR(NVL(PROFCOST_TRAVEL,0)    , '999,999,999') COL_L,
+                            TO_CHAR(NVL(PROFCOST_QUESTION,0)  , '999,999,999') COL_M,
+                            TO_CHAR(NVL(IMCHACOST,0)          , '999,999,999') COL_N,
+                            TO_CHAR(NVL(ETCCOST,0)            , '999,999,999') COL_O   
+                      FROM  OPR_YEARBUDGET
+                     WHERE  YEAR LIKE #searchdate#
+                 UNION ALL
+                    SELECT  0 NUM,
+                            '예산-지출' COL_A,
+                            '' COL_B,
+                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM LIKE #searchdate#-1||'%' AND COURSECODE NOT LIKE 'C')-(SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM LIKE #searchdate#||'%' AND COURSECODE NOT LIKE 'C')-(SELECT COUNT(COURSECODE) FROM OPR_CYBERCOST WHERE CYBERYYMM LIKE #searchdate#||'%'), '999,999,999') COL_C ,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_INTRO,0) + NVL(A.TXTBOOKCOST_MSCT,0) + NVL(A.TXTBOOKCOST_COMMON,0) + NVL(A.TXTBOOKCOST_AXBOOK,0) + NVL(A.PROFCOST_PAY,0) + NVL(A.PROFCOST_TRAVEL,0) + NVL(A.PROFCOST_QUESTION,0) + NVL(A.IMCHACOST,0) + NVL(A.ETCCOST,0) - NVL(B.TOTCOST,0), '999,999,999') COL_D,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_INTRO,0) + NVL(A.TXTBOOKCOST_MSCT,0) + NVL(A.TXTBOOKCOST_COMMON,0) + NVL(A.TXTBOOKCOST_AXBOOK,0) - NVL(B.TXTBOOK_TOTCOST,0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_INTRO,0) - NVL(B.TXTBOOKCOST_INTRO,0)   , '999,999,999') COL_F,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_MSCT,0) - NVL(B.TXTBOOKCOST_MSCT,0)     , '999,999,999') COL_G,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_COMMON,0) - NVL(B.TXTBOOKCOST_COMMON,0) , '999,999,999') COL_H,
+                            TO_CHAR(NVL(A.TXTBOOKCOST_AXBOOK,0) - NVL(B.TXTBOOKCOST_AXBOOK,0) , '999,999,999') COL_I,
+                            TO_CHAR(NVL(A.PROFCOST_PAY,0) + NVL(A.PROFCOST_TRAVEL,0) + NVL(A.PROFCOST_QUESTION,0) - NVL(B.PROF_TOTCOST,0), '999,999,999') COL_J,
+                            TO_CHAR(NVL(A.PROFCOST_PAY,0) - NVL(B.PROFCOST_PAY,0)             , '999,999,999') COL_K,
+                            TO_CHAR(NVL(A.PROFCOST_TRAVEL,0) - NVL(B.PROFCOST_TRAVEL,0)       , '999,999,999') COL_L,
+                            TO_CHAR(NVL(A.PROFCOST_QUESTION,0) - NVL(B.PROFCOST_QUESTION,0)   , '999,999,999') COL_M,
+                            TO_CHAR(NVL(A.IMCHACOST,0) - NVL(B.IMCHACOST,0)                   , '999,999,999') COL_N ,
+                            TO_CHAR(NVL(A.ETCCOST,0) - NVL(B.ETCCOST,0)                       , '999,999,999') COL_O 
+                      FROM  OPR_YEARBUDGET A,
+                           (SELECT  MAX(SUBSTR(COSTYYMM,0,4))YEAR,
+                                    (SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) + SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION) + SUM(IMCHACOST) + SUM(ETCCOST))TOTCOST,
+                                    (SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) ) TXTBOOK_TOTCOST,
+                                    SUM(TXTBOOKCOST_INTRO) TXTBOOKCOST_INTRO,
+                                    SUM(TXTBOOKCOST_MSCT) TXTBOOKCOST_MSCT,
+                                    SUM(TXTBOOKCOST_COMMON) TXTBOOKCOST_COMMON,
+                                    SUM(TXTBOOKCOST_AXBOOK) TXTBOOKCOST_AXBOOK, 
+                                    (SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION)) PROF_TOTCOST, 
+                                    SUM(PROFCOST_PAY) PROFCOST_PAY,
+                                    SUM(PROFCOST_TRAVEL) PROFCOST_TRAVEL,
+                                    SUM(PROFCOST_QUESTION) PROFCOST_QUESTION,
+                                    SUM(IMCHACOST) IMCHACOST,
+                                    SUM(ETCCOST) ETCCOST           
+                              FROM  OPR_COURSECOST 
+                             WHERE  COSTYYMM LIKE #searchdate#||'%' )B
+                     WHERE  A.YEAR = B.YEAR
+                       AND  A.YEAR LIKE #searchdate#
+                 UNION ALL
+                    SELECT  0 NUM,
+                            '총계' COL_A,
+                            '' COL_B,
+                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM LIKE #searchdate#||'%' AND COURSECODE NOT LIKE 'C')+(SELECT COUNT(COURSECODE) FROM OPR_CYBERCOST WHERE CYBERYYMM LIKE #searchdate#||'%') , '999,999,999') COL_C,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0) + NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0) + NVL(SUM(IMCHACOST),0) + NVL(SUM(ETCCOST),0), '999,999,999') COL_D,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0)  , '999,999,999') COL_F,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_MSCT),0)   , '999,999,999') COL_G,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_COMMON),0) , '999,999,999') COL_H,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_AXBOOK),0) , '999,999,999') COL_I, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0), '999,999,999') COL_J, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0)       , '999,999,999') COL_K,
+                            TO_CHAR(NVL(SUM(PROFCOST_TRAVEL),0)    , '999,999,999') COL_L,
+                            TO_CHAR(NVL(SUM(PROFCOST_QUESTION),0)  , '999,999,999') COL_M,
+                            TO_CHAR(NVL(SUM(IMCHACOST),0)          , '999,999,999') COL_N,
+                            TO_CHAR(NVL(SUM(ETCCOST),0)            , '999,999,999') COL_O              
+                      FROM  OPR_COURSECOST                
+                     WHERE  COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  SUBSTR(COSTYYMM, 0, 4)
+                 UNION ALL
+                    SELECT  TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2)) NUM,
+                            TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2))||'월' COL_A,
+                            TO_CHAR(TIMES) COL_B,
+                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM = A.COSTYYMM AND TIMES = A.TIMES AND COURSECODE NOT LIKE 'C')+(SELECT COUNT(COURSECODE) FROM OPR_CYBERCOST WHERE CYBERYYMM = A.COSTYYMM AND CYBERTIMES = A.TIMES), '999,999,999') COL_C,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0) + NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0) + NVL(SUM(IMCHACOST),0) + NVL(SUM(ETCCOST),0), '999,999,999') COL_D,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0)  , '999,999,999') COL_F,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_MSCT),0)   , '999,999,999') COL_G,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_COMMON),0) , '999,999,999') COL_H,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_AXBOOK),0) , '999,999,999') COL_I, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0), '999,999,999') COL_J, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0)       , '999,999,999') COL_K,
+                            TO_CHAR(NVL(SUM(PROFCOST_TRAVEL),0)    , '999,999,999') COL_L,
+                            TO_CHAR(NVL(SUM(PROFCOST_QUESTION),0)  , '999,999,999') COL_M,
+                            TO_CHAR(NVL(SUM(IMCHACOST),0)          , '999,999,999') COL_N,
+                            TO_CHAR(NVL(SUM(ETCCOST),0)            , '999,999,999') COL_O              
+                      FROM  OPR_COURSECOST A
+                     WHERE  COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  COSTYYMM, TIMES
+                 UNION ALL
+                    SELECT  TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2)) NUM,
+                            TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2))||'월' COL_A,
+                            '소계' COL_B,
+                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST WHERE COSTYYMM = A.COSTYYMM AND COURSECODE NOT LIKE 'C')+(SELECT COUNT(COURSECODE) FROM OPR_CYBERCOST WHERE CYBERYYMM = A.COSTYYMM), '999,999,999') COL_C,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0) + NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0) + NVL(SUM(IMCHACOST),0) + NVL(SUM(ETCCOST),0), '999,999,999') COL_D,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0)  , '999,999,999') COL_F,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_MSCT),0)   , '999,999,999') COL_G,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_COMMON),0) , '999,999,999') COL_H,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_AXBOOK),0) , '999,999,999') COL_I, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0), '999,999,999') COL_J, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0)       , '999,999,999') COL_K,
+                            TO_CHAR(NVL(SUM(PROFCOST_TRAVEL),0)    , '999,999,999') COL_L,
+                            TO_CHAR(NVL(SUM(PROFCOST_QUESTION),0)  , '999,999,999') COL_M,
+                            TO_CHAR(NVL(SUM(IMCHACOST),0)          , '999,999,999') COL_N,
+                            TO_CHAR(NVL(SUM(ETCCOST),0)            , '999,999,999') COL_O              
+                      FROM  OPR_COURSECOST A
+                     WHERE  COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  COSTYYMM
+                  ORDER BY  NUM, COL_B
+                 )
+        )
+<!-- 
+				SELECT  COL_A,
+				        COL_B,
+				        COL_C,
+				        COL_D,
+				        COL_E,
+				        COL_F,
+				        COL_G,
+				        COL_H,
+				        COL_I,
+				        COL_J,
+				        COL_K,
+				        COL_L,
+				        COL_M,
+				        COL_N
+				FROM
+				(
+				        SELECT 	0 NUM,
+				            		'교육기간' 	COL_A,
+				                '과정수' 		COL_B,
+				                '합계' 		COL_C,
+				                '소계' 		COL_D,
+				                '교육안내'	COL_E,
+												'원고료' 		COL_F,
+												'공통교재(감수료)' COL_G, 
+				                '부교재' 		COL_H,
+				                '소계' 		COL_I,
+				                '수당' 		COL_J,			
+				                '원거리여비' COL_K,	                           
+				                '출제수당' 	COL_L,
+				                '임차료'   COL_M ,
+				                '기타교육경비(교육부재료등)' COL_N      
+				          FROM  DUAL
+				         UNION  ALL
+                         SELECT NUM,
+                                TO_CHAR(COL_A) COL_A,
+                                TO_CHAR(COL_B) COL_B,
+                                TO_CHAR(COL_C) COL_C,
+                                TO_CHAR(COL_D) COL_D,
+                                TO_CHAR(COL_E) COL_E,
+                                TO_CHAR(COL_F) COL_F,
+                                TO_CHAR(COL_G) COL_G,
+                                TO_CHAR(COL_H) COL_H,
+                                TO_CHAR(COL_I) COL_I,
+                                TO_CHAR(COL_J) COL_J,
+                                TO_CHAR(COL_K) COL_K,
+                                TO_CHAR(COL_L) COL_L,
+                                TO_CHAR(COL_M) COL_M,
+                                TO_CHAR(COL_N) COL_N
+                           FROM (
+                                    SELECT  0 NUM,
+                                            '예산' COL_A,
+                                            TO_CHAR((SELECT COUNT(COURSECODE) FROM OPR_COURSECOST B WHERE B.COSTYYMM LIKE '2009'||'%')) COL_B ,
+                                            TO_CHAR((NVL(TXTBOOKCOST_INTRO,0) + NVL(TXTBOOKCOST_MSCT,0) + NVL(TXTBOOKCOST_COMMON,0) + NVL(TXTBOOKCOST_AXBOOK,0) + NVL(PROFCOST_PAY,0) + NVL(PROFCOST_TRAVEL,0) + NVL(PROFCOST_QUESTION,0) + NVL(IMCHACOST,0) + NVL(ETCCOST,0)), '999,999,999') COL_C,
+                                            TO_CHAR((TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK ), '999,999,999') COL_D,
+                                            TO_CHAR(TXTBOOKCOST_INTRO		, '999,999,999') COL_E,
+                                            TO_CHAR(TXTBOOKCOST_MSCT		, '999,999,999') COL_F,
+                                            TO_CHAR(TXTBOOKCOST_COMMON	, '999,999,999') COL_G,
+                                            TO_CHAR(TXTBOOKCOST_AXBOOK	, '999,999,999') COL_H,
+                                            TO_CHAR((PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION), '999,999,999') COL_I, 
+                                            TO_CHAR(PROFCOST_PAY				, '999,999,999') COL_J,
+                                            TO_CHAR(PROFCOST_TRAVEL			, '999,999,999') COL_K,
+                                            TO_CHAR(PROFCOST_QUESTION		, '999,999,999') COL_L,
+                                            TO_CHAR(IMCHACOST						, '999,999,999') COL_M  ,
+                                            TO_CHAR(ETCCOST							, '999,999,999') COL_N   
+                                      FROM  OPR_YEARBUDGET
+                                     WHERE  YEAR LIKE REPLACE(#searchdate#,'-','')||'%'
+                                     UNION  ALL
+                                    SELECT  TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2)) NUM,
+                                            TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2))||'월' COL_A,
+                                            TO_CHAR(COUNT(COURSECODE)			, '999,999,999') COL_B,
+                                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) + SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION) + SUM(IMCHACOST) + SUM(ETCCOST)), '999,999,999') COL_C,
+                                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK)), '999,999,999') COL_D,
+                                            TO_CHAR(SUM(TXTBOOKCOST_INTRO)	, '999,999,999') COL_E,
+                                            TO_CHAR(SUM(TXTBOOKCOST_MSCT)		, '999,999,999') COL_F,
+                                            TO_CHAR(SUM(TXTBOOKCOST_COMMON)	, '999,999,999') COL_G,
+                                            TO_CHAR(SUM(TXTBOOKCOST_AXBOOK)	, '999,999,999') COL_H, 
+                                            TO_CHAR((SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION)), '999,999,999') COL_I, 
+                                            TO_CHAR(SUM(PROFCOST_PAY)				, '999,999,999') COL_J,
+                                            TO_CHAR(SUM(PROFCOST_TRAVEL)		, '999,999,999') COL_K,
+                                            TO_CHAR(SUM(PROFCOST_QUESTION)	, '999,999,999') COL_L,
+                                            TO_CHAR(SUM(IMCHACOST)					, '999,999,999') COL_M  ,
+                                            TO_CHAR(SUM(ETCCOST)						, '999,999,999') COL_N              
+                                       FROM OPR_COURSECOST                
+                                      WHERE COSTYYMM LIKE REPLACE(#searchdate#,'-','')||'%'
+                                      GROUP BY SUBSTR(REPLACE(COSTYYMM,'-',''),5,2)
+                                      UNION ALL
+                                     SELECT 13 NUM,
+                                            '예산-지출' COL_A,
+                                            '' COL_B,
+                                            TO_CHAR((A.TXTBOOKCOST_INTRO + A.TXTBOOKCOST_MSCT + A.TXTBOOKCOST_COMMON + A.TXTBOOKCOST_AXBOOK + A.PROFCOST_PAY + A.PROFCOST_TRAVEL + A.PROFCOST_QUESTION + A.IMCHACOST + A.ETCCOST) - B.TOTCOST, '999,999,999') COL_C,
+                                            TO_CHAR((A.TXTBOOKCOST_INTRO + A.TXTBOOKCOST_MSCT + A.TXTBOOKCOST_COMMON + A.TXTBOOKCOST_AXBOOK )- B.TXTBOOK_TOTCOST, '999,999,999') COL_D,
+                                            TO_CHAR(A.TXTBOOKCOST_INTRO - B.TXTBOOKCOST_INTRO		, '999,999,999') COL_E,
+                                            TO_CHAR(A.TXTBOOKCOST_MSCT - B.TXTBOOKCOST_MSCT			, '999,999,999') COL_F,
+                                            TO_CHAR(A.TXTBOOKCOST_COMMON - B.TXTBOOKCOST_COMMON	, '999,999,999') COL_G,
+                                            TO_CHAR(A.TXTBOOKCOST_AXBOOK - B.TXTBOOKCOST_AXBOOK	, '999,999,999') COL_H,
+                                            TO_CHAR((A.PROFCOST_PAY + A.PROFCOST_TRAVEL + A.PROFCOST_QUESTION)- B.PROF_TOTCOST, '999,999,999') COL_I,
+                                            TO_CHAR(A.PROFCOST_PAY - B.PROFCOST_PAY							, '999,999,999') COL_J,
+                                            TO_CHAR(A.PROFCOST_TRAVEL - B.PROFCOST_TRAVEL				, '999,999,999') COL_K,
+                                            TO_CHAR(A.PROFCOST_QUESTION - B.PROFCOST_QUESTION		, '999,999,999') COL_L,
+                                            TO_CHAR(A.IMCHACOST - B.IMCHACOST										, '999,999,999') COL_M ,
+                                            TO_CHAR(A.ETCCOST - B.ETCCOST												, '999,999,999') COL_N 
+                                       FROM OPR_YEARBUDGET A,
+                                            (SELECT MAX(SUBSTR(COSTYYMM,0,4))YEAR,
+                                                    (SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) + SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION) + SUM(IMCHACOST) + SUM(ETCCOST))TOTCOST,
+                                                    (SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) ) TXTBOOK_TOTCOST,
+                                                    SUM(TXTBOOKCOST_INTRO) TXTBOOKCOST_INTRO,
+                                                    SUM(TXTBOOKCOST_MSCT) TXTBOOKCOST_MSCT,
+                                                    SUM(TXTBOOKCOST_COMMON) TXTBOOKCOST_COMMON,
+                                                    SUM(TXTBOOKCOST_AXBOOK) TXTBOOKCOST_AXBOOK, 
+                                                    (SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION)) PROF_TOTCOST, 
+                                                    SUM(PROFCOST_PAY) PROFCOST_PAY,
+                                                    SUM(PROFCOST_TRAVEL) PROFCOST_TRAVEL,
+                                                    SUM(PROFCOST_QUESTION) PROFCOST_QUESTION,
+                                                    SUM(IMCHACOST) IMCHACOST           ,
+                                                    SUM(ETCCOST) ETCCOST           
+                                               FROM OPR_COURSECOST 
+                                              WHERE COSTYYMM LIKE REPLACE(#searchdate#,'-','')||'%'
+                                             )B
+                                       WHERE A.YEAR = B.YEAR
+                                         AND A.YEAR LIKE #searchdate#||'%'
+                             )
+					)
+-->
+	</select>
+
+
+	<!-- 엑셀다운로드용 과정별경비지급내역 목록조회쿼리 -->
+	<select id="selectCrs_CostCalcCourseExcel" parameterClass="java.lang.String" resultClass="crs_CostCalc">
+	  SELECT  COL_A,
+            COL_B,
+            COL_C,
+            COL_D,
+            COL_E,
+            COL_F,
+            COL_G,
+            COL_H,
+            COL_I,
+            COL_J,
+            COL_K,
+            COL_L,
+            COL_M,
+            COL_N,
+            COL_O,
+            COL_P
+      FROM
+           (SELECT  0 NUM,
+                    '과정명'           COL_A,
+                    '교육기간'         COL_B,
+                    '교육일수'         COL_C,
+                    '수료인원'         COL_D,
+                    '합계'             COL_E,
+                    '소계(교육+원고료+교재+부교재)' COL_F,
+                    '교육안내'         COL_G,
+                    '원고료'           COL_H,
+                    '공통교재(감수료)' COL_I,
+                    '부교재'           COL_J,
+                    '소계(수당+여비+출제수당)' COL_K,
+                    '수당'             COL_L,
+                    '원거리여비'       COL_M,
+                    '출제수당'         COL_N,
+                    '임차료'           COL_O ,
+                    '기타교육경비(교육부재료등)' COL_P      
+              FROM  DUAL
+         UNION ALL
+            SELECT  NUM,
+                    TO_CHAR(COL_A) COL_A,
+                    TO_CHAR(COL_B) COL_B,
+                    TO_CHAR(COL_C) COL_C,
+                    TO_CHAR(COL_D) COL_D,
+                    TO_CHAR(COL_E) COL_E,
+                    TO_CHAR(COL_F) COL_F,
+                    TO_CHAR(COL_G) COL_G,
+                    TO_CHAR(COL_H) COL_H,
+                    TO_CHAR(COL_I) COL_I,
+                    TO_CHAR(COL_J) COL_J,
+                    TO_CHAR(COL_K) COL_K,
+                    TO_CHAR(COL_L) COL_L,
+                    TO_CHAR(COL_M) COL_M,
+                    TO_CHAR(COL_N) COL_N,
+                    TO_CHAR(COL_O) COL_O,
+                    TO_CHAR(COL_P) COL_P
+              FROM 
+                   (SELECT  0 NUM,
+                            0 NUM2,
+                            '총계' COL_A,
+                            '' COL_B,
+                            '' COL_C,
+                            TO_CHAR(SUM(B.FINISHCNT)+(SELECT SUM(FINCNT) FROM OPR_CYBERCOST WHERE CYBERYYMM LIKE #searchdate#||'%'), '999,999,999') COL_D,
+                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) + SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION) + SUM(IMCHACOST) + SUM(ETCCOST)), '999,999,999') COL_E,
+                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK)), '999,999,999') COL_F,
+                            TO_CHAR(SUM(TXTBOOKCOST_INTRO)    , '999,999,999') COL_G,
+                            TO_CHAR(SUM(TXTBOOKCOST_MSCT)     , '999,999,999') COL_H,
+                            TO_CHAR(SUM(TXTBOOKCOST_COMMON)   , '999,999,999') COL_I,
+                            TO_CHAR(SUM(TXTBOOKCOST_AXBOOK)   , '999,999,999') COL_J, 
+                            TO_CHAR((SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION)), '999,999,999') COL_K, 
+                            TO_CHAR(SUM(PROFCOST_PAY)         , '999,999,999') COL_L,
+                            TO_CHAR(SUM(PROFCOST_TRAVEL)      , '999,999,999') COL_M,
+                            TO_CHAR(SUM(PROFCOST_QUESTION)    , '999,999,999') COL_N,
+                            TO_CHAR(SUM(IMCHACOST)            , '999,999,999') COL_O,
+                            TO_CHAR(SUM(ETCCOST)              , '999,999,999') COL_P              
+                      FROM  OPR_COURSECOST A,
+                           (SELECT  COURSECODE, count(COURSECODE) FINISHCNT 
+                              FROM  OPR_CRSSTUDENT
+                             WHERE  COURSECODE LIKE '643'||#searchdate#||'%'
+                               AND  ISFINISH = 'Y'
+                          GROUP BY  COURSECODE) B               
+                     WHERE  A.COURSECODE = B.COURSECODE(+)
+                       AND  COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  SUBSTR(COSTYYMM, 0, 4)
+                 UNION ALL
+                    SELECT  TO_NUMBER(SUBSTR(REPLACE(COSTYYMM,'-',''),5,2)) NUM,
+                            1 NUM2,
+                            DECODE(A.COURSECODE, 'C', MAX(D.COURSENAME), B.COURSENAME) COL_A,
+                            TO_CHAR(B.EDUDATE) COL_B,
+                            TO_CHAR(B.DAYCOUNT) COL_C,
+                            TO_CHAR(DECODE(A.COURSECODE, 'C', MAX(D.FINCNT), MAX(C.FINISHCNT)), '999,999,999') COL_D,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0) + NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0) + NVL(SUM(IMCHACOST),0) + NVL(SUM(ETCCOST),0), '999,999,999') COL_E,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0) + NVL(SUM(TXTBOOKCOST_MSCT),0) + NVL(SUM(TXTBOOKCOST_COMMON),0) + NVL(SUM(TXTBOOKCOST_AXBOOK),0), '999,999,999') COL_F,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_INTRO),0)    , '999,999,999') COL_G,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_MSCT),0)     , '999,999,999') COL_H,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_COMMON),0)   , '999,999,999') COL_I,
+                            TO_CHAR(NVL(SUM(TXTBOOKCOST_AXBOOK),0)   , '999,999,999') COL_J, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0) + NVL(SUM(PROFCOST_TRAVEL),0) + NVL(SUM(PROFCOST_QUESTION),0), '999,999,999') COL_K, 
+                            TO_CHAR(NVL(SUM(PROFCOST_PAY),0)         , '999,999,999') COL_L,
+                            TO_CHAR(NVL(SUM(PROFCOST_TRAVEL),0)      , '999,999,999') COL_M,
+                            TO_CHAR(NVL(SUM(PROFCOST_QUESTION),0)    , '999,999,999') COL_N,
+                            TO_CHAR(NVL(SUM(IMCHACOST),0)            , '999,999,999') COL_O,
+                            TO_CHAR(NVL(SUM(ETCCOST),0)              , '999,999,999') COL_P              
+                      FROM  OPR_COURSECOST A,
+                           (SELECT
+                                    COURSECODE, COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME, TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'), 'MM"."DD')||' ~ '||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'), 'MM"."DD') EDUDATE, DAYCOUNT
+                              FROM  OPR_LECTURE
+                             WHERE  YEAR LIKE #searchdate#) B,
+                           (SELECT  COURSECODE, count(COURSECODE) FINISHCNT 
+                              FROM  OPR_CRSSTUDENT
+                             WHERE  COURSECODE LIKE '643'||#searchdate#||'%'
+                               AND  ISFINISH = 'Y'
+                          GROUP BY  COURSECODE) C,
+                           (SELECT  MAX(COSTYYMM) CYBERYYMM, MAX(A.CYBERTIMES) CYBERTIMES, SUM(FINCNT) FINCNT, MAX(B.COURSENAME) COURSENAME
+                              FROM  OPR_CYBERCOST A, OPR_CYBERCOSTMST B
+                             WHERE  A.CYBERYYMM = B.CYBERYYMM
+                               AND  A.CYBERTIMES = B.CYBERTIMES
+                               AND  A.CYBERYYMM LIKE #searchdate#||'%'
+                          GROUP BY  A.CYBERYYMM, A.CYBERTIMES) D
+                     WHERE  A.COURSECODE = B.COURSECODE(+)
+                       AND  A.COURSECODE = C.COURSECODE(+)
+                       AND  A.COSTYYMM = D.CYBERYYMM(+)
+                       AND  A.TIMES = D.CYBERTIMES(+)
+                       AND  COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  COSTYYMM, TIMES, A.COURSECODE, B.COURSENAME, B.EDUDATE, B.DAYCOUNT
+                 UNION ALL
+                    SELECT  TO_NUMBER(SUBSTR(REPLACE(A.COSTYYMM,'-',''),5,2)) NUM,
+                            99 NUM2,
+                            TO_NUMBER(SUBSTR(REPLACE(A.COSTYYMM,'-',''),5,2))||'월' COL_A,
+                            '소계' COL_B,
+                            '' COL_C,
+                            TO_CHAR(MAX(B.FINCNT), '999,999,999') COL_D,
+                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK) + SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION) + SUM(IMCHACOST) + SUM(ETCCOST)), '999,999,999') COL_E,
+                            TO_CHAR((SUM(TXTBOOKCOST_INTRO)+ SUM(TXTBOOKCOST_MSCT) + SUM(TXTBOOKCOST_COMMON) + SUM(TXTBOOKCOST_AXBOOK)), '999,999,999') COL_F,
+                            TO_CHAR(SUM(TXTBOOKCOST_INTRO)    , '999,999,999') COL_G,
+                            TO_CHAR(SUM(TXTBOOKCOST_MSCT)     , '999,999,999') COL_H,
+                            TO_CHAR(SUM(TXTBOOKCOST_COMMON)   , '999,999,999') COL_I,
+                            TO_CHAR(SUM(TXTBOOKCOST_AXBOOK)   , '999,999,999') COL_J, 
+                            TO_CHAR((SUM(PROFCOST_PAY) + SUM(PROFCOST_TRAVEL) + SUM(PROFCOST_QUESTION)), '999,999,999') COL_K, 
+                            TO_CHAR(SUM(PROFCOST_PAY)         , '999,999,999') COL_L,
+                            TO_CHAR(SUM(PROFCOST_TRAVEL)      , '999,999,999') COL_M,
+                            TO_CHAR(SUM(PROFCOST_QUESTION)    , '999,999,999') COL_N,
+                            TO_CHAR(SUM(IMCHACOST)            , '999,999,999') COL_O,
+                            TO_CHAR(SUM(ETCCOST)              , '999,999,999') COL_P              
+                      FROM  OPR_COURSECOST A,
+                           (SELECT
+                                    COSTYYMM, NVL(SUM(B.FINISHCNT),0) + NVL(SUM(C.FINCNT),0) FINCNT
+                              FROM  OPR_COURSECOST A,
+                                   (SELECT  COURSECODE, COUNT(COURSECODE) FINISHCNT 
+                                      FROM  OPR_CRSSTUDENT
+                                     WHERE  COURSECODE LIKE '643'||#searchdate#||'%'
+                                       AND  ISFINISH = 'Y'
+                                  GROUP BY  COURSECODE) B,
+                                   (SELECT  MAX(COSTYYMM) CYBERYYMM, 'C' COURSECODE, SUM(FINCNT) FINCNT
+                                      FROM  OPR_CYBERCOST A, OPR_CYBERCOSTMST B
+                                     WHERE  A.CYBERYYMM = B.CYBERYYMM
+                                       AND  A.CYBERTIMES = B.CYBERTIMES
+                                       AND  A.CYBERYYMM LIKE #searchdate#||'%'
+                                  GROUP BY  A.CYBERYYMM) C
+                             WHERE  A.COURSECODE = B.COURSECODE(+)
+                               AND  A.COURSECODE = C.COURSECODE(+)
+                               AND  A.COSTYYMM = C.CYBERYYMM(+)
+                          GROUP BY  A.COSTYYMM ) B
+                     WHERE  A.COSTYYMM = B.COSTYYMM 
+                       AND  A.COSTYYMM LIKE #searchdate#||'%'
+                  GROUP BY  A.COSTYYMM
+                  ORDER BY  NUM, NUM2, COL_B, COL_A
+                 )
+        )
+	</select>
+	
+	
+	<!-- 엑셀다운로드용 과정별 교육비 목록조회쿼리 -->
+	<select id="selectCrs_CostCalcCostExcel" parameterClass="java.lang.String" resultClass="crs_CostCalc">
+    SELECT  TURNNO              COL_A,
+            EDUDATE             COL_B,
+            TOTALCOST           COL_C,
+            TXTBOOKCOSTINTRO    COL_D,
+            TXTBOOKCOSTMSCT     COL_E,
+            TXTBOOKCOSTCOMMON   COL_F,
+            TXTBOOKCOSTAXBOOK   COL_G,
+            PROFCOSTPAY         COL_H,
+            PROFCOSTTRAVEL      COL_I,
+            PROFCOSTQUESTION    COL_J,
+            IMCHACOST           COL_K,
+            ETCCOST             COL_L 
+      FROM  
+           (SELECT  0 NUM,
+                    '기수'         TURNNO,
+                    '교육기간'     EDUDATE,
+                    '합계'         TOTALCOST,
+                    '교육안내'     TXTBOOKCOSTINTRO, 
+                    '원고료'       TXTBOOKCOSTMSCT,
+                    '공통교재'     TXTBOOKCOSTCOMMON,
+                    '부교재'       TXTBOOKCOSTAXBOOK, 
+                    '수당'         PROFCOSTPAY,
+                    '원거리여비'   PROFCOSTTRAVEL,
+                    '출제수당'     PROFCOSTQUESTION,
+                    '임차료'       IMCHACOST,
+                    '기타교육경비' ETCCOST
+              FROM  DUAL
+         UNION ALL
+            SELECT  1       NUM,  
+                    '합계'  TURNNO,
+                    ' '     EDUDATE,
+                    TO_CHAR(SUM(TOTALCOST),         '999,999,999')  TOTALCOST,
+                    TO_CHAR(SUM(TXTBOOKCOSTINTRO),  '999,999,999')  TXTBOOKCOSTINTRO, 
+                    TO_CHAR(SUM(TXTBOOKCOSTMSCT),   '999,999,999')  TXTBOOKCOSTMSCT,
+                    TO_CHAR(SUM(TXTBOOKCOSTCOMMON), '999,999,999')  TXTBOOKCOSTCOMMON,
+                    TO_CHAR(SUM(TXTBOOKCOSTAXBOOK), '999,999,999')  TXTBOOKCOSTAXBOOK, 
+                    TO_CHAR(SUM(PROFCOSTPAY),       '999,999,999')  PROFCOSTPAY,
+                    TO_CHAR(SUM(PROFCOSTTRAVEL),    '999,999,999')  PROFCOSTTRAVEL,
+                    TO_CHAR(SUM(PROFCOSTQUESTION),  '999,999,999')  PROFCOSTQUESTION,
+                    TO_CHAR(SUM(IMCHACOST),         '999,999,999')  IMCHACOST,
+                    TO_CHAR(SUM(ETCCOST),           '999,999,999')  ETCCOST
+              FROM  
+                   (SELECT  (TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST) TOTALCOST,
+                            TXTBOOKCOST_INTRO   TXTBOOKCOSTINTRO,
+                            TXTBOOKCOST_MSCT    TXTBOOKCOSTMSCT,
+                            TXTBOOKCOST_COMMON  TXTBOOKCOSTCOMMON,
+                            TXTBOOKCOST_AXBOOK  TXTBOOKCOSTAXBOOK,
+                            PROFCOST_PAY        PROFCOSTPAY,
+                            PROFCOST_TRAVEL     PROFCOSTTRAVEL,
+                            PROFCOST_QUESTION   PROFCOSTQUESTION,
+                            IMCHACOST           IMCHACOST,
+                            ETCCOST             ETCCOST
+                      FROM  OPR_COURSECOST A, OPR_LECTURE B
+                     WHERE  A.COURSECODE = B.COURSECODE 
+                       AND  A.COURSECODE LIKE SUBSTR(#searchCourseCode#,1,10)||'%' 
+                       AND  B.ISPASS = 'Y'
+                 UNION ALL   
+                    SELECT  A.EDUCOST   TOTALCOST,
+                            0           TXTBOOKCOSTINTRO, 
+                            0           TXTBOOKCOSTMSCT,
+                            0           TXTBOOKCOSTCOMMON,
+                            0           TXTBOOKCOSTAXBOOK, 
+                            0           PROFCOSTPAY,
+                            0           PROFCOSTTRAVEL, 
+                            0           PROFCOSTQUESTION,
+                            0           IMCHACOST,
+                            A.EDUCOST   ETCCOST
+                      FROM  OPR_CYBERCOST A, OPR_LECTURE B
+                     WHERE  A.COURSECODE = B.COURSECODE
+                       AND  A.COURSECODE LIKE SUBSTR (#searchCourseCode#, 1, 10)||'%'
+                       AND  B.ISPASS = 'Y'
+                   )
+         UNION ALL
+            SELECT  2       NUM,
+                    TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2))||'기' TURNNO,
+                    TO_CHAR(TO_DATE(B.EDUFROM,'YYYYMMDD'), 'MM.DD')||' ~ '||TO_CHAR(TO_DATE(B.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE,
+                    TO_CHAR((TXTBOOKCOST_INTRO + TXTBOOKCOST_MSCT + TXTBOOKCOST_COMMON + TXTBOOKCOST_AXBOOK + PROFCOST_PAY + PROFCOST_TRAVEL + PROFCOST_QUESTION + IMCHACOST + ETCCOST), '999,999,999') TOTALCOST,
+                    TO_CHAR(TXTBOOKCOST_INTRO,  '999,999,999')  TXTBOOKCOSTINTRO,
+                    TO_CHAR(TXTBOOKCOST_MSCT,   '999,999,999')  TXTBOOKCOSTMSCT,
+                    TO_CHAR(TXTBOOKCOST_COMMON, '999,999,999')  TXTBOOKCOSTCOMMON,
+                    TO_CHAR(TXTBOOKCOST_AXBOOK, '999,999,999')  TXTBOOKCOSTAXBOOK,
+                    TO_CHAR(PROFCOST_PAY,       '999,999,999')  PROFCOSTPAY,
+                    TO_CHAR(PROFCOST_TRAVEL,    '999,999,999')  PROFCOSTTRAVEL,
+                    TO_CHAR(PROFCOST_QUESTION,  '999,999,999')  PROFCOSTQUESTION,
+                    TO_CHAR(IMCHACOST,          '999,999,999')  IMCHACOST,
+                    TO_CHAR(ETCCOST,            '999,999,999')  ETCCOST
+              FROM  OPR_COURSECOST A, OPR_LECTURE B
+             WHERE  A.COURSECODE = B.COURSECODE 
+               AND  A.COURSECODE LIKE SUBSTR(#searchCourseCode#,1,10)||'%' 
+               AND  B.ISPASS = 'Y'
+         UNION ALL   
+            SELECT  2       NUM,
+                    TO_NUMBER (SUBSTR (A.COURSECODE, 11, 2))||'기' TURNNO,
+                    TO_CHAR(TO_DATE(B.EDUFROM,'YYYYMMDD'), 'MM.DD')||' ~ '||TO_CHAR(TO_DATE(B.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE,
+                    TO_CHAR(A.EDUCOST,  '999,999,999')  TOTALCOST,
+                    TO_CHAR(0,          '999,999,999')  TXTBOOKCOSTINTRO, 
+                    TO_CHAR(0,          '999,999,999')  TXTBOOKCOSTMSCT,
+                    TO_CHAR(0,          '999,999,999')  TXTBOOKCOSTCOMMON,
+                    TO_CHAR(0,          '999,999,999')  TXTBOOKCOSTAXBOOK, 
+                    TO_CHAR(0,          '999,999,999')  PROFCOSTPAY,
+                    TO_CHAR(0,          '999,999,999')  PROFCOSTTRAVEL, 
+                    TO_CHAR(0,          '999,999,999')  PROFCOSTQUESTION,
+                    TO_CHAR(0,          '999,999,999')  IMCHACOST,
+                    TO_CHAR(A.EDUCOST,  '999,999,999')  ETCCOST
+              FROM  OPR_CYBERCOST A, OPR_LECTURE B
+             WHERE  A.COURSECODE = B.COURSECODE
+               AND  A.COURSECODE LIKE SUBSTR (#searchCourseCode#, 1, 10)||'%'
+               AND  B.ISPASS = 'Y'
+          ORDER BY  NUM, TURNNO    
+    )
+	</select>
+	
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_CostCalcListCount" parameterClass="crs_CostCalc" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_COURSECOST
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_CostCalcCount" parameterClass="crs_CostCalc" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_COURSECOST
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 교육비 분할 후 수정여부 -->
+	<select id="selectCrs_CostCalcChk" parameterClass="crs_CostCalc" resultClass="java.lang.String">
+		SELECT DECODE(COUNT(*),0,'Y','N')
+		  FROM OPR_COURSECOSTDIV
+		 WHERE COSTYYMM = REPLACE(#costyymm#,'-','')
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_CostCalc" parameterClass="crs_CostCalc">
+		INSERT INTO OPR_COURSECOST (	
+			   			COSTYYMM          ,	
+			   			TIMES             ,	
+			   			COURSECODE        ,	
+			   			TXTBOOKCOST_INTRO ,	
+			   			TXTBOOKCOST_MSCT  ,	
+			   			TXTBOOKCOST_COMMON,	
+			   			TXTBOOKCOST_AXBOOK,	
+			   			PROFCOST_PAY      ,	
+			   			PROFCOST_TRAVEL   ,	
+			   			PROFCOST_QUESTION ,	
+			   			IMCHACOST  				,	
+			   			ETCCOST           	
+		) VALUES (
+						 
+			   			REPLACE(#costyymm#,'-',''),	
+			   			#times#            ,	
+			   			#coursecode#       ,	
+			   			REPLACE(#txtbookcostIntro#,',','') ,	
+			   			REPLACE(#txtbookcostMsct#,',','')  ,	
+			   			REPLACE(#txtbookcostCommon#,',',''),	
+			   			REPLACE(#txtbookcostAxbook#,',',''),	
+			   			REPLACE(#profcostPay#,',','')      ,	
+			   			REPLACE(#profcostTravel#,',','')   ,	
+			   			REPLACE(#profcostQuestion#,',','') ,	
+			   			REPLACE(#imchacost#,',','')         ,	
+			   			REPLACE(#etccost#,',','')          	
+		)
+	</insert>
+	
+		<!-- 레코드 입력 -->
+	<insert id="insertCrs_CyberCostCalc" parameterClass="crs_CostCalc">
+		INSERT INTO OPR_CYBERCOSTMST (	
+			   			CYBERYYMM         ,	
+			   			CYBERTIMES        ,	
+			   			COURSENAME        ,	
+			   			COSTYYMM 					,	
+			   			TIMES             	
+		) VALUES (
+						 
+			   			#cyberyymm#       ,	
+			   			#cybertimes#      ,	
+			   			#coursename#      ,	
+			   			REPLACE(#costyymm#,'-',''),
+			   			#times#          	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_CostCalc" parameterClass="crs_CostCalc">
+		UPDATE OPR_COURSECOST SET
+			   COSTYYMM           = REPLACE(#costyymm#,'-',''),
+			   TIMES              = #times#            ,
+			   COURSECODE         = #coursecode#       ,
+			   TXTBOOKCOST_INTRO  = REPLACE(#txtbookcostIntro#,',','') ,
+			   TXTBOOKCOST_MSCT   = REPLACE(#txtbookcostMsct#,',','')  ,
+			   TXTBOOKCOST_COMMON = REPLACE(#txtbookcostCommon#,',',''),
+			   TXTBOOKCOST_AXBOOK = REPLACE(#txtbookcostAxbook#,',',''),
+			   PROFCOST_PAY       = REPLACE(#profcostPay#,',','')      ,
+			   PROFCOST_TRAVEL    = REPLACE(#profcostTravel#,',','')   ,
+			   PROFCOST_QUESTION  = REPLACE(#profcostQuestion#,',','') ,
+			   IMCHACOST          = REPLACE(#imchacost#,',','')      ,
+			   ETCCOST            = REPLACE(#etccost#,',','')          
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_CostCalc" parameterClass="crs_CostCalc">
+		DELETE FROM OPR_COURSECOST
+		 WHERE COSTYYMM = REPLACE(#costyymm#,'-','')
+		   AND TIMES = #searchtimes# 
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<delete id="deleteCrs_CyberCostCalc" parameterClass="crs_CostCalc">
+		DELETE FROM OPR_CYBERCOSTMST
+		 WHERE COSTYYMM = REPLACE(#costyymm#,'-','')
+		   AND TIMES = #searchtimes# 
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="costyymm">
+				COSTYYMM = #costyymm#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="times">
+				TIMES = #times#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostIntro">
+				TXTBOOKCOST_INTRO = #txtbookcostIntro#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostMsct">
+				TXTBOOKCOST_MSCT = #txtbookcostMsct#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostCommon">
+				TXTBOOKCOST_COMMON = #txtbookcostCommon#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txtbookcostAxbook">
+				TXTBOOKCOST_AXBOOK = #txtbookcostAxbook#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostPay">
+				PROFCOST_PAY = #profcostPay#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostTravel">
+				PROFCOST_TRAVEL = #profcostTravel#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profcostQuestion">
+				PROFCOST_QUESTION = #profcostQuestion#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="etccost">
+				ETCCOST = #etccost#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

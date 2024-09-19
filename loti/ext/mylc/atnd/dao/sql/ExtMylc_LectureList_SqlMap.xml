@@ -1,0 +1,411 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMylc_LectureList">
+
+	<typeAlias alias="extMylc_LectureList" type="loti.ext.mylc.atnd.model.ExtMylc_LectureList"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMylc_LectureList" parameterClass="extMylc_LectureList" resultClass="extMylc_LectureList">
+			SELECT 	
+				   		COURSECODE   ,
+				   		SEQ          ,
+				   		JUMINNO      ,
+				   		STDNAME      ,
+				   		STDNO        ,  
+				   		ASSIGN       ,
+				   		ASSIGNNAME   ,
+				   		GRADECODE    ,
+				   		GRADENAME    ,
+				   		RANKCODE     ,
+				   		RANKNAME     ,
+				   		JOBKIND      ,
+				   		JOBNAME      ,
+				   		EMAIL        ,
+				   		CELLPHONE    ,
+				   		ISCOST       ,
+				   		TEAMNO       ,
+				   		ISLEADER     ,
+				   		SCORESTUDY   ,
+				   		SCOREATTEND  ,
+				   		SCORERESEARCH,
+				   		SCORETEAM    ,
+				   		SCOREADD     ,
+				   		SCOREPRA     ,
+				   		SCOREFOREIGN,
+				   		SCORECONVER,
+				   		SCOREPAPER,
+				   		SCOREPERSONAL,
+						SCORETEAMDISC,
+						SCOREHOBBY,
+						SCORESTAMINA,
+						SCOREINFO,
+						SCOREVALUE,
+				   		SCOREETC     ,
+				   		SCOREAVG     ,
+				   		PROGRESSRATE ,
+				   		STUDYHOUR    ,
+				   		RANKING      ,
+				   		DISPRANKING  ,
+				   		ISFINISH     
+			  FROM OPR_CRSSTUDENT
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_LectureListList" parameterClass="extMylc_LectureList" resultClass="extMylc_LectureList">
+		SELECT 
+            O.COURSECODE, O.STDNO, O.SEQ, A.COURSENAME, O.JUMINNO, 
+            A.YEAR, A.EDUDATE, A.EDUFROM, A.EDUTO, A.CRSTYPE1,
+            DECODE(NVL(O.ISFINISH,'0'),'Y','이수','N','미이수','교육중') ISFINISH, 
+            NVL(B.SURVEYNO,'N') SURVEYNO,
+            NVL((SELECT TO_CHAR(STDNO) FROM TST_RSPTINFO C WHERE B.SURVEYNO = C.SURVEYNO AND O.STDNO = C.STDNO AND O.COURSECODE= C.COURSECODE),'C') CHKMOD,
+            NVL(O.SCORESTUDY, 0) + NVL(O.SCORERESEARCH, 0) + NVL(O.SCORETEAM, 0) + NVL(O.SCOREATTEND,0) + 
+            NVL(O.SCOREADD, 0) + NVL(O.SCOREPRA, 0) + NVL(O.SCOREETC, 0)+NVL(O.SCOREFOREIGN,0)+NVL(O.SCORECONVER,0)+NVL(O.SCOREPAPER,0)+NVL(O.SCOREPERSONAL,0)
+			+NVL(O.SCORETEAMDISC, 0) + NVL(O.SCOREHOBBY, 0) + NVL(O.SCORESTAMINA, 0) + NVL(O.SCOREINFO, 0) + NVL(O.SCOREVALUE, 0)		SCOREAVG,
+            D.RANKING
+      FROM  OPR_CRSSTUDENT O,
+           (SELECT
+                    COURSECODE, COURSENAME, YEAR, EDUFROM, EDUTO, CRSTYPE1,
+                    TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'), 'YYYY.MM.DD') || '~' || TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE  
+              FROM  OPR_LECTURE) A,
+           (SELECT
+                    SURVEYNO, COURSECODE
+              FROM  TST_COURSEMATCH 
+            ) B,
+            (SELECT JUMINNO, COURSECODE,
+                    ROW_NUMBER() OVER (PARTITION BY COURSECODE ORDER BY SCOREAVG DESC, SCORESTUDY+SCOREFOREIGN DESC, SCORECONVER DESC, 
+            										SCOREPRA+SCOREPAPER+SCOREPERSONAL+SCOREHOBBY+SCORESTAMINA+SCOREINFO+SCOREVALUE DESC, 
+            										SCORETEAM+SCORETEAMDISC DESC, SCOREATTEND DESC, JUMINNO ) AS RANKING  
+                FROM (SELECT JUMINNO, COURSECODE,
+                        (NVL(SCORESTUDY,0)+NVL(SCOREATTEND,0)+NVL(SCORERESEARCH,0)+NVL(SCORETEAM,0)+NVL(SCOREADD,0)+
+                        NVL(SCOREPRA,0)+NVL(SCOREFOREIGN,0)+NVL(SCORECONVER,0)+NVL(SCOREPAPER,0)+NVL(SCOREPERSONAL,0)+NVL(SCORETEAMDISC,0)+NVL(SCOREHOBBY,0)+NVL(SCORESTAMINA,0)+NVL(SCOREINFO,0)+NVL(SCOREVALUE,0)) AS SCOREAVG, 
+                        NVL(SCORESTUDY,0) AS SCORESTUDY, NVL(SCOREATTEND,0) AS SCOREATTEND, NVL(SCORERESEARCH,0) AS SCORERESEARCH,
+                        NVL(SCORETEAM,0)AS SCORETEAM, NVL(SCOREPRA,0) AS SCOREPRA, NVL(SCOREFOREIGN,0) SCOREFOREIGN, NVL(SCORECONVER,0) SCORECONVER, NVL(SCOREPAPER, 0) SCOREPAPER, NVL(SCOREPERSONAL,0) SCOREPERSONAL,
+						NVL(SCORETEAMDISC, 0) AS SCORETEAMDISC, NVL(SCOREHOBBY, 0) AS SCOREHOBBY, NVL(SCORESTAMINA, 0) AS SCORESTAMINA, NVL(SCOREINFO, 0) AS SCOREINFO, NVL(SCOREVALUE, 0) AS SCOREVALUE,
+                        (CASE SUBSTR(BIRTHSEX,7,1)
+                             WHEN '1' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '2' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '3' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '4' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                           END) AS JUMIN
+                        FROM OPR_CRSSTUDENT 
+                       WHERE COURSECODE IN (SELECT COURSECODE
+                                                FROM OPR_CRSSTUDENT
+                                               WHERE JUMINNO = #juminNo#))) D
+     WHERE  O.COURSECODE = A.COURSECODE
+       AND  A.COURSECODE = B.COURSECODE(+)
+       AND  O.JUMINNO = D.JUMINNO
+       AND  O.COURSECODE = D.COURSECODE
+       AND  O.JUMINNO = #juminNo#
+       		<isNotEmpty prepend="AND" property="searchFrom">
+         		EDUFROM BETWEEN #searchFrom# AND #searchTo#
+         	</isNotEmpty>
+					<isNotEmpty prepend="AND" property="searchType">
+       			DECODE(NVL(O.ISFINISH,'0'),'Y','이수','N','미이수','교육중') like #searchType#
+       		</isNotEmpty>
+    ORDER BY  A.EDUDATE DESC
+	</select>
+
+	<select id="selectScoreList" parameterClass="extMylc_LectureList" resultClass="extMylc_LectureList">
+		WITH BASE AS (
+		    SELECT  STDNO, COURSECODE, JUMINNO 
+		    FROM    OPR_CRSSTUDENT 
+		    WHERE   JUMINNO= #juminNo#
+		    AND     COURSECODE= #courseCode#
+		)
+		SELECT 
+		    B.STDNO, B.COURSECODE, A.SBNAM, A.ESYER, A.ESETP, 
+		    C.EKOTP, C.EKSTP, C.EKEVP, C.EKRTP, C.EKHWP, A.ESTPT EKTOP,
+		    NVL(A.SCOREGBN,0) SCOREGBN
+		FROM    TST_EXSJ A, BASE B, TST_EMKR C
+		WHERE   A.ESSRL = C.ESSRL   
+		AND   A.CMIDF = B.COURSECODE
+		AND   B.STDNO = C.SDUNO
+		UNION ALL
+		SELECT 0 STDNO, '' COURSECODE, NULL SBNAM, '' ESYER, '' ESETP,
+		        0 ESOTP, 0 EKSTP, 0 EKEVP, 0 EKRTP, 0 EKHWP,
+		        (SELECT SUM(EKTOP) 
+		        FROM TST_EMKR
+		        WHERE   CMIDF = (SELECT COURSECODE FROM BASE)
+		        AND     SDUNO = (SELECT STDNO FROM BASE)) EKTOP, 
+		        '' SCOREGBN
+		FROM DUAL
+		ORDER BY SBNAM NULLS LAST
+	</select>
+	
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectExtMylc_LectureListListCount" parameterClass="extMylc_LectureList" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_LectureListCount" parameterClass="extMylc_LectureList" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertExtMylc_LectureList" parameterClass="extMylc_LectureList">
+		INSERT INTO OPR_CRSSTUDENT (	
+			   			COURSECODE   ,	
+			   			SEQ          ,	
+			   			JUMINNO      ,	
+			   			STDNAME      ,	
+			   			STDNO        ,	
+			   			ASSIGN       ,	
+			   			ASSIGNNAME   ,	
+			   			GRADECODE    ,	
+			   			GRADENAME    ,	
+			   			RANKCODE     ,	
+			   			RANKNAME     ,	
+			   			JOBKIND      ,	
+			   			JOBNAME      ,	
+			   			EMAIL        ,	
+			   			CELLPHONE    ,	
+			   			ISCOST       ,	
+			   			TEAMNO       ,	
+			   			ISLEADER     ,	
+			   			SCORESTUDY   ,	
+			   			SCOREATTEND  ,	
+			   			SCORERESEARCH,	
+			   			SCORETEAM    ,	
+			   			SCOREADD     ,	
+			   			SCOREPRA     ,	
+			   			SCOREETC     ,	
+			   			SCOREAVG     ,	
+			   			PROGRESSRATE ,	
+			   			STUDYHOUR    ,	
+			   			RANKING      ,	
+			   			DISPRANKING  ,	
+			   			ISFINISH     	
+		) VALUES (
+						 
+			   			#courseCode#   ,	
+			   			#seq#          ,	
+			   			#juminNo#      ,	
+			   			#stdName#      ,	
+			   			#stdNo#        ,	
+			   			#asSign#       ,	
+			   			#asSignName#   ,	
+			   			#gradeCode#    ,	
+			   			#gradeName#    ,	
+			   			#rankCode#     ,	
+			   			#rankName#     ,	
+			   			#jobKind#      ,	
+			   			#jobName#      ,	
+			   			#email#        ,	
+			   			#cellPhone#    ,	
+			   			#isCost#       ,	
+			   			#teamNo#       ,	
+			   			#isLeader#     ,	
+			   			#scoreStudy#   ,	
+			   			#scoreAttend#  ,	
+			   			#scoreResearch#,	
+			   			#scoreTeam#    ,	
+			   			#scoreAdd#     ,	
+			   			#scorePra#     ,	
+			   			#scoreEtc#     ,	
+			   			#scoreAvg#     ,	
+			   			#progressRate# ,	
+			   			#studyHour#    ,	
+			   			#ranking#      ,	
+			   			#dispRanking#  ,	
+			   			#isFinish#     	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateExtMylc_LectureList" parameterClass="extMylc_LectureList">
+		UPDATE OPR_CRSSTUDENT SET
+			   COURSECODE    = #courseCode#   ,
+			   SEQ           = #seq#          ,
+			   JUMINNO       = #juminNo#      ,
+			   STDNAME       = #stdName#      ,
+			   STDNO         = #stdNo#        ,
+			   ASSIGN        = #asSign#       ,
+			   ASSIGNNAME    = #asSignName#   ,
+			   GRADECODE     = #gradeCode#    ,
+			   GRADENAME     = #gradeName#    ,
+			   RANKCODE      = #rankCode#     ,
+			   RANKNAME      = #rankName#     ,
+			   JOBKIND       = #jobKind#      ,
+			   JOBNAME       = #jobName#      ,
+			   EMAIL         = #email#        ,
+			   CELLPHONE     = #cellPhone#    ,
+			   ISCOST        = #isCost#       ,
+			   TEAMNO        = #teamNo#       ,
+			   ISLEADER      = #isLeader#     ,
+			   SCORESTUDY    = #scoreStudy#   ,
+			   SCOREATTEND   = #scoreAttend#  ,
+			   SCORERESEARCH = #scoreResearch#,
+			   SCORETEAM     = #scoreTeam#    ,
+			   SCOREADD      = #scoreAdd#     ,
+			   SCOREPRA      = #scorePra#     ,
+			   SCOREETC      = #scoreEtc#     ,
+			   SCOREAVG      = #scoreAvg#     ,
+			   PROGRESSRATE  = #progressRate# ,
+			   STUDYHOUR     = #studyHour#    ,
+			   RANKING       = #ranking#      ,
+			   DISPRANKING   = #dispRanking#  ,
+			   ISFINISH      = #isFinish#     
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_LectureList" parameterClass="extMylc_LectureList">
+		DELETE FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="seq">
+				SEQ = #seq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="juminno">
+				JUMINNO = #juminno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="stdname">
+				STDNAME = #stdname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="stdno">
+				STDNO = #stdno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="assign">
+				ASSIGN = #assign#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="assignname">
+				ASSIGNNAME = #assignname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="gradecode">
+				GRADECODE = #gradecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="gradename">
+				GRADENAME = #gradename#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="rankcode">
+				RANKCODE = #rankcode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="rankname">
+				RANKNAME = #rankname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="jobkind">
+				JOBKIND = #jobkind#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="jobname">
+				JOBNAME = #jobname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="email">
+				EMAIL = #email#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="cellphone">
+				CELLPHONE = #cellphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="iscost">
+				ISCOST = #iscost#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="teamno">
+				TEAMNO = #teamno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="isleader">
+				ISLEADER = #isleader#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scorestudy">
+				SCORESTUDY = #scorestudy#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreattend">
+				SCOREATTEND = #scoreattend#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreresearch">
+				SCORERESEARCH = #scoreresearch#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreteam">
+				SCORETEAM = #scoreteam#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreadd">
+				SCOREADD = #scoreadd#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scorepra">
+				SCOREPRA = #scorepra#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreetc">
+				SCOREETC = #scoreetc#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreavg">
+				SCOREAVG = #scoreavg#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="progressrate">
+				PROGRESSRATE = #progressrate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="studyhour">
+				STUDYHOUR = #studyhour#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="ranking">
+				RANKING = #ranking#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="dispranking">
+				DISPRANKING = #dispranking#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="isfinish">
+				ISFINISH = #isfinish#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

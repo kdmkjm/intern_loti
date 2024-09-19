@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="EUC-KR" ?>
+
+<!DOCTYPE daoConfig
+    PUBLIC "-//ibatis.apache.org//DTD DAO Configuration 2.0//EN"
+    "http://ibatis.apache.org/dtd/dao-2.dtd">
+
+<daoConfig>
+
+	<context>
+
+    <transactionManager type="SQLMAP">
+      <property name="SqlMapConfigResource"
+        value="loti/cmn/mssql-sqlmap-config.xml"/>
+    </transactionManager>
+
+
+<!-- ##########		시스템  		########## -->
+    <!--  AGENT 관리  -->
+    <dao interface="loti.sys.loti.dao.SysLotiDAO"
+    implementation="loti.sys.loti.dao.SysLotiDAOImpl"/>
+    
+    
+    <!--  SMS발송현환 관리  -->
+    <dao interface="loti.rsc.smsstatus.dao.RscSMSStatusListMSSQLDAO"
+    implementation="loti.rsc.smsstatus.dao.RscSMSStatusListMSSQLDAOImpl"/>
+
+
+	</context>
+
+</daoConfig>

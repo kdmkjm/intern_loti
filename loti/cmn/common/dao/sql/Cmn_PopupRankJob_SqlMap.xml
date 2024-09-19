@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupRankJob">
+
+	<typeAlias alias="cmn_PopupRankJob" type="loti.cmn.common.model.Cmn_PopupRankJob"/>
+
+
+	<!--  직급을 이름으로 조회한다. -->
+	<select id="selectCmn_PopupRankList" parameterClass="java.lang.String" resultClass="cmn_PopupRankJob">
+		SELECT  RANKCODE,
+						REPLACE(RANKNAME,'','') RANKNAME,
+						GRADECODE,
+						JOBKIND
+		FROM	CMN_RANKCODE
+		WHERE	RANKNAME LIKE '%' || #searchKeyword# || '%'
+		ORDER BY RANKCODE
+	</select>
+
+	<!--  직렬을 이름으로 조회한다. -->
+	<select id="selectCmn_PopupJobList" parameterClass="java.lang.String" resultClass="cmn_PopupRankJob">
+		SELECT  CODE,
+						CODENAME,
+						DISPLAYNAME,
+						RANKORDER,
+						INSDATE,
+						REMARKS
+		FROM	CMN_JOBCODE
+		WHERE	CODENAME LIKE '%' || #searchKeyword# || '%'
+		ORDER BY RANKORDER, DISPLAYNAME
+	</select>
+	
+</sqlMap>
+
+

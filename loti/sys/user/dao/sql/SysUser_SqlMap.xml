@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysUser">
+
+	<typeAlias alias="sysUser" type="loti.sys.user.model.SysUser"/>
+	<typeAlias alias="sysGroup" type="loti.sys.user.model.SysGroup"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSysUser" parameterClass="sysUser" resultClass="sysUser">
+		SELECT
+            A.JUMINNO,
+            A.USERNAME,
+            SUBSTR(A.BIRTHSEX,1,6) || '-' || SUBSTR(A.BIRTHSEX,7,1) || '******' JUMIN,
+            CASE  WHEN  SUBSTR(A.BIRTHSEX,7,1) =  '1' OR SUBSTR(A.BIRTHSEX,7,1) =  '2'
+                  THEN  '19' || SUBSTR(A.BIRTHSEX,1,2) || '년 ' || SUBSTR(A.BIRTHSEX,3,2) || '월 ' || SUBSTR(A.BIRTHSEX,5,2) || '일 ' 
+                  WHEN  SUBSTR(A.BIRTHSEX,7,1) =  '3' OR SUBSTR(A.BIRTHSEX,7,1) =  '4'
+                  THEN  '20' || SUBSTR(A.BIRTHSEX,1,2) || '년 ' || SUBSTR(A.BIRTHSEX,3,2) || '월 ' || SUBSTR(A.BIRTHSEX,5,2) || '일 ' 
+            END BIRTHDAY,
+            (SELECT 
+                    DECODE(LEVEL,1,SIMPLENAME,C.SIMPLENAME||' '||  (SELECT 
+                                                                            SIMPLENAME 
+                                                                      FROM  CMN_ORGANMAP B 
+                                                                     WHERE  B.ORGANCODE = A.ORGANCODE)) 
+              FROM  CMN_ORGANMAP C
+             WHERE  LEVEL = DECODE((SELECT 
+                                            MAX(LEVEL) 
+                                      FROM  CMN_ORGANMAP D 
+                                START WITH  D.ORGANCODE = A.ORGANCODE 
+                          CONNECT BY PRIOR  D.PARENTORGAN = D.ORGANCODE), 4 ,3, 3, 2, 1) 
+        START WITH  C.ORGANCODE = A.ORGANCODE
+  CONNECT BY PRIOR  C.PARENTORGAN = C.ORGANCODE) ASSIGNNAME,
+            B.RANKNAME,
+            CELLPHONE,
+            TELPHONE,
+            EMAIL,
+            ISADMIN,
+            ISEDUCHARGER,
+            ISGUCHARGER,
+            ISPLANCHARGER,
+            ISINUSER
+      FROM  CMN_PUBWORKER A, CMN_RANKCODE B
+     WHERE  A.RANK = B.RANKCODE(+)
+       AND  JUMINNO = #juminNo#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSysUserList" parameterClass="sysUser" resultClass="sysUser">
+		SELECT
+            A.JUMINNO,
+            A.USERNAME,
+            A.CELLPHONE,
+           (SELECT 
+                    DECODE(LEVEL,1,SIMPLENAME,C.SIMPLENAME||' '||  (SELECT 
+                                                                            SIMPLENAME 
+                                                                      FROM  CMN_ORGANMAP B 
+                                                                     WHERE  B.ORGANCODE = A.ORGANCODE)) 
+              FROM  CMN_ORGANMAP C
+             WHERE  LEVEL = DECODE((SELECT 
+                                            MAX(LEVEL) 
+                                      FROM  CMN_ORGANMAP D 
+                                START WITH  D.ORGANCODE = A.ORGANCODE 
+                          CONNECT BY PRIOR  D.PARENTORGAN = D.ORGANCODE), 4 ,3, 3, 2, 1) 
+        START WITH  C.ORGANCODE = A.ORGANCODE
+  CONNECT BY PRIOR  C.PARENTORGAN = C.ORGANCODE) ASSIGNNAME,
+            B.RANKNAME,
+            LTRIM(DECODE(A.ISADMIN,'Y','관리자','')||DECODE(A.ISEDUCHARGER,'Y',',교육담당자','')||DECODE(A.ISGUCHARGER,'Y',',구군담당자','')||DECODE(A.ISPLANCHARGER,'Y',',계획담당자','')||DECODE(A.ISINUSER,'Y',',원내사용자',''),',') ISADMIN ,
+            A.INSDATE
+      FROM  CMN_PUBWORKER A, CMN_RANKCODE B
+     WHERE  A.RANK = B.RANKCODE(+)
+					<isNotEmpty prepend="AND" property="searchKeyword">
+						USERNAME like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+  ORDER BY USERNAME
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectSysUserListCount" parameterClass="sysUser" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_PUBWORKER
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectSysUserCount" parameterClass="sysUser" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM CMN_PUBWORKER
+		<!-- 조회조건 Key 추가 -->
+		<isNotEmpty prepend="WHERE" property="juminNo">
+			JUMINNO = #juminNo#
+		</isNotEmpty>
+	</select>
+
+	<!-- 교육생중 사용자 테이블에 없는 사용자를 조회 -->
+	<select id="selectStdudent" resultClass="sysUser">
+ 		<![CDATA[ 
+		SELECT X.JUMINNO, X.STDNAME USERNAME, X.ASSIGNNAME, X.GRADENAME, X.RANKNAME, X.JOBNAME
+		FROM OPR_CRSSTUDENT X, (SELECT MAX(A.COURSECODE) COURSECODE, A.JUMINNO 
+                            FROM OPR_CRSSTUDENT A, (SELECT JUMINNO FROM OPR_CRSSTUDENT
+                                                    WHERE SUBSTR(COURSECODE,4,4) >= '2010'
+                                                      AND LENGTH(JUMINNO) = 13                                                    
+                                                    MINUS
+                                                    SELECT JUMINNO FROM CMN_PUBWORKER) B
+                            WHERE A.JUMINNO = B.JUMINNO
+                            GROUP BY A.JUMINNO) Y
+    WHERE X.JUMINNO = Y.JUMINNO
+      AND X.COURSECODE = Y.COURSECODE
+  	]]> 
+	</select>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insertSysUser" parameterClass="sysUser">
+		INSERT INTO CMN_PUBWORKER (
+			   			JUMINNO     ,
+			   			PASSWD      ,
+			   			USERNAME    ,
+			   			CELLPHONE   ,
+			   			TELPHONE		,
+			   			GRADE       ,
+			   			RANK        ,
+			   			JOBKIND     ,
+			   			ISADMIN     ,
+			   			ISEDUCHARGER,
+			   			EMAIL       ,
+			   			INSDATE     ,
+			   			INSWAY      ,
+			   			INSUSER     ,
+			   			UPDDATE     ,
+			   			UPDWAY      ,
+			   			UPDUSER     ,
+			   			DELDATE     ,
+			   			DELWAY      ,
+			   			DELUSER     ,
+			   			INITMENU    ,
+			   			ORGANCODE
+		) VALUES (
+
+			   			#juminNo#     ,
+			   			#passwd#      ,
+			   			#userName#    ,
+			   			#cellPhone#   ,
+			   			#telPhone#   ,
+			   			#grade#       ,
+			   			#rank#        ,
+			   			#jobKind#     ,
+			   			#isAdmin#     ,
+			   			#isEduCharger#,
+			   			#email#       ,
+			   			#insDate#     ,
+			   			#insWay#      ,
+			   			#insUser#     ,
+			   			#updDate#     ,
+			   			#updWay#      ,
+			   			#updUser#     ,
+			   			#delDate#     ,
+			   			#delWay#      ,
+			   			#delUser#     ,
+			   			#initMenu#    ,
+			   			#organCode#
+		)
+
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateSysUser" parameterClass="sysUser">
+		UPDATE CMN_PUBWORKER SET
+			   CELLPHONE    = #cellPhone#    ,
+			   TELPHONE     = #telPhone#     ,
+			   EMAIL        = #email#        ,
+			   ISADMIN      = #isAdmin#      ,
+			   ISEDUCHARGER = #isEduCharger# ,
+			   ISGUCHARGER  = #isGuCharger#  ,
+			   ISPLANCHARGER = #isPlanCharger#  ,
+			   ISINUSER     = #isInUser#  
+			   WHERE JUMINNO = #juminNo#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSysUser" parameterClass="sysUser">
+		DELETE FROM CMN_PUBWORKER
+		WHERE 
+		<isNotEmpty property="juminno">
+				JUMINNO = #juminNo#
+			</isNotEmpty>
+	</delete>
+
+	<!-- 그룹멸 유저 목록조회쿼리 -->
+	<select id="selectSysGroupUserList" parameterClass="sysGroup" resultClass="sysUser">
+			SELECT 	P.JUMINNO JUMINNO, P.USERNAME USERNAME, G.GROUPNO GROUPNO
+			FROM 	SYS_GROUPMEMBER M, SYS_GROUP G, CMN_PUBWORKER P
+			WHERE 	M.GROUPNO = G.GROUPNO
+			AND 	M.JUMINNO = P.JUMINNO
+			AND 	G.GROUPNO = #groupNo#
+	</select>
+
+	<!-- 그룹별 등록 가능한 사용자목록조회쿼리 -->
+	<select id="selectSysUserGroupList" parameterClass="sysGroup" resultClass="sysUser">
+			SELECT  SUBSTR(A.BIRTHSEX,1,6)||'-'||SUBSTR(A.BIRTHSEX,7,1)||'******' AS JUMIN, 
+							A.JUMINNO, A.USERNAME, SIMPLENAME AS POSITION
+			FROM CMN_PUBWORKER A, CMN_ORGANMAP B
+			WHERE JUMINNO NOT IN
+					(
+						SELECT JUMINNO
+						FROM SYS_GROUPMEMBER
+               			WHERE GROUPNO = #groupNo#
+               		)
+      AND A.ORGANCODE = B.ORGANCODE
+      <!-- 
+			SELECT  JUMINNO , USERNAME
+			FROM CMN_PUBWORKER
+			WHERE JUMINNO NOT IN
+					(
+						SELECT JUMINNO
+						FROM SYS_GROUPMEMBER
+               			WHERE GROUPNO = #groupNo#
+               		)
+       -->
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+		<!-- 권한복사 유저 조회쿼리 -->
+	<select id="selectSysUserAuthList" parameterClass="sysUser" resultClass="sysUser">
+			SELECT ROWNUM NUM, JUMINNO, ORGANNAME AS NODENO, USERNAME, JOBKIND, A.ORGANCODE
+			FROM CMN_PUBWORKER A, CMN_ORGANMAP B
+			WHERE A.ORGANCODE = B.ORGANCODE
+      AND (
+				JUMINNO IN (SELECT JUMINNO FROM SYS_GROUPMEMBER )
+				OR JUMINNO IN (SELECT JUMINNO FROM SYS_USERAUTH)
+				)
+			<!-- 	
+			SELECT ROWNUM NUM, JUMINNO, NODENO, USERNAME, JOBKIND
+			FROM CMN_PUBWORKER
+			WHERE (
+				JUMINNO IN (SELECT JUMINNO FROM SYS_GROUPMEMBER )
+				OR JUMINNO IN (SELECT JUMINNO FROM SYS_USERAUTH)
+				)
+				 -->
+			AND JUMINNO != #juminNo#
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	
+	<!-- 로그인 사용자 정보 -->
+	<select id="selectLoginInfo" parameterClass="java.lang.String" resultClass="sysUser">
+		SELECT 
+            A.JUMINNO, A.USERNAME, A.EMAIL, B.SIMPLENAME, B.ORGANNAME, B.CHIEFORGAN, 
+            A.ISADMIN, A.ISEDUCHARGER, A.ISGUCHARGER, A.ISPLANCHARGER, A.ISINUSER, A.CELLPHONE, A.TELPHONE, 
+            TO_CHAR(SYSDATE, 'YYYY-MM-DD HH24:MI:SS') LOGINDATE, A.INITMENU, 
+        NVL((SELECT 
+                    SUBSTR(XMLAGG(XMLELEMENT("NM",','||GROUPNO)ORDER BY GROUPNO).EXTRACT('//text()'),2) 
+              FROM  SYS_GROUPMEMBER 
+             WHERE  JUMINNO = #juminNo#), 10)||',10' GROUPNO
+      FROM  CMN_PUBWORKER A, CMN_ORGANMAP B
+     WHERE  A.ORGANCODE = B.ORGANCODE(+)
+       AND  A.JUMINNO = #juminNo#	 
+	</select>
+	
+		<!-- 로그인 사용자 조직 정보 -->
+	<select id="selectChiefOrgan" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT ORGANNAME 
+		FROM CMN_MSTORGAN
+		WHERE CHIEFORGAN = #chiefOrgan#
+	</select>
+
+		<!--  유저 권한 삭제 -->
+	<delete id="deleteSysUserAuth" parameterClass="sysUser">
+		DELETE 	FROM SYS_USERAUTH
+		WHERE	JUMINNO = #deJuminNo#
+	</delete>
+
+		<!--  그룹 권한 삭제 -->
+	<delete id="deleteSysGroupAuth" parameterClass="sysUser">
+		DELETE 	FROM SYS_GROUPMEMBER
+		WHERE	JUMINNO = #deJuminNo#
+	</delete>
+
+	<!-- 그룹 권한  복사 -->
+	<insert id="insertSysGroupAuth" parameterClass="sysUser">
+		INSERT INTO SYS_GROUPMEMBER
+		SELECT	GROUPNO, #deJuminNo# AS	JUMINNO
+		FROM 	SYS_GROUPMEMBER
+		WHERE	JUMINNO = #cpJuminNo#
+	</insert>
+
+		<!-- 유저 권한  복사 -->
+	<insert id="insertSysUserAuth" parameterClass="sysUser">
+		INSERT INTO SYS_USERAUTH
+		SELECT	MENUNO , #deJuminNo# AS	JUMINNO
+		FROM 	SYS_USERAUTH
+		WHERE	JUMINNO = #cpJuminNo#
+	</insert>
+</sqlMap>
+
+

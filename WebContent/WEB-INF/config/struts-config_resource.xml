@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="rscInstForm" 					type="loti.rsc.inst.model.RscInst"/>
+    <form-bean name="rscBookForm" 					type="loti.rsc.book.model.RscBook"/>
+    <form-bean name="rscLibForm" 						type="loti.rsc.lib.model.RscLib"/>
+    <form-bean name="rscRoomForm" 					type="loti.rsc.room.model.RscRoom"/>
+    <form-bean name="rscSMSStatusListForm" 	type="loti.rsc.smsstatus.model.RscSMSStatusList"/>
+    <form-bean name="cmnSendSMS" 						type="loti.cmn.common.model.Cmn_PopupSendSMS"/>
+    <form-bean name="cmnSendEMail" 					type="loti.cmn.common.model.Cmn_PopupSendEMail"/>
+    <form-bean name="cmnCourseForm" 				type="loti.cmn.common.model.Cmn_PopupCourse"/>
+    <form-bean name="cmnUserForm" 					type="loti.cmn.common.model.Cmn_PopupUser"/>
+    <form-bean name="cmnProfForm" 					type="loti.cmn.common.model.Cmn_PopupProf"/>
+    <form-bean name="cmnCourseInfoForm" 		type="loti.cmn.common.model.Cmn_PopupCourseInfo"/>
+    <form-bean name="cmnRankJobForm" 				type="loti.cmn.common.model.Cmn_PopupRankJob"/>
+    <form-bean name="svcSMSSendForm" 				type="loti.svc.sms.model.Svc_SMSSend"/>
+    <form-bean name="certPrtForm" 					type="loti.ext.mylc.cert.model.ExtMylc_CertPrt"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+  	<!-- 기자재 관리 -->
+    <action path="/rscInst" name="rscInstForm" type="loti.rsc.inst.action.RscInstAction" scope="request" unknown="false" roles="50">
+	      <forward name="list"		path="/rsc/inst/Rsc_FacsMemt.jsp"/>
+	      <forward name="insert"	path="/rscInst.act?task=list"/>
+	      <forward name="modify"	path="/rsc/inst/Rsc_FacsMod.jsp"/>
+	      <forward name="update"	path="/rscInst.act?task=list"/>
+	      <forward name="create"	path="/rsc/inst/Rsc_FacsMod.jsp"/>
+	      <forward name="delete"	path="/rscInst.act?task=list"/>
+	      <forward name="detl"		path="/rsc/inst/Rsc_FacsDetl.jsp"/>
+    </action>
+    
+    
+  <!--도서실 관리 -->
+  	  <action path="/rscLib" name="rscLibForm" type="loti.rsc.lib.action.RscLibAction" scope="request" unknown="false" roles="52">
+	      <forward name="list"   			path="/rsc/lib/Rsc_LibLendMgmt.jsp"/>
+	      <forward name="insert" 			path="/rscLib.act?task=list"/>
+	      <forward name="modify" 			path="/rsc/lib/Rsc_LibBookEnter.jsp"/>
+	      <forward name="update" 			path="/rscLib.act?task=list"/>
+	      <forward name="create" 			path="/rsc/lib/Rsc_LibBookEnter.jsp"/>
+	      <forward name="delete" 			path="/rscLib.act?task=list"/>
+	      <forward name="lendStatus" 	path="/rsc/lib/Rsc_LibLendStatus.jsp"/>
+	      <forward name="cateStatus" 	path="/rsc/lib/Rsc_LibCateStatus.jsp"/>
+	      <forward name="lend"  			path="/rscLib.act?task=list"/>
+	 </action>
+	 
+	<!--도서 검색 -->
+			<action path="/rscLibSearch" name="rscLibForm" type="loti.rsc.lib.action.RscLibAction" scope="request" unknown="false" roles="119">
+	      <forward name="userSearch"  path="/rsc/lib/Rsc_LibUserSearch.jsp"/>
+    </action>
+    
+    
+     <!-- 교재 관리 -->  
+  	  <action path="/rscBook" name="rscBookForm" type="loti.rsc.book.action.RscBookAction" scope="request" unknown="false" roles="51">
+	      <forward name="list" 		path="/rsc/book/Rsc_ManualMgmt.jsp"/>
+	      <forward name="insert" 	path="/rscBook.act?task=list"/>
+	      <forward name="modify" 	path="/rsc/book/Rsc_ManualMod.jsp"/>
+	      <forward name="update" 	path="/rscBook.act?task=list"/>
+	      <forward name="create" 	path="/rsc/book/Rsc_ManualMod.jsp"/>
+	      <forward name="delete" 	path="/rscBook.act?task=list"/>
+	      <forward name="inBook"	path="/rsc/book/Rsc_ManualStockIn.jsp"/>
+	      <forward name="outBook"	path="/rsc/book/Rsc_ManualStockOut.jsp"/>
+	      <forward name="history"	path="/rsc/book/Rsc_ManualIOHistory.jsp"/>
+    </action>
+    
+    
+  	<!-- 교육장 관리 -->
+    <action path="/rscRoom" name="rscRoomForm" type="loti.rsc.room.action.RscRoomAction" scope="request" unknown="false" roles="53">
+	      <forward name="list"   path="/rsc/room/Rsc_RoomLent.jsp"/>
+	      <forward name="month"  path="/rsc/room/Rsc_RoomMonthLent.jsp"/>
+	      <forward name="insert" path="/rscRoom.act?task=list"/>
+	      <forward name="modify" path="/rsc/room/Rsc_RoomLent.jsp"/>
+	      <forward name="update" path="/rscRoom.act?task=list"/>
+	      <forward name="create" path="/rsc/room/Rsc_RoomLent.jsp"/>
+	      <forward name="delete" path="/rscRoom.act?task=list"/>
+    </action>
+ 
+    <!-- SMS 발송현황 -->
+    <action path="/rscSMSStatusList" name="rscSMSStatusListForm" type="loti.rsc.smsstatus.action.RscSMSStatusListAction" scope="request" unknown="false" roles="95">
+    	<forward name="list"   path="/rsc/smsstatus/Rsc_SMSStatusList.jsp"/>
+    	<forward name="info"   path="/rsc/smsstatus/Rsc_SMSStatusView.jsp"/>
+    </action> 
+    
+    <!-- SMSEMAIL발송 -->
+    <action path="/cmnPopupSendSMS" name="cmnSendSMS" type="loti.cmn.common.action.Cmn_PopupSendSMSAction" scope="request" unknown="false">
+    	<forward name="list"   path="/common/Cmn_PopupSendSMS.jsp"/>
+    </action>   
+    
+    <!-- EMAIL발송 -->
+    <action path="/cmnPopupSendEMail" name="cmnSendEMail" type="loti.cmn.common.action.Cmn_PopupSendEMailAction" scope="request" unknown="false">
+    	<forward name="list"     path="/common/Cmn_PopupSendEMail.jsp"/>
+    	<forward name="insert"   path="/svcSMSSend.act?task=list"/>
+    </action>   
+    
+    <!-- SMSEMAIL발송 -->
+    <action path="/svcSMSSend" name="svcSMSSendForm" type="loti.svc.sms.action.Svc_SMSSendAction" scope="request" unknown="false" roles="68">
+    	<forward name="list"   path="/svc/sms/Svc_SMSSend.jsp"/>
+    	<forward name="search"   path="/svc/sms/Svc_SMSUserList.jsp"/>
+    </action> 
+    
+  	<!-- 증명서 인쇄 -->
+    <action path="/certPrt" name="certPrtForm" type="loti.ext.mylc.cert.action.ExtMylc_CertPrtAction" scope="request" unknown="false" roles="67">
+	      <forward name="list"   path="/ext/mylc/cert/ExtMylc_CertPrt.jsp"/>
+    </action>
+    
+    <!-- 과정 조회 팝업 화면 -->
+    <action path="/cmnCourse" name="cmnCourseForm" type="loti.cmn.common.action.Cmn_PopupCourseAction" scope="request" unknown="false">
+    	<forward name="list"   path="/common/Cmn_PopupCourse.jsp"/>
+    </action> 
+    
+    <!-- 사용자 조회 팝업 화면 -->
+    <action path="/cmnUser" name="cmnUserForm" type="loti.cmn.common.action.Cmn_PopupUserAction" scope="request" unknown="false">
+    	<forward name="list"   path="/common/Cmn_PopupUser.jsp"/>
+    </action>    
+    
+    <!-- 강사 조회 팝업 화면 -->
+    <action path="/cmnProf" name="cmnProfForm" type="loti.cmn.common.action.Cmn_PopupProfAction" scope="request" unknown="false">
+    	<forward name="list"  path="/common/Cmn_PopupProf.jsp"/>
+	    <forward name="frame" path="/common/Cmn_PopupProf_Frame.jsp"/>
+    </action>  
+    
+    <!-- 과정 상세 보기  팝업 화면 -->
+    <action path="/cmnCourseInfo" name="cmnCourseInfoForm" type="loti.cmn.common.action.Cmn_PopupCourseInfoAction" scope="request" unknown="false">
+	      <forward name="info" path="/ext/crs/course/Crs_CourseQry.jsp"/>
+	      <forward name="cyberinfo" path="/ext/crs/course/Crs_CourseCyberQry.jsp"/>
+    </action>  
+    
+    <!-- 직급 직렬 조회  팝업 화면 -->
+    <action path="/cmnRankJob" name="cmnRankJobForm" type="loti.cmn.common.action.Cmn_PopupRankJobAction" scope="request" unknown="false">
+	      <forward name="rankpop" 	path="/common/sysRankSearch.jsp"/>
+	      <forward name="jobpop" 		path="/common/sysJobSearch.jsp"/>
+    </action>  
+    
+  </action-mappings>
+  
+	<controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

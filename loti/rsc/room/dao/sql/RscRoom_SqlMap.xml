@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscRoom">
+
+	<typeAlias alias="rscRoom" type="loti.rsc.room.model.RscRoom"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectRscRoom" parameterClass="rscRoom" resultClass="rscRoom">
+			SELECT 	
+				   		LENDSEQ ,
+				   		ROOMNO  ,
+				   		LENDFROM,
+				   		LENDTO  ,
+				   		STATUS  ,
+				   		REQUSER ,
+				   		REQNAME ,
+				   		REQPHONE,
+				   		LENDWHY 
+			FROM 		RSC_ROOMLEND
+			WHERE		LENDSEQ = #lendSeq#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectRscRoomList" parameterClass="rscRoom" resultClass="rscRoom">
+		    SELECT 
+            LENDSEQ,
+            sysRoomNum.NAME ROOMNO,
+            TO_CHAR(TO_DATE(LENDFROM,'YYYYMMDD'), 'YYYY-MM-DD') LENDFROM  ,
+            TO_CHAR(TO_DATE(LENDTO,'YYYYMMDD'), 'YYYY-MM-DD') LENDTO  , 
+            sysRoomStatus.NAME STATUS,
+            sysRoomStatus.CODE STATUSCODE,
+            REQUSER,
+            REQNAME,
+            REQPHONE,
+            LENDWHY,
+            REQORGAN
+      FROM  RSC_ROOMLEND, 
+           (SELECT     
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00021'
+               AND  CODE   != '00000') sysRoomNum, 
+           (SELECT     
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00014'
+               AND  CODE   != '00000') sysRoomStatus
+     WHERE  RSC_ROOMLEND.ROOMNO = sysRoomNum.CODE
+       AND  RSC_ROOMLEND.STATUS = sysRoomStatus.CODE
+       AND (LENDFROM LIKE #searchKeywordDate# || '%' OR LENDTO LIKE #searchKeywordDate# || '%')
+  ORDER BY  LENDFROM
+	</select>
+
+	<!-- 월 사용현황 목록조회쿼리 -->
+	<select id="selectRscRoomMonthList" parameterClass="rscRoom" resultClass="rscRoom">
+		SELECT	DISTINCT
+            TO_CHAR(#startDay# + A.NO) as dateNo, B.LECROOMNO ROOMNO, B.EDUFROM LENDFROM, B.EDUTO LENDTO,
+            '' STATUS, '' REQUSER, '' REQNAME, '' REQPHONE, 
+            B.COURSENAME || '(' || C.NAME || ')' LENDWHY
+      FROM  OPR_LECTURE B,
+           (SELECT
+                    CODE, SUBSTR(NAME, 0, 4) NAME 
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00021') C,
+           (SELECT
+                    LEVEL - 1 NO
+              FROM  DUAL
+        CONNECT BY  LEVEL <![CDATA[<=]]> #lengthDay#) A          
+     WHERE  C.CODE = B.LECROOMNO
+       AND  TO_CHAR(#startDay# + A.NO) BETWEEN B.EDUFROM AND B.EDUTO
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+						B.LECROOMNO like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+ UNION ALL
+		SELECT	TO_CHAR(#startDay# + A.NO) as dateNo, B.ROOMNO, B.LENDFROM, B.LENDTO, 
+						B.STATUS, B.REQUSER, B.REQNAME, B.REQPHONE, B.LENDWHY||'('||C.NAME||', '||B.REQNAME||')' LENDWHY
+			FROM	RSC_ROOMLEND B,
+           (SELECT
+                    CODE, SUBSTR(NAME, 0, 4) NAME 
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00021') C,
+					 (SELECT    
+					 					LEVEL - 1 NO 
+							FROM	DUAL 
+	      CONNECT BY	LEVEL <![CDATA[<=]]> #lengthDay#) A
+		 WHERE	C.CODE = B.ROOMNO
+		   AND	TO_CHAR(#startDay# + A.NO) BETWEEN B.LENDFROM AND B.LENDTO
+		   AND	STATUS = '00004'
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	ORDER BY	dateNo, LENDFROM, ROOMNO, LENDWHY
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectRscRoomListCount" parameterClass="rscRoom" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_ROOMLEND
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectRscRoomCount" parameterClass="rscRoom" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_ROOMLEND
+		WHERE	LENDSEQ = #lendSeq#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertRscRoom" parameterClass="rscRoom">
+		INSERT INTO RSC_ROOMLEND (	
+			   			LENDSEQ ,	
+			   			ROOMNO  ,	
+			   			LENDFROM,	
+			   			LENDTO  ,	
+			   			STATUS  ,	
+			   			REQUSER ,	
+			   			REQNAME ,	
+			   			REQPHONE,	
+			   			LENDWHY 	
+		) VALUES (
+						 
+			   			#lendSeq# ,	
+			   			#roomNo#  ,	
+			   			#lendFrom#,	
+			   			#lendTo#  ,	
+			   			#statUs#  ,	
+			   			#reqUser# ,	
+			   			#reqName# ,	
+			   			#reqPhone#,	
+			   			#lendWhy# 	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateRscRoom" parameterClass="rscRoom">
+		UPDATE	RSC_ROOMLEND SET
+				STATUS  = #statUs#
+		WHERE  	LENDSEQ = #lendSeq#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscRoom" parameterClass="rscRoom">
+		DELETE FROM RSC_ROOMLEND
+		WHERE	LENDSEQ = #lendSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="lendseq">
+				LENDSEQ = #lendseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="roomno">
+				ROOMNO = #roomno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendfrom">
+				LENDFROM = #lendfrom#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendto">
+				LENDTO = #lendto#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="status">
+				STATUS = #status#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="requser">
+				REQUSER = #requser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqname">
+				REQNAME = #reqname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqphone">
+				REQPHONE = #reqphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendwhy">
+				LENDWHY = #lendwhy#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

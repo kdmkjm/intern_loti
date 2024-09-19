@@ -1,0 +1,1155 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Tst_Score">
+
+	<typeAlias alias="tst_Score" type="loti.tst.score.model.Tst_Score"/>
+	<typeAlias alias="tst_Subject" type="loti.tst.score.model.Tst_Subject"/>
+	<typeAlias alias="tst_Question" type="loti.tst.score.model.Tst_Question"/>
+	
+<!-- 과정별 과목목록 조회 쿼리 -->
+	<select id="selectTst_SubjectList" parameterClass="tst_Subject" resultClass="tst_Subject">
+			SELECT 	
+						ESSRL	,
+						CMIDF	,
+						ESSEQ	,
+						SBIDF	,
+						SBNAM	,
+						ESETP	,
+						ESTPT	,
+						SCOREGBN,
+						ESISU 
+			  FROM TST_EXSJ 
+			  WHERE CMIDF LIKE #searchCourseCode#
+		  <isNotEmpty property="searchSort">
+			ORDER BY $searchSort$
+			</isNotEmpty>
+			<!-- dafault -->
+			<isEmpty property="searchSort">
+			ORDER BY ESSEQ
+			</isEmpty>
+	</select>
+	
+	<!-- 과목마스터 목록 조회 쿼리 -->
+	<select id="selectTst_SubjectMasterList" parameterClass="tst_Subject" resultClass="tst_Subject">
+		SELECT SUBJECTCODE, SUBJECTNAME, SUBJECTTYPE, EDUGBN, TESTGBN, INUSE
+		FROM CMN_TESTSUBJECT
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="searchWord">
+				$searchgbn$ LIKE '%' || #searchWord# || '%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="subjecttype">
+				SUBJECTTYPE = #subjecttype#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="edugbn">
+				EDUGBN = #edugbn#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="testgbn">
+				TESTGBN = #testgbn#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="inuse">
+				INUSE = #inuse#
+			</isNotEmpty>
+		</dynamic>
+		<dynamic prepend="ORDER BY">
+			<isNotEmpty prepend="," property="searchSortName">
+				SUBJECTNAME $searchSortName$
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="searchSortCode">
+				SUBJECTCODE $searchSortCode$
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="searchSortType">
+				SUBJECTTYPE $searchSortType$
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="searchSortEdu">
+				EDUGBN $searchSortEdu$
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="searchSortTest">
+				TESTGBN $searchSortTest$
+			</isNotEmpty>
+			<isNotEmpty prepend="," property="searchSortInuse">
+				INUSE $searchSortInuse$
+			</isNotEmpty>
+		</dynamic>		
+	</select>
+	
+	<!-- 과목마스터 페이징용 쿼리 -->
+	<select id="selectTst_SubjectMasterCount" parameterClass="tst_Subject" resultClass="java.lang.Integer">
+		SELECT CEIL(COUNT(*)/$rowsPerPage$)
+		FROM CMN_TESTSUBJECT
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="searchWord">
+				$searchgbn$ LIKE '%' || #searchWord# || '%'
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="subjecttype">
+				SUBJECTTYPE = #subjecttype#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="edugbn">
+				EDUGBN = #edugbn#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="testgbn">
+				TESTGBN = #testgbn#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="inuse">
+				INUSE = #inuse#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 과목마스터 과목정보 조회 -->
+	<select id="selectTst_SubjectMasterInfo" parameterClass="tst_Subject" resultClass="tst_Subject">
+		SELECT	SUBJECTCODE, 
+				SUBJECTNAME, 
+				SUBJECTTYPE, 
+				EDUGBN, 
+				TESTGBN, 
+				INUSE, 
+				INSUSER, 
+				INSDATE, 
+				UPDDATE, 
+				UPDUSER
+		FROM CMN_TESTSUBJECT
+		WHERE SUBJECTCODE = #subjectcode#
+	</select>
+	
+	<!-- 과목마스터 정보 업데이트 -->
+	<update id="updateTst_SubjectMaster" parameterClass="tst_Subject">
+		UPDATE CMN_TESTSUBJECT SET
+			SUBJECTNAME = #subjectname#,
+			SUBJECTTYPE = #subjecttype#,
+			EDUGBN = #edugbn#,
+			TESTGBN = #testgbn#,
+			INUSE = #inuse#,
+			INSUSER = #insuser#,
+			INSDATE = #insdate#,
+			UPDUSER = 'System',
+			UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		WHERE SUBJECTCODE = #subjectcode#
+	</update>
+	
+	<!-- 과목마스터 정보 등록 -->
+	<insert id="insertTst_SubjectMaster" parameterClass="tst_Subject">
+		INSERT INTO CMN_TESTSUBJECT
+				(
+					SUBJECTCODE,
+					SUBJECTNAME,
+					SUBJECTTYPE,
+					EDUGBN,
+					TESTGBN,
+					INUSE,
+					INSUSER,
+					INSDATE
+				)
+		VALUES(
+				#subjectcode#,
+				#subjectname#,
+				#subjecttype#,
+				#edugbn#,
+				#testgbn#,
+				#inuse#,
+				'System',
+				(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+				)
+	</insert>
+	
+	<!-- 과목마스터 정보 삭제 -->
+	<delete id="deleteTst_SubjectMaster" parameterClass="tst_Subject">
+		DELETE FROM CMN_TESTSUBJECT WHERE SUBJECTCODE = #subjectcode#
+	</delete>
+	
+	<!-- 과목정보 조회 쿼리  -->
+	<select id="selectTst_SubjectInfo" parameterClass="tst_Subject" resultClass="tst_Subject">
+			SELECT
+						ESSRL	,
+						CMIDF	,
+						SBIDF	,
+						SBNAM	,
+						ESSEQ	,
+						ESYER	,
+						ESISP	,
+						ESISR	,
+						ESETP	,
+						ESGBN	,
+						RTRIM(TO_CHAR(ESEOP, 'FM9990D00'), '.')	AS ESEOP,
+						RTRIM(TO_CHAR(ESESP, 'FM9990D00'), '.')	AS ESESP,
+						RTRIM(TO_CHAR(ESOTP, 'FM9990D00'), '.')	AS ESOTP,
+						RTRIM(TO_CHAR(ESSTP, 'FM9990D00'), '.')	AS ESSTP,
+						RTRIM(TO_CHAR(ESSUP, 'FM9990D00'), '.')	AS ESSUP,
+						RTRIM(TO_CHAR(ESWOP, 'FM9990D00'), '.')	AS ESWOP,
+						RTRIM(TO_CHAR(ESYAP, 'FM9990D00'), '.')	AS ESYAP,
+						RTRIM(TO_CHAR(ESGAP, 'FM9990D00'), '.')	AS ESGAP,
+						RTRIM(TO_CHAR(ESGTP, 'FM9990D00'), '.')	AS ESGTP,
+						RTRIM(TO_CHAR(ESHWC, 'FM9990D00'), '.')	AS ESHWC,
+						RTRIM(TO_CHAR(ESHWP, 'FM9990D00'), '.')	AS ESHWP,
+						RTRIM(TO_CHAR(ESRTP, 'FM9990D00'), '.')	AS ESRTP,
+						RTRIM(TO_CHAR(ESTPT, 'FM9990D00'), '.')	AS ESTPT,
+						ESISU	,
+						CJSRL	,
+						ESOCT	,
+						ESSCT	,
+						ESOMR	,
+						ESTSP	,
+						INSUSER	,
+						INSDATE	,
+						UPDUSER	,
+						UPDDATE	,
+						SCOREGBN
+			FROM
+					TST_EXSJ 
+			<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="cmidf">
+				CMIDF = #cmidf#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="sbidf">
+				 SBIDF = #sbidf#
+			 </isNotEmpty>
+			<isNotEmpty prepend="AND" property="essrl">
+				ESSRL = #essrl#
+			</isNotEmpty>
+			</dynamic>
+						
+	</select>
+	
+	<!-- 과목정보 업데이트 -->
+	<update id="updateTst_SubjectInfo" parameterClass="tst_Subject">
+			UPDATE TST_EXSJ SET
+						CMIDF = #cmidf#	,
+						SBIDF = #sbidf#	,
+						SBNAM = #sbnam#	,
+						ESSEQ = #esseq#	,
+						ESYER = #esyer#	,
+						ESISP = #esisp#	,
+						ESISR = #esisr#	,
+						ESETP = #esetp#	,
+						ESGBN = #esgbn#	,
+						ESEOP = #eseop#	,
+						ESESP = #esesp#	,
+						ESOTP = #esotp#	,
+						ESSTP = #esstp#	,
+						ESSUP = #essup#	,
+						ESWOP = #eswop#	,
+						ESYAP = #esyap#	,
+						ESGAP = #esgap#	,
+						ESGTP = #esgtp#	,
+						ESHWC = #eshwc#	,
+						ESHWP = #eshwp#	,
+						ESRTP = #esrtp#	,
+						ESTPT = #estpt#	,
+						ESISU = #esisu#	,
+						CJSRL = #cjsrl#	,
+						ESOCT = #esoct#	,
+						ESSCT = #essct#	,
+						ESOMR = #esomr#	,
+						ESTSP = #estsp#	,
+						INSUSER = #insuser#	,
+						INSDATE = #insdate#	,
+						UPDUSER = 'System'	,
+						UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL),
+						SCOREGBN = #scoregbn#
+			WHERE CMIDF = #cmidf# AND SBIDF = #sbidf#
+	</update>
+	
+	<!-- 과정 옵션용 쿼리 -->
+	<select id="selectOpr_Lecture" parameterClass="tst_Subject" resultClass="tst_Subject">
+			SELECT DISTINCT COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME,
+							COURSECODE AS CMIDF
+			FROM	OPR_LECTURE
+
+			<isNotEmpty property="esyer">
+			WHERE YEAR = #esyer#
+			</isNotEmpty>
+			ORDER BY COURSENAME
+	</select>
+	
+	<!-- 과목명 옵션 조회 쿼리 --> 
+	<select id="selectSbnamOption" parameterClass="tst_Subject" resultClass="tst_Subject">
+			SELECT COURSECODE AS CMIDF, SUBJNAME AS SBNAM
+			FROM OPR_LECSUBJECT
+			WHERE COURSECODE = #cmidf#
+			ORDER BY SUBJNAME
+	</select>
+	
+	
+	
+	<!-- 과정정보 조회 -->
+	<select id="selectCourseInfo" parameterClass="tst_Subject" resultClass="tst_Subject">
+		SELECT	A.COURSECODE AS CMIDF, 
+				A.YEAR AS ESYER,
+				A.COURSENAME, 
+				A.EDUFROM, 
+				A.EDUTO 
+		FROM OPR_LECTURE A
+		WHERE A.COURSECODE LIKE #searchCourseCode#
+	</select>
+	
+	<!-- 과정학생정보 조회 -->
+	<select id="selectOpr_CrsStudent" parameterClass="tst_Score" resultClass="tst_Score">
+		SELECT	
+				B.ESSRL,
+				B.SBIDF,
+				B.SBNAM,
+				B.ESYER,
+				B.ESSEQ,
+				B.ESETP,
+				B.CMIDF,
+				A.STDNO AS SDUNO,
+				A.STDNAME,
+				A.ASSIGN,
+				A.ASSIGNNAME,
+				A.GRADECODE,
+				A.RANKCODE,
+				A.RANKNAME,
+				A.JOBKIND,
+				A.JOBNAME,
+				A.RANKING,
+				A.ISFINISH
+		FROM	OPR_CRSSTUDENT A,
+				(SELECT ESSRL, CMIDF, SBIDF, SBNAM, ESYER, ESSEQ, ESETP
+				FROM	TST_EXSJ
+				<dynamic prepend="WHERE">	
+					<isNotEmpty prepend="AND" property="essrl">
+					ESSRL = #essrl#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="cmidf">
+					CMIDF = #cmidf#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="sbidf">
+					SBIDF = #sbidf#
+					</isNotEmpty>
+				</dynamic>) B
+		WHERE	A.COURSECODE = B.CMIDF
+	</select>
+	
+	<!-- 과목코드 중복 조회 -->
+	<select id="selectTst_SubjectCodeDup" parameterClass="tst_Subject" resultClass="java.lang.Integer">
+		SELECT COUNT(*) AS CNT
+		 FROM CMN_TESTSUBJECT
+		WHERE SUBJECTCODE = #subjectcode#
+	</select>
+	
+	<!-- 과목기수 조회 -->
+	<select id="selectTst_SubjectMaxESSEQ" parameterClass="tst_Subject" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(ESSEQ)+1,1) AS MAX
+		FROM TST_EXSJ
+		WHERE ESYER = #esyer#
+	</select>
+	
+	<!-- 평가과목 순번, 과정구성과목순번 조회 -->
+	<select id="selectTst_SubjectMaxESSRL" parameterClass="tst_Subject" resultClass="tst_Subject">
+		SELECT MAX(ESSRL)+1 AS ESSRL, MAX(CJSRL)+1 AS CJSRL
+		FROM TST_EXSJ
+	</select>
+	
+	
+	<!-- 과목기본정보 삭제 -->
+	<delete id="deleteTst_SubjectInfo" parameterClass="tst_Subject">
+		DELETE FROM TST_EXSJ
+			WHERE ESSRL = #essrl#
+	</delete>
+	
+	<!-- 과목문제정보 삭제 -->
+	<delete id="deleteTst_SubjectQuestion" parameterClass="tst_Subject">
+		DELETE FROM TST_EXQT
+			WHERE ESSRL = #essrl#
+	</delete>
+	
+	<!-- 과목답변통계정보 삭제 -->
+	<delete id="deleteTst_SubjectAnsStatis" parameterClass="tst_Subject">
+		DELETE FROM TST_EQAR
+			WHERE ESSRL = #essrl#
+				
+	</delete>
+	
+	<!-- 과목정답정보 삭제 -->
+	<delete id="deleteTst_SubjectAnswer" parameterClass="tst_Subject">
+		DELETE FROM TST_EMKR
+			WHERE ESSRL = #essrl#
+	</delete>
+	
+	<!-- 성적처리여부 수정 -->
+	<update id="updateTst_ScoreEval" parameterClass="tst_Subject">
+		UPDATE TST_EXSJ SET
+				ESISU = #esisu#
+		WHERE CMIDF = #cmidf#
+				AND SBIDF = #sbidf#
+	</update>
+	
+	<!-- 문항 정보 조회 -->
+	<select id="selectTst_QuestionExqt" parameterClass="tst_Question" resultClass="tst_Question">
+		SELECT
+			ESSRL,
+			EQNUM,
+			EQSUB,
+			EQGBN,
+			EQMAX,
+			EQMIN,
+			INSUSER,
+			INSDATE
+		FROM TST_EXQT
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="essrl">
+				ESSRL = #essrl#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="eqnum">
+				EQNUM = #eqnum#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 답변 정보 조회 -->
+	<select id="selectTst_QuestionExit" parameterClass="tst_Question" resultClass="tst_Question">
+		SELECT
+			ESSRL,
+			EQNUM,
+			EINUM,
+			EISUB,
+			EICYN,
+			INSUSER,
+			INSDATE
+		FROM TST_EXIT
+		<dynamic prepend="WHERE">
+			<isNotEmpty prepend="AND" property="essrl">
+				ESSRL = #essrl#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="eqnum">
+				EQNUM = #eqnum#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="einum">
+				EINUM = #einum#
+			</isNotEmpty>
+		</dynamic>
+	</select>
+	
+	<!-- 문항정보 목록 조회 -->
+	<select id="selectTst_ExqtList" parameterClass="tst_Question" resultClass="tst_Question">
+		SELECT *
+		FROM
+			TST_EXQT
+		WHERE
+			ESSRL = #essrl#
+		ORDER BY EQNUM
+	</select>
+	
+	<!-- 답변 목록 조회 -->
+	<select id="selectTst_ExitList" parameterClass="tst_Question" resultClass="tst_Question">
+		SELECT *
+		FROM
+			TST_EXIT
+		WHERE
+			ESSRL = #essrl#
+			<isNotEmpty property="eicyn">
+				AND EICYN = #eicyn#
+			</isNotEmpty>
+		ORDER BY EQNUM, EINUM
+	</select>
+	
+	<!-- 문항 일괄 생성 -->
+	<insert id="insertTst_QuestionMap" parameterClass="java.util.Map">
+		INSERT ALL
+			<dynamic>
+			<iterate property="exqt" conjunction=" ">
+				INTO TST_EXQT (
+							ESSRL	,
+							EQNUM	,
+							EQSUB	,
+							EQGBN	,
+							EQMAX	,
+							EQMIN	,
+							INSUSER	,
+							INSDATE
+							)
+				VALUES(
+							#exqt[].essrl#	,
+							#exqt[].eqnum#	,
+							#exqt[].eqsub#	,
+							#exqt[].eqgbn#	,
+							#exqt[].eqmax#	,
+							#exqt[].eqmin#	,
+							'System',
+							(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+							)
+			</iterate>
+			<iterate property="exit" conjunction=" ">
+				INTO TST_EXIT (
+							ESSRL	,
+							EQNUM	,
+							EINUM	,
+							EISUB	,
+							EICYN	,
+							INSUSER	,
+							INSDATE
+							)
+				VALUES	(
+							#exit[].essrl#	,
+							#exit[].eqnum#	,
+							#exit[].einum#	,
+							#exit[].eisub#	,
+							#exit[].eicyn#	,
+							'System'	,
+							(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+							)
+			</iterate>
+			</dynamic>
+			SELECT * FROM DUAL
+	</insert>
+	
+	<!-- 문항 삭제-->
+	<delete id="deleteTst_Exit" parameterClass="tst_Question">
+		DELETE FROM TST_EXIT
+		WHERE ESSRL = #essrl#
+	</delete>
+	<!-- 문항 삭제 -->
+	<delete id="deleteTst_Exqt" parameterClass="tst_Question">
+		DELETE FROM TST_EXQT
+		WHERE ESSRL = #essrl#
+	</delete>
+	
+	<!-- 문항정보 업데이트 -->
+	<update id="updateTst_Question" parameterClass="tst_Question">
+		UPDATE $gbn$ SET
+		<isEqual property="gbn" compareValue="TST_EXIT">
+			EINUM = #einum#,
+			EISUB = #eisub#,
+			EICYN = #eicyn#,
+		</isEqual>
+		<isEqual property="gbn" compareValue="TST_EXQT">
+			EQSUB = #eqsub#,
+			EQGBN = #eqgbn#,
+			EQMAX = #eqmax#,
+			EQMIN = #eqmin#,
+		</isEqual>
+			INSUSER = #insuser#,
+			INSDATE = #insdate#,
+			UPDUSER = 'System',
+			UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		WHERE
+			ESSRL = #essrl#
+			AND EQNUM = #eqnum#
+			<isNotEmpty property="einum">
+			AND EINUM = #einum#
+			</isNotEmpty>
+	</update>
+	
+	
+	<!-- 점수정보목록조회쿼리 -->
+	<select id="selectTst_ScoreList" parameterClass="tst_Score" resultClass="tst_Score">
+			SELECT
+                        A.ESSRL ,
+                        A.SDUNO ,
+                        A.CMIDF ,
+                        A.SBIDF ,
+                        A.SBNAM ,
+                        A.ESYER ,
+                        A.ESSEQ ,
+                        A.ESETP ,
+                        A.EKOCA ,
+                        A.EKSCA ,
+                        A.EKOOC ,
+                        A.EKSOC ,
+                        RTRIM(TO_CHAR(A.EKOTP, 'FM9990D00'), '.') AS EKOTP    ,
+                        RTRIM(TO_CHAR(A.EKSTP, 'FM9990D00'), '.') AS EKSTP    ,
+                        RTRIM(TO_CHAR(A.EKEVP, 'FM9990D00'), '.') AS EKEVP    ,
+                        RTRIM(TO_CHAR(A.EKRTP, 'FM9990D00'), '.') AS EKRTP    ,
+                        RTRIM(TO_CHAR(A.EKHWP, 'FM9990D00'), '.') AS EKHWP    ,
+                        RTRIM(TO_CHAR(A.EKTOP, 'FM9990D00'), '.') AS EKTOP ,
+                        A.EKRGD ,
+                        A.INSUSER ,
+                        A.INSDATE ,
+                        A.UPDUSER ,
+                        A.UPDDATE ,
+                        C.STDNAME ,
+                        C.TEAMNO,
+                        B.SCOREGBN
+            FROM    
+                    TST_EMKR A,
+                    TST_EXSJ B,
+                    (SELECT COURSECODE, STDNAME, STDNO, TEAMNO FROM OPR_CRSSTUDENT WHERE COURSECODE = #cmidf#) C
+            WHERE
+                    A.CMIDF = C.COURSECODE
+                    AND A.SDUNO = C.STDNO
+                    AND A.ESSRL = B.ESSRL
+                    AND A.CMIDF = #cmidf#
+                    <isNotEmpty prepend="AND" property="sbidf">
+						A.SBIDF = #sbidf#
+					</isNotEmpty>
+            ORDER BY SDUNO
+	</select>
+	
+	<!-- 점수정보조회쿼리 -->
+	<select id="selectTst_Score" parameterClass="tst_Score" resultClass="tst_Score">
+			SELECT
+						ESSRL	,
+						SDUNO	,	
+						CMIDF	,
+						SBIDF	,
+						SBNAM	,
+						ESYER	,
+						ESSEQ	,
+						ESETP	,
+						EKOCA	,
+						EKSCA	,
+						EKOOC	,
+						EKSOC	,
+						RTRIM(TO_CHAR(EKOTP, 'FM9990D00'), '.')	AS EKOTP,
+						RTRIM(TO_CHAR(EKSTP, 'FM9990D00'), '.')	AS EKSTP,
+						RTRIM(TO_CHAR(EKEVP, 'FM9990D00'), '.')	AS EKEVP,
+						RTRIM(TO_CHAR(EKRTP, 'FM9990D00'), '.')	AS EKRTP,
+						RTRIM(TO_CHAR(EKHWP, 'FM9990D00'), '.')	AS EKHWP,
+						RTRIM(TO_CHAR(EKTOP, 'FM9990D00'), '.') AS EKTOP	,
+						EKRGD	,
+						INSUSER	,
+						INSDATE	,
+						UPDUSER	,
+						UPDDATE
+			FROM	
+					TST_EMKR
+			WHERE
+					ESSRL = #essrl#
+					<isNotEmpty prepend="AND" property="sduno">
+					SDUNO = #sduno#
+					</isNotEmpty>
+	</select>
+
+	<!-- 기본 점수정보 입력 -->
+	<insert id="insertTst_Score" parameterClass="java.util.List">
+		INSERT ALL
+		<dynamic>
+			<iterate conjunction=" ">
+				INTO TST_EMKR
+					(ESSRL,
+					SDUNO,
+					CMIDF,
+					SBIDF,
+					SBNAM,
+					ESYER,
+					ESSEQ,
+					ESETP,
+					EKOTP,
+					EKSTP,
+					EKEVP,
+					EKRTP,
+					EKHWP,
+					EKTOP,
+					INSUSER,
+					INSDATE)
+				VALUES
+					(#[].essrl#,
+					#[].sduno#,
+					#[].cmidf#,
+					#[].sbidf#,
+					#[].sbnam#,
+					#[].esyer#,
+					#[].esseq#,
+					#[].esetp#,
+					#[].ekotp#,
+					#[].ekstp#,
+					#[].ekevp#,
+					#[].ekrtp#,
+					#[].ekhwp#,
+					#[].ektop#,
+					'System',
+					(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+					)
+			</iterate>
+		</dynamic>
+		SELECT * FROM DUAL
+	</insert>
+	
+	<!-- 점수정보 업데이트 -->
+	<update id="updateTst_Score" parameterClass="tst_Score">
+			UPDATE TST_EMKR SET
+						ESSRL = #essrl# ,
+						SDUNO = #sduno# ,
+						CMIDF = #cmidf# ,
+						SBIDF = #sbidf# ,
+						SBNAM = #sbnam# ,
+						ESYER = #esyer# ,
+						ESSEQ = #esseq# ,
+						ESETP = #esetp# ,
+						EKOCA = #ekoca# ,
+						EKSCA = #eksca# ,
+						EKOOC = #ekooc# ,
+						EKSOC = #eksoc# ,
+						EKOTP = #ekotp#,
+						EKSTP = #ekstp#,
+						EKEVP = #ekevp#,
+						EKRTP = #ekrtp#,
+						EKHWP = #ekhwp#,
+						EKTOP = #ektop#,
+						EKRGD = #ekrgd# ,
+						UPDUSER = 'System',
+						UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+			WHERE 
+						ESSRL = #essrl#
+						AND SDUNO = #sduno#
+	</update>
+	
+	<!-- OPR_CRSSTUDENT 업데이트 -->
+	<update id="updateOpr_Crsstudent" parameterClass="tst_Score">
+		
+			UPDATE OPR_CRSSTUDENT SET
+						SCOREATTEND = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP) 
+									  FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf#
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'attend')
+                                       ), 0),
+						SCOREPRA = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP) 
+									  FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf#
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'pra')
+                                   ), 0),
+						SCORESTUDY = NVL((SELECT SUM(EKOTP)+SUM(EKSTP)+SUM(EKRTP)+SUM(EKHWP) 
+									  FROM (SELECT EKOTP, EKSTP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'study')
+                                      ), 0),
+						SCORETEAM = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+									FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'team')
+                                     ), 0),
+						SCORERESEARCH = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'research')
+                                         ), 0),
+                        SCOREFOREIGN = NVL((SELECT SUM(EKOTP)+SUM(EKSTP)+SUM(EKRTP)+SUM(EKHWP) 
+									  FROM (SELECT EKOTP, EKSTP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'foreign')
+                                     ), 0),
+                        SCORECONVER = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'conver')
+                                        ), 0),
+                        SCOREPAPER = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'paper')
+                                         ), 0),
+                        SCOREPERSONAL = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'personal')
+                                         ), 0),
+						SCORETEAMDISC = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'teamdisc')
+                                         ), 0),
+						SCOREHOBBY = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'hobby')
+                                        ), 0),
+						SCORESTAMINA = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'stamina')
+                                        ), 0),
+						SCOREINFO = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'info')
+                                         ), 0),
+						SCOREVALUE = NVL((SELECT SUM(EKEVP)+SUM(EKRTP)+SUM(EKHWP)
+										FROM (SELECT EKEVP, EKRTP, EKHWP, SCOREGBN
+		                                      FROM TST_EMKR A, TST_EXSJ B
+		                                      WHERE A.CMIDF=#cmidf# 
+                                              AND SDUNO=#sduno#
+                                              AND A.ESSRL = B.ESSRL
+                                              AND SCOREGBN = 'value')
+                                         ), 0),
+						SCOREAVG = NVL((SELECT SUM(EKTOP)
+									FROM TST_EMKR 
+									WHERE CMIDF=#cmidf# AND SDUNO=#sduno#), 0)
+			WHERE		COURSECODE = #cmidf#
+						AND STDNO = #sduno#
+	</update>
+	
+	<!-- 실기/근태 점수정보 일괄 업데이트 -->
+	<update id="updateTst_Scores" parameterClass="tst_Score">
+			UPDATE TST_EMKR SET
+						EKEVP = #ekevp#,
+						EKTOP = #ektop#,
+						UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+			WHERE 
+						CMIDF = #cmidf#
+						AND SBIDF = #sbidf#
+						AND SDUNO = #sduno#
+	</update>
+	
+	<!-- 학습평가 점수 OMR 업데이트 -->
+	<update id="updateTst_ScoreOMR" parameterClass="tst_Score">
+
+			UPDATE TST_EMKR SET
+					EKOCA = #ekoca#,
+					EKOTP = #ekotp#,
+					EKOOC = #ekooc#,
+					EKSCA = #eksca#,
+					EKSTP = #ekstp#,
+					EKSOC = #eksoc#,
+					EKTOP = #ektop#,
+					UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+				WHERE SDUNO = #sduno#
+						AND ESSRL = #essrl#
+			
+	</update>
+	
+	<!-- 점수 초기화 -->
+	<update id="updateTst_ScoreReset" parameterClass="tst_Score">
+		UPDATE	TST_EMKR SET
+				EKOCA = '',
+				EKSCA = '',
+				EKOOC = 0,
+				EKSOC = 0,
+				EKOTP = 0,
+				EKSTP = 0,
+				EKEVP = 0,
+				EKRTP = 0,
+				EKHWP = 0,
+				EKTOP = 0,
+				UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		WHERE	ESSRL = #essrl#
+	</update>
+	
+	<!-- 분임조 점수 업데이트 -->
+	<update id="updateTst_TeamScore" parameterClass="tst_Score">
+		UPDATE TST_EMKR SET
+				<isEqual property="gbn" compareValue="ekevp">
+				EKEVP = #ekevp#,
+				</isEqual>
+				<isEqual property="gbn" compareValue="ekotp">
+				EKOTP = #ekotp#,
+				</isEqual>
+				<isEqual property="gbn" compareValue="ekstp">
+				EKSTP = #ekstp#,
+				</isEqual>
+				<isEqual property="gbn" compareValue="ekrtp">
+				EKRTP = #ekrtp#,
+				</isEqual>
+				<isEqual property="gbn" compareValue="ekhwp">
+				EKHWP = #ekhwp#,
+				</isEqual>
+				EKTOP = #ektop#,
+				UPDDATE = (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		WHERE SDUNO = #sduno#
+			AND ESSRL = #essrl#
+	</update>
+	
+	<!-- 분임조 리스트 -->
+	<select id="selectTst_TeamNo" parameterClass="tst_Score" resultClass="java.lang.String">
+		SELECT 	DISTINCT TEAMNO 
+		FROM 	OPR_CRSSTUDENT 
+		WHERE 	COURSECODE = #cmidf#
+		ORDER BY TEAMNO
+	</select>
+	
+	<!-- 점수정보 삭제 -->
+	<delete id="deleteTst_Score" parameterClass="tst_Score">
+		DELETE FROM TST_EMKR
+		WHERE ESSRL = #essrl#
+	</delete>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectTst_ScoreListCount" parameterClass="tst_Score" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_ScoreCount" parameterClass="tst_Score" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 과목정보 입력 -->
+	<insert id="insertTst_Subject" parameterClass="tst_Subject">
+		INSERT INTO TST_EXSJ
+		VALUES 
+			(
+				#essrl# ,
+				#cmidf# ,
+				#sbidf# ,
+				(SELECT SUBJECTNAME FROM CMN_TESTSUBJECT WHERE SUBJECTCODE = #sbidf#) ,
+				TO_CHAR(#esseq#, 'fm0999') ,
+				#esyer# ,
+				#esisp# ,
+				#esisr# ,
+				#esetp# ,
+				#esgbn# ,
+				#eseop# ,
+				#esesp# ,
+				#esotp# ,
+				#esstp# ,
+				#essup# ,
+				#eswop# ,
+				#esyap# ,
+				#esgap# ,
+				#esgtp# ,
+				#eshwc# ,
+				#eshwp# ,
+				#esrtp# ,
+				#estpt# ,
+				#esisu# ,
+				#cjsrl# ,
+				#esoct# ,
+				#essct# ,
+				#esomr# ,
+				#estsp# ,
+				'System' ,
+				(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL),
+				#upduser# ,
+				#upddate# ,
+				#scoregbn#
+			)
+	</insert>
+	
+	<!-- 엑셀  쿼리 -->
+	<select id="selectTst_ScoreExcel" parameterClass="tst_Score" resultClass="tst_Score">
+		SELECT 
+                (CASE SUBSTR(A.BIRTHSEX,7,1)
+                WHEN '1' THEN '19'||SUBSTR(A.BIRTHSEX,1,2)||'-'||SUBSTR(A.BIRTHSEX,3,2)||'-'||SUBSTR(A.BIRTHSEX,5,2)
+                WHEN '2' THEN '19'||SUBSTR(A.BIRTHSEX,1,2)||'-'||SUBSTR(A.BIRTHSEX,3,2)||'-'||SUBSTR(A.BIRTHSEX,5,2)
+                WHEN '3' THEN '20'||SUBSTR(A.BIRTHSEX,1,2)||'-'||SUBSTR(A.BIRTHSEX,3,2)||'-'||SUBSTR(A.BIRTHSEX,5,2)
+                WHEN '4' THEN '20'||SUBSTR(A.BIRTHSEX,1,2)||'-'||SUBSTR(A.BIRTHSEX,3,2)||'-'||SUBSTR(A.BIRTHSEX,5,2)
+                END) AS JUMINNO, 
+                STDNAME, 
+                A.STDNO AS SDUNO, 
+                (ASSIGNNAME) AS ASSIGNNAME, 
+                RANKNAME, 
+                NVL(SCORESTUDY, 0) SCORESTUDY, 
+                NVL(SCOREATTEND, 0) SCOREATTEND, 
+                NVL(SCORERESEARCH, 0) SCORERESEARCH, 
+                NVL(SCORETEAM, 0) SCORETEAM, 
+                NVL(SCOREADD, 0) SCOREADD,
+                NVL(SCOREPRA, 0) SCOREPRA,
+                NVL(SCOREFOREIGN, 0) SCOREFOREIGN,
+                NVL(SCORECONVER, 0) SCORECONVER,
+                NVL(SCOREPAPER, 0) SCOREPAPER,
+                NVL(SCOREPERSONAL, 0) SCOREPERSONAL,
+				NVL(SCORETEAMDISC, 0) SCORETEAMDISC,
+				NVL(SCOREHOBBY, 0) SCOREHOBBY,
+				NVL(SCORESTAMINA, 0) SCORESTAMINA,
+				NVL(SCOREINFO, 0) SCOREINFO,
+				NVL(SCOREVALUE, 0) SCOREVALUE,
+                D.SCOREAVG, 
+                D.RANKING,
+                (CASE MOD(TO_NUMBER(SUBSTR(A.BIRTHSEX,7,1)),2)
+                            WHEN 1 THEN '남'
+                            WHEN 0 THEN '여'
+                         END) AS SEX
+        FROM OPR_CRSSTUDENT A, CMN_PUBWORKER B, CMN_ORGANMAP C,
+            (SELECT STDNO, SCOREAVG,
+            ROW_NUMBER() OVER (ORDER BY SCOREAVG DESC, SCORESTUDY+SCOREFOREIGN DESC, SCORECONVER DESC, 
+            										SCOREPRA+SCOREPAPER+SCOREPERSONAL+SCOREHOBBY+SCORESTAMINA+SCOREINFO+SCOREVALUE DESC, 
+            										SCORETEAM+SCORETEAMDISC DESC, SCOREATTEND DESC, JUMINNO ) AS RANKING 
+            FROM (SELECT STDNO, 
+                        (NVL(SCORESTUDY,0)+NVL(SCOREATTEND,0)+NVL(SCORERESEARCH,0)+NVL(SCORETEAM,0)+NVL(SCOREADD,0)+
+                        NVL(SCOREPRA,0)+NVL(SCOREFOREIGN,0)+NVL(SCORECONVER,0)+NVL(SCOREPAPER,0)+NVL(SCOREPERSONAL,0)+NVL(SCORETEAMDISC,0)+NVL(SCOREHOBBY,0)+NVL(SCORESTAMINA,0)+NVL(SCOREINFO,0)+NVL(SCOREVALUE,0)) AS SCOREAVG, 
+                        NVL(SCORESTUDY,0) AS SCORESTUDY, NVL(SCOREATTEND,0) AS SCOREATTEND, NVL(SCORERESEARCH,0) AS SCORERESEARCH,
+                        NVL(SCORETEAM,0)AS SCORETEAM, NVL(SCOREPRA,0) AS SCOREPRA, NVL(SCOREFOREIGN,0) SCOREFOREIGN, 
+                        NVL(SCORECONVER,0) SCORECONVER, NVL(SCOREPAPER,0) SCOREPAPER, NVL(SCOREPERSONAL,0) SCOREPERSONAL,
+						NVL(SCORETEAMDISC, 0) AS SCORETEAMDISC, NVL(SCOREHOBBY, 0) AS SCOREHOBBY, NVL(SCORESTAMINA, 0) AS SCORESTAMINA, NVL(SCOREINFO, 0) AS SCOREINFO, NVL(SCOREVALUE, 0) AS SCOREVALUE,
+                        (CASE SUBSTR(BIRTHSEX,7,1)
+                             WHEN '1' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '2' THEN TO_DATE('19' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '3' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                             WHEN '4' THEN TO_DATE('20' || SUBSTR(BIRTHSEX, 0, 6), 'yyyymmdd')
+                           END) AS JUMINNO
+                    FROM OPR_CRSSTUDENT 
+                   WHERE COURSECODE=#cmidf#)) D
+        WHERE COURSECODE = #cmidf#
+        AND A.JUMINNO = B.JUMINNO(+)  
+        AND B.ORGANCODE = C.ORGANCODE(+)
+        AND D.STDNO = A.STDNO
+        ORDER BY RANKING
+	
+	</select>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="seq">
+				SEQ = #seq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="juminno">
+				JUMINNO = #juminno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="stdname">
+				STDNAME = #stdname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="stdno">
+				STDNO = #stdno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="assign">
+				ASSIGN = #assign#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="assignname">
+				ASSIGNNAME = #assignname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="gradecode">
+				GRADECODE = #gradecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="gradename">
+				GRADENAME = #gradename#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="rankcode">
+				RANKCODE = #rankcode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="rankname">
+				RANKNAME = #rankname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="jobkind">
+				JOBKIND = #jobkind#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="jobname">
+				JOBNAME = #jobname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="email">
+				EMAIL = #email#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="cellphone">
+				CELLPHONE = #cellphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="iscost">
+				ISCOST = #iscost#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="teamno">
+				TEAMNO = #teamno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="isleader">
+				ISLEADER = #isleader#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scorestudy">
+				SCORESTUDY = #scorestudy#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreattend">
+				SCOREATTEND = #scoreattend#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreresearch">
+				SCORERESEARCH = #scoreresearch#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreteam">
+				SCORETEAM = #scoreteam#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreadd">
+				SCOREADD = #scoreadd#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scorepra">
+				SCOREPRA = #scorepra#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreetc">
+				SCOREETC = #scoreetc#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="scoreavg">
+				SCOREAVG = #scoreavg#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="progressrate">
+				PROGRESSRATE = #progressrate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="studyhour">
+				STUDYHOUR = #studyhour#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="ranking">
+				RANKING = #ranking#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="dispranking">
+				DISPRANKING = #dispranking#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="isfinish">
+				ISFINISH = #isfinish#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+

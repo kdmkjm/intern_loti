@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_CyberCostCalc">
+
+	<typeAlias alias="crs_CyberCostCalc" type="loti.crs.cost.model.Crs_CyberCostCalc"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CyberCostCalcYYMM" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT MIN(BASEYYMM) FROMYYMM, 
+			       MAX(BASEYYMM) TOYYMM   
+			  FROM OPR_CYBERCOST A,
+			       OPR_LECTURE B
+			 WHERE A.COURSECODE = B.COURSECODE
+			   AND A.CYBERTIMES = #cybertimes#
+	</select>
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CyberCostCalcMaxTimes" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT NVL(MAX(CYBERTIMES),0)+1 CYBERTIMES  
+			  FROM OPR_CYBERCOST 
+			 WHERE CYBERYYMM = REPLACE(#cyberyymm#,'-','')
+	</select>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_CyberCostCalc" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT 	
+				   		CYBERYYMM ,
+				   		CYBERTIMES,
+				   		A.COURSECODE,
+				   		B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+				   		FINCNT    ,
+				   		APPCNT    ,
+				   		MONPRICE  ,
+				   		EDUCOST   
+			  FROM OPR_CYBERCOST A,
+			       OPR_LECTURE B 
+			 WHERE A.COURSECODE = B.COURSECODE
+			   AND CYBERTIMES = #cybertimes#
+			   AND CYBERYYMM = REPLACE(#cyberyymm#,'-','')
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CyberCostCalcInfoList" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT 	
+				   		CYBERYYMM ,
+				   		CYBERTIMES,
+				   		A.COURSECODE,
+				   		B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+				   		FINCNT    ,
+				   		APPCNT    ,
+				   		MONPRICE  ,
+				   		A.EDUCOST   
+			  FROM OPR_CYBERCOST A,
+			       OPR_LECTURE B 
+			 WHERE A.COURSECODE = B.COURSECODE
+			   AND CYBERTIMES = #cybertimes#
+			   AND CYBERYYMM = REPLACE(#cyberyymm#,'-','')
+			   AND B.ISPASS = 'Y'
+	</select>
+	
+	<!-- 수정 및 신규 목록조회쿼리 -->
+	<select id="selectCrs_CyberCostCalcModList" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT 	
+							A.COURSECODE,
+							A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+				   		CYBERYYMM ,
+				   		CYBERTIMES,
+				   		DECODE(FINCNT, NULL, ISUINWON, FINCNT) FINCNT,
+				   		APPCNT    ,
+				   		MONPRICE  ,
+				   		B.EDUCOST   
+			  FROM OPR_LECTURE A,
+			       OPR_CYBERCOST B,
+			       (SELECT A.COURSECODE, 
+			               COUNT(JUMINNO)ISUINWON
+			          FROM OPR_CRSSTUDENT A, 
+			               OPR_LECTURE B 
+			         WHERE A.COURSECODE = B.COURSECODE
+			           AND B.CRSTYPE1 = '00003'
+			           AND B.BASEYYMM <![CDATA[>=]]> REPLACE(#fromyymm#,'-','')
+			           AND B.BASEYYMM <![CDATA[<=]]> REPLACE(#toyymm#,'-','')
+			           AND B.ISPASS = 'Y'
+                 AND A.ISFINISH = 'Y'
+			         GROUP BY A.COURSECODE 
+			       ) C
+			 WHERE A.COURSECODE = B.COURSECODE(+)
+			   AND A.COURSECODE = C.COURSECODE(+)
+			   AND A.CRSTYPE1 = '00003'
+			   AND A.CRSTYPE2 IN ('00002', '00004')
+			   AND A.CRSTYPE3 = '00002'
+			   AND A.ISPASS = 'Y'
+			   AND A.BASEYYMM <![CDATA[>=]]> REPLACE(#fromyymm#,'-','')
+			   AND A.BASEYYMM <![CDATA[<=]]> REPLACE(#toyymm#,'-','')
+			   AND (CYBERTIMES IS NULL OR (CYBERTIMES = #cybertimes# AND B.CYBERYYMM LIKE REPLACE (#cyberyymm#, '-', ''))) 
+			   AND (CYBERTIMES IS NULL OR CYBERTIMES = #cybertimes#)		    
+	</select>	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CyberCostCalcList" parameterClass="crs_CyberCostCalc" resultClass="crs_CyberCostCalc">
+			SELECT CYBERTIMES, 
+				   	 CYBERYYMM ,
+				   	 COUNT(COURSECODE) COURSECOUNT,
+				   	 MAX(EDUCOST) TOTALCOST,
+				   	 (SELECT DECODE(COUNT(COSTYYMM),0,'Y','N') FROM OPR_CYBERCOSTMST B WHERE A.CYBERYYMM = B.CYBERYYMM AND A.CYBERTIMES = B.CYBERTIMES) CHKCOST  
+			  FROM OPR_CYBERCOST A
+			 WHERE CYBERYYMM LIKE REPLACE(#searchdate#,'-','')||'%'
+			 GROUP BY CYBERTIMES, CYBERYYMM
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_CyberCostCalcListCount" parameterClass="crs_CyberCostCalc" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CYBERCOST
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_CyberCostCalcCount" parameterClass="crs_CyberCostCalc" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CYBERCOST
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	
+	<!-- 교육비 지출 후 사이버 계산 수정여부 -->
+	<select id="selectCrs_CyberCostCalcChk" parameterClass="crs_CyberCostCalc" resultClass="java.lang.String">
+		SELECT DECODE(COUNT(*),0,'Y','N')
+		  FROM OPR_CYBERCOSTMST
+		 WHERE CYBERYYMM = REPLACE(#cyberyymm#,'-','')
+		   AND CYBERTIMES = #cybertimes#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_CyberCostCalc" parameterClass="crs_CyberCostCalc">
+		INSERT INTO OPR_CYBERCOST (	
+			   			CYBERYYMM ,	
+			   			CYBERTIMES,	
+			   			COURSECODE,	
+			   			FINCNT    ,	
+			   			APPCNT    ,	
+			   			MONPRICE  ,	
+			   			EDUCOST   	
+		) VALUES (
+						 
+			   			REPLACE(#cyberyymm#,'-','') ,	
+			   			#cybertimes#		,	
+			   			#coursecode#		,	
+			   			REPLACE(#fincnt#,',','')  	,	
+			   			REPLACE(#appcnt#,',','')  	,	
+			   			REPLACE(#monprice#,',','')  ,	
+			   			REPLACE(#educost#,',','')   	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_CyberCostCalc" parameterClass="crs_CyberCostCalc">
+		UPDATE OPR_CYBERCOST SET
+			   CYBERYYMM  = REPLACE(#cyberyymm#,'-','') ,
+			   CYBERTIMES = #cybertimes#,
+			   COURSECODE = #coursecode#,
+			   FINCNT     = #fincnt#    ,
+			   APPCNT     = #appcnt#    ,
+			   MONPRICE   = REPLACE(#monprice#,',','') ,
+			   EDUCOST    = REPLACE(#educost#,',','')   
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_CyberCostCalc" parameterClass="crs_CyberCostCalc">
+		DELETE FROM OPR_CYBERCOST
+		 WHERE CYBERYYMM = REPLACE(#cyberyymm#,'-','')
+		   AND CYBERTIMES = #cybertimes#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="cyberyymm">
+				CYBERYYMM = #cyberyymm#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="cybertimes">
+				CYBERTIMES = #cybertimes#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="fincnt">
+				FINCNT = #fincnt#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="appcnt">
+				APPCNT = #appcnt#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="monprice">
+				MONPRICE = #monprice#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="educost">
+				EDUCOST = #educost#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

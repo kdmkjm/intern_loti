@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Svc_BoardQNA">
+
+	<typeAlias alias="Svc_BoardQNA" type="loti.svc.ref.qna.model.Svc_BoardQNA"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectSvc_BoardQNA" parameterClass="Svc_BoardQNA" resultClass="Svc_BoardQNA">
+			SELECT 	
+				   		BOARD_IDX,
+				   		USERID   ,
+				   		USERNM   ,
+				   		TITLE    ,
+				   		PASSWD   ,
+				   		TO_CHAR(TO_DATE(WDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE ,
+				   		TO_CHAR(TO_DATE(UDATE, 'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE ,
+				   		COUNTS   ,
+				   		RE_IDX   ,
+				   		RE_STEP  ,
+				   		RE_LEVEL ,
+				   		CONTENT  ,
+				   		ISNOTICE ,
+				   		ISSECRET
+			  FROM 	BOARD_QNA
+			  WHERE	BOARD_IDX = #board_Idx#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectSvc_BoardQNAList" parameterClass="Svc_BoardQNA" resultClass="Svc_BoardQNA">
+		WITH BASE1 AS(
+            SELECT ROWNUM RNUM, BOARD_IDX, USERID, USERNM, TITLE,
+                    TO_CHAR(TO_DATE(WDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE,
+                    TO_CHAR(TO_DATE(UDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE,
+                    COUNTS, RE_IDX, RE_STEP, RE_LEVEL, 0 LVL, ISNOTICE, ISSECRET
+            FROM BOARD_QNA
+            WHERE ISNOTICE IS NOT NULL
+            ORDER BY BOARD_IDX DESC
+        ),
+        BASE2 AS(
+            SELECT ROWNUM RNUM, BOARD_IDX, USERID, USERNM, TITLE,
+                    TO_CHAR(TO_DATE(WDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') WDATE,
+                    TO_CHAR(TO_DATE(UDATE,'YYYYMMDD HH24:MI'), 'YYYY-MM-DD HH24:MI') UDATE,
+                    COUNTS, RE_IDX, RE_STEP, RE_LEVEL, LEVEL LVL, '' ISNOTICE, ISSECRET
+            FROM BOARD_QNA
+            <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+            START WITH RE_IDX IS NULL
+            CONNECT BY PRIOR BOARD_QNA.BOARD_IDX = RE_IDX
+            ORDER SIBLINGS BY BOARD_QNA.RE_STEP, BOARD_QNA.RE_LEVEL, BOARD_QNA.BOARD_IDX DESC
+        )
+        SELECT RNUM, BOARD_IDX, USERID, USERNM, TITLE, WDATE, UDATE, COUNTS, RE_IDX, RE_STEP, RE_LEVEL, LVL, 
+                ISNOTICE, ISSECRET 
+        FROM BASE1
+        UNION ALL
+        SELECT RNUM, BOARD_IDX, USERID, USERNM, TITLE, WDATE, UDATE, COUNTS, RE_IDX, RE_STEP, RE_LEVEL, LVL, 
+                ISNOTICE, ISSECRET
+        FROM BASE2
+        WHERE RNUM BETWEEN (#currentPage# - 9) AND #currentPage#
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectSvc_BoardQNAListCount" parameterClass="Svc_BoardQNA" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM BOARD_QNA
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectSvc_BoardQNACount" parameterClass="Svc_BoardQNA" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM BOARD_QNA
+		WHERE	BOARD_IDX = #board_Idx#
+	</select>
+	
+
+	<!-- 레코드 입력 -->
+	<insert id="insertSvc_BoardQNA" parameterClass="Svc_BoardQNA">
+		INSERT INTO BOARD_QNA (	
+			   			BOARD_IDX,	
+			   			USERID   ,	
+			   			USERNM   ,	
+			   			TITLE    ,	
+			   			PASSWD   ,	
+			   			WDATE    ,	
+			   			UDATE    ,	
+			   			COUNTS   ,	
+			   			RE_IDX   ,	
+			   			RE_STEP  ,	
+			   			RE_LEVEL ,	
+			   			CONTENT  ,	
+			   			ISNOTICE ,
+			   			ISSECRET
+		) VALUES (
+			   			BOARD_QNA_Seq.nextval,	
+			   			#userId#  ,	
+			   			#userNm#  ,	
+			   			#title#   ,	
+			   			#passWd#  ,	
+			   			TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI')   ,	
+			   			TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI')   ,	
+			   			0  ,	
+			   			#re_Idx#   ,
+			   			(SELECT NVL(MAX(RE_STEP),0)+1 FROM BOARD_QNA WHERE RE_IDX=#re_Idx#)  ,
+		   				(SELECT NVL(MAX(RE_LEVEL),0)<isNotEmpty property="isReply">+1</isNotEmpty> 
+		   				FROM BOARD_QNA WHERE BOARD_IDX = #re_Idx#),
+			   			#content# ,	
+			   			#isnotice#,
+			   			#issecret#	
+		)
+	</insert>
+
+
+	<!--  레코드 조회시 카운트 증가 -->
+	<update id="updateSvc_BoardQNAAddCount" parameterClass="Svc_BoardQNA">
+		UPDATE BOARD_QNA SET
+			   COUNTS    = COUNTS + 1
+		WHERE	BOARD_IDX = #board_Idx#
+	</update>
+	<!--  레코드 조회시 카운트 감소 -->
+	<update id="updateSvc_BoardQNAMinusCount" parameterClass="Svc_BoardQNA">
+		UPDATE BOARD_QNA SET
+			   COUNTS    = COUNTS - 1
+		WHERE	BOARD_IDX = #board_Idx#
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="updateSvc_BoardQNA" parameterClass="Svc_BoardQNA">
+		UPDATE BOARD_QNA SET
+			   TITLE     = #title#   ,
+			   UDATE     = TO_CHAR(SYSDATE,'YYYYMMDD HH24:MI')   ,
+			   CONTENT   = #content#,
+			   ISNOTICE = #isnotice#,
+			   ISSECRET = #issecret#
+		WHERE	BOARD_IDX = #board_Idx#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteSvc_BoardQNA" parameterClass="Svc_BoardQNA">
+		DELETE FROM BOARD_QNA
+		WHERE	BOARD_IDX IN (SELECT BOARD_IDX FROM BOARD_QNA
+								START WITH BOARD_IDX = #board_Idx#
+								CONNECT BY PRIOR BOARD_IDX = RE_IDX)
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="boardIdx">
+				BOARD_IDX = #boardIdx#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="userid">
+				USERID = #userid#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="usernm">
+				USERNM = #usernm#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="title">
+				TITLE = #title#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="passwd">
+				PASSWD = #passwd#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="wdate">
+				WDATE = #wdate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="udate">
+				UDATE = #udate#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="counts">
+				COUNTS = #counts#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reIdx">
+				RE_IDX = #reIdx#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reStep">
+				RE_STEP = #reStep#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reLevel">
+				RE_LEVEL = #reLevel#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="content">
+				CONTENT = #content#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="fname">
+				FNAME = #fname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="fsize">
+				FSIZE = #fsize#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="fcounts">
+				FCOUNTS = #fcounts#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

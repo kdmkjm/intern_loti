@@ -1,0 +1,438 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_OrgStd">
+
+	<typeAlias alias="opr_OrgStd" type="loti.opr.orgstd.model.Opr_OrgStd"/>
+	
+	<!-- 교육생 계획 기준치 입력화면을 조회 쿼리  -->
+	<select id="selectOpr_OrgStdPlanList" parameterClass="opr_OrgStd" resultClass="opr_OrgStd">
+		SELECT
+            PLNSTDNUMBER, 
+            NVL(ORG6430000, 0) ORG6430000,
+            NVL(ORG5710000, 0) ORG5710000, 
+            NVL(ORG4360000, 0) ORG4360000, 
+            NVL(ORG4390000, 0) ORG4390000, 
+            NVL(ORG4400000, 0) ORG4400000, 
+            NVL(ORG4410000, 0) ORG4410000,  
+            NVL(ORG4420000, 0) ORG4420000, 
+            NVL(ORG4430000, 0) ORG4430000, 
+            NVL(ORG4440000, 0) ORG4440000, 
+            NVL(ORG4450000, 0) ORG4450000, 
+            NVL(ORG4460000, 0) ORG4460000, 
+            NVL(ORG4470000, 0) ORG4470000, 
+            NVL(ORG4480000, 0) ORG4480000, 
+            NVL(ORG5570000, 0) ORG5570000, 
+            NVL(ORG9999999, 0) ORG9999999
+      FROM  PLN_ORGSTD
+  ORDER BY  PLNSTDNUMBER
+	</select>
+	
+	<!-- 과정별 교육생 계획 목록 화면을 조회 쿼리  -->
+	<select id="selectOpr_OrgStdCourseList" parameterClass="opr_OrgStd" resultClass="opr_OrgStd">
+		SELECT  
+            A.COURSECODE, A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME,
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'),'MM.DD') EDUDATE,
+            A.EDUCOUNT, 
+            CASE    
+               WHEN NVL(B.PLNSTDNUMBER, -1)  = -1 AND NVL(C.PLNSTDNUMBER, -1)  = -1 THEN 0
+               WHEN NVL(B.PLNSTDNUMBER, -1)  = -1 AND NVL(C.PLNSTDNUMBER, -1) != -1 THEN C.PLNSTDNUMBER
+               WHEN NVL(B.PLNSTDNUMBER, -1) != -1 THEN B.PLNSTDNUMBER
+            END PLNSTDNUMBER,
+            CASE    
+               WHEN NVL(B.ORG6430000, -1)  = -1 AND NVL(C.ORG6430000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG6430000, -1)  = -1 AND NVL(C.ORG6430000, -1) != -1 THEN C.ORG6430000
+               WHEN NVL(B.ORG6430000, -1) != -1 THEN B.ORG6430000
+            END ORG6430000,
+            CASE    
+               WHEN NVL(B.ORG5710000, -1)  = -1 AND NVL(C.ORG5710000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG5710000, -1)  = -1 AND NVL(C.ORG5710000, -1) != -1 THEN C.ORG5710000
+               WHEN NVL(B.ORG5710000, -1) != -1 THEN B.ORG5710000
+            END ORG5710000,
+            CASE    
+               WHEN NVL(B.ORG4360000, -1)  = -1 AND NVL(C.ORG4360000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4360000, -1)  = -1 AND NVL(C.ORG4360000, -1) != -1 THEN C.ORG4360000
+               WHEN NVL(B.ORG4360000, -1) != -1 THEN B.ORG4360000
+            END ORG4360000,
+            CASE    
+               WHEN NVL(B.ORG4390000, -1)  = -1 AND NVL(C.ORG4390000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4390000, -1)  = -1 AND NVL(C.ORG4390000, -1) != -1 THEN C.ORG4390000
+               WHEN NVL(B.ORG4390000, -1) != -1 THEN B.ORG4390000
+            END ORG4390000,
+            CASE    
+               WHEN NVL(B.ORG4400000, -1)  = -1 AND NVL(C.ORG4400000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4400000, -1)  = -1 AND NVL(C.ORG4400000, -1) != -1 THEN C.ORG4400000
+               WHEN NVL(B.ORG4400000, -1) != -1 THEN B.ORG4400000
+            END ORG4400000,
+            CASE    
+               WHEN NVL(B.ORG4410000, -1)  = -1 AND NVL(C.ORG4410000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4410000, -1)  = -1 AND NVL(C.ORG4410000, -1) != -1 THEN C.ORG4410000
+               WHEN NVL(B.ORG4410000, -1) != -1 THEN B.ORG4410000
+            END ORG4410000,
+            CASE    
+               WHEN NVL(B.ORG4420000, -1)  = -1 AND NVL(C.ORG4420000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4420000, -1)  = -1 AND NVL(C.ORG4420000, -1) != -1 THEN C.ORG4420000
+               WHEN NVL(B.ORG4420000, -1) != -1 THEN B.ORG4420000
+            END ORG4420000,
+            CASE    
+               WHEN NVL(B.ORG4430000, -1)  = -1 AND NVL(C.ORG4430000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4430000, -1)  = -1 AND NVL(C.ORG4430000, -1) != -1 THEN C.ORG4430000
+               WHEN NVL(B.ORG4430000, -1) != -1 THEN B.ORG4430000
+            END ORG4430000,
+            CASE    
+               WHEN NVL(B.ORG4440000, -1)  = -1 AND NVL(C.ORG4440000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4440000, -1)  = -1 AND NVL(C.ORG4440000, -1) != -1 THEN C.ORG4440000
+               WHEN NVL(B.ORG4440000, -1) != -1 THEN B.ORG4440000
+            END ORG4440000,
+            CASE    
+               WHEN NVL(B.ORG4450000, -1)  = -1 AND NVL(C.ORG4450000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4450000, -1)  = -1 AND NVL(C.ORG4450000, -1) != -1 THEN C.ORG4450000
+               WHEN NVL(B.ORG4450000, -1) != -1 THEN B.ORG4450000
+            END ORG4450000,
+            CASE    
+               WHEN NVL(B.ORG4460000, -1)  = -1 AND NVL(C.ORG4460000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4460000, -1)  = -1 AND NVL(C.ORG4460000, -1) != -1 THEN C.ORG4460000
+               WHEN NVL(B.ORG4460000, -1) != -1 THEN B.ORG4460000
+            END ORG4460000,
+            CASE    
+               WHEN NVL(B.ORG4470000, -1)  = -1 AND NVL(C.ORG4470000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4470000, -1)  = -1 AND NVL(C.ORG4470000, -1) != -1 THEN C.ORG4470000
+               WHEN NVL(B.ORG4470000, -1) != -1 THEN B.ORG4470000
+            END ORG4470000,
+            CASE    
+               WHEN NVL(B.ORG4480000, -1)  = -1 AND NVL(C.ORG4480000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4480000, -1)  = -1 AND NVL(C.ORG4480000, -1) != -1 THEN C.ORG4480000
+               WHEN NVL(B.ORG4480000, -1) != -1 THEN B.ORG4480000
+            END ORG4480000, 
+            CASE    
+               WHEN NVL(B.ORG5570000, -1)  = -1 AND NVL(C.ORG5570000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG5570000, -1)  = -1 AND NVL(C.ORG5570000, -1) != -1 THEN C.ORG5570000
+               WHEN NVL(B.ORG5570000, -1) != -1 THEN B.ORG5570000
+            END ORG5570000,
+            CASE    
+               WHEN NVL(B.ORG9999999, -1)  = -1 AND NVL(C.ORG9999999, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG9999999, -1)  = -1 AND NVL(C.ORG9999999, -1) != -1 THEN C.ORG9999999
+               WHEN NVL(B.ORG9999999, -1) != -1 THEN B.ORG9999999
+            END ORG9999999
+      FROM  OPR_LECTURE A, OPR_ORGSTD B, PLN_ORGSTD C
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.EDUCOUNT = C.PLNSTDNUMBER(+)
+       AND ((TO_NUMBER(SUBSTR(A.EDUFROM, 0, 6)) BETWEEN TO_NUMBER(REPLACE(#searchFrom#, '-', '')) AND TO_NUMBER(REPLACE(#searchTo#,'-','')))  
+                      OR (A.BASEYYMM LIKE REPLACE(#searchDate#, '-', '') ))
+		<isNotEmpty prepend="AND" property="crsType1">
+								<!-- 집합교육 검색 처리 -->
+								<isEqual property="crsType1" compareValue="00000">
+									(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+								</isEqual>
+								<isNotEqual property="crsType1" compareValue="00000">
+									A.CRSTYPE1 = #crsType1#
+								</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType2">
+						A.CRSTYPE2 = #crsType2#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType3">
+						A.CRSTYPE3 = #crsType3#
+		</isNotEmpty>
+  ORDER BY  A.EDUFROM, A.EDUTO, A.COURSENAME
+	</select>
+	
+	<!-- 월별 교육생 현황 화면을 조회 쿼리  -->
+	<select id="selectOpr_OrgStdList" parameterClass="opr_OrgStd" resultClass="opr_OrgStd">
+		SELECT  
+            A.COURSECODE, A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME,
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'),'MM.DD') EDUDATE,
+            A.EDUCOUNT, 
+            CASE    
+               WHEN NVL(B.PLNSTDNUMBER, -1)  = -1 AND NVL(C.PLNSTDNUMBER, -1)  = -1 THEN 0
+               WHEN NVL(B.PLNSTDNUMBER, -1)  = -1 AND NVL(C.PLNSTDNUMBER, -1) != -1 THEN C.PLNSTDNUMBER
+               WHEN NVL(B.PLNSTDNUMBER, -1) != -1 THEN B.PLNSTDNUMBER
+            END PLNSTDNUMBER,
+            CASE    
+               WHEN NVL(B.ORG6430000, -1)  = -1 AND NVL(C.ORG6430000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG6430000, -1)  = -1 AND NVL(C.ORG6430000, -1) != -1 THEN C.ORG6430000
+               WHEN NVL(B.ORG6430000, -1) != -1 THEN B.ORG6430000
+            END ORG6430000,
+            CASE    
+               WHEN NVL(B.ORG5710000, -1)  = -1 AND NVL(C.ORG5710000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG5710000, -1)  = -1 AND NVL(C.ORG5710000, -1) != -1 THEN C.ORG5710000
+               WHEN NVL(B.ORG5710000, -1) != -1 THEN B.ORG5710000
+            END ORG5710000,
+            CASE    
+               WHEN NVL(B.ORG4360000, -1)  = -1 AND NVL(C.ORG4360000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4360000, -1)  = -1 AND NVL(C.ORG4360000, -1) != -1 THEN C.ORG4360000
+               WHEN NVL(B.ORG4360000, -1) != -1 THEN B.ORG4360000
+            END ORG4360000,
+            CASE    
+               WHEN NVL(B.ORG4390000, -1)  = -1 AND NVL(C.ORG4390000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4390000, -1)  = -1 AND NVL(C.ORG4390000, -1) != -1 THEN C.ORG4390000
+               WHEN NVL(B.ORG4390000, -1) != -1 THEN B.ORG4390000
+            END ORG4390000,
+            CASE    
+               WHEN NVL(B.ORG4400000, -1)  = -1 AND NVL(C.ORG4400000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4400000, -1)  = -1 AND NVL(C.ORG4400000, -1) != -1 THEN C.ORG4400000
+               WHEN NVL(B.ORG4400000, -1) != -1 THEN B.ORG4400000
+            END ORG4400000,
+            CASE    
+               WHEN NVL(B.ORG4410000, -1)  = -1 AND NVL(C.ORG4410000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4410000, -1)  = -1 AND NVL(C.ORG4410000, -1) != -1 THEN C.ORG4410000
+               WHEN NVL(B.ORG4410000, -1) != -1 THEN B.ORG4410000
+            END ORG4410000,
+            CASE    
+               WHEN NVL(B.ORG4420000, -1)  = -1 AND NVL(C.ORG4420000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4420000, -1)  = -1 AND NVL(C.ORG4420000, -1) != -1 THEN C.ORG4420000
+               WHEN NVL(B.ORG4420000, -1) != -1 THEN B.ORG4420000
+            END ORG4420000,
+            CASE    
+               WHEN NVL(B.ORG4430000, -1)  = -1 AND NVL(C.ORG4430000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4430000, -1)  = -1 AND NVL(C.ORG4430000, -1) != -1 THEN C.ORG4430000
+               WHEN NVL(B.ORG4430000, -1) != -1 THEN B.ORG4430000
+            END ORG4430000,
+            CASE    
+               WHEN NVL(B.ORG4440000, -1)  = -1 AND NVL(C.ORG4440000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4440000, -1)  = -1 AND NVL(C.ORG4440000, -1) != -1 THEN C.ORG4440000
+               WHEN NVL(B.ORG4440000, -1) != -1 THEN B.ORG4440000
+            END ORG4440000,
+            CASE    
+               WHEN NVL(B.ORG4450000, -1)  = -1 AND NVL(C.ORG4450000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4450000, -1)  = -1 AND NVL(C.ORG4450000, -1) != -1 THEN C.ORG4450000
+               WHEN NVL(B.ORG4450000, -1) != -1 THEN B.ORG4450000
+            END ORG4450000,
+            CASE    
+               WHEN NVL(B.ORG4460000, -1)  = -1 AND NVL(C.ORG4460000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4460000, -1)  = -1 AND NVL(C.ORG4460000, -1) != -1 THEN C.ORG4460000
+               WHEN NVL(B.ORG4460000, -1) != -1 THEN B.ORG4460000
+            END ORG4460000,
+            CASE    
+               WHEN NVL(B.ORG4470000, -1)  = -1 AND NVL(C.ORG4470000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4470000, -1)  = -1 AND NVL(C.ORG4470000, -1) != -1 THEN C.ORG4470000
+               WHEN NVL(B.ORG4470000, -1) != -1 THEN B.ORG4470000
+            END ORG4470000,
+            CASE    
+               WHEN NVL(B.ORG4480000, -1)  = -1 AND NVL(C.ORG4480000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG4480000, -1)  = -1 AND NVL(C.ORG4480000, -1) != -1 THEN C.ORG4480000
+               WHEN NVL(B.ORG4480000, -1) != -1 THEN B.ORG4480000
+            END ORG4480000,
+            CASE    
+               WHEN NVL(B.ORG5570000, -1)  = -1 AND NVL(C.ORG5570000, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG5570000, -1)  = -1 AND NVL(C.ORG5570000, -1) != -1 THEN C.ORG5570000
+               WHEN NVL(B.ORG5570000, -1) != -1 THEN B.ORG5570000
+            END ORG5570000,
+            CASE    
+               WHEN NVL(B.ORG9999999, -1)  = -1 AND NVL(C.ORG9999999, -1)  = -1 THEN 0
+               WHEN NVL(B.ORG9999999, -1)  = -1 AND NVL(C.ORG9999999, -1) != -1 THEN C.ORG9999999
+               WHEN NVL(B.ORG9999999, -1) != -1 THEN B.ORG9999999
+            END ORG9999999,
+            ROUND(NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE GROUP BY  JUMINNO), 0)*100/DECODE(A.EDUCOUNT, '0', NULL, A.EDUCOUNT))||'%' RCVRATE,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE GROUP BY  JUMINNO), 0) RCVTOTAL,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '6430000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV6430000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '5710000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV5710000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4360000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4360000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4390000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4390000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4400000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4400000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4410000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4410000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4420000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4420000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4430000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4430000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4440000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4440000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4450000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4450000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4460000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4460000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4470000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4470000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4480000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV4480000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '5570000' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV5570000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_APPLICANT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '9999999' GROUP BY  JUMINNO, CHIEFORGAN), 0) RCV9999999,
+          ROUND(NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y' GROUP BY  JUMINNO), 0)*100/DECODE(A.EDUCOUNT, '0', NULL, A.EDUCOUNT))||'%' PASSRATE,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y' GROUP BY  JUMINNO), 0) PASSTOTAL,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '6430000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS6430000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '5710000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS5710000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4360000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4360000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4390000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4390000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4400000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4400000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4410000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4410000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4420000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4420000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4430000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4430000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4440000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4440000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4450000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4450000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4460000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4460000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4470000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4470000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '4480000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS4480000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '5570000' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS5570000,
+            NVL((SELECT SUM(COUNT(JUMINNO)) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = A.COURSECODE AND CHIEFORGAN = '9999999' AND ISFINISH = 'Y' GROUP BY  JUMINNO, CHIEFORGAN), 0) PASS9999999
+      FROM  OPR_LECTURE A, OPR_ORGSTD B, PLN_ORGSTD C
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.EDUCOUNT = C.PLNSTDNUMBER(+)
+       AND ((TO_NUMBER(SUBSTR(A.EDUFROM, 0, 6)) BETWEEN TO_NUMBER(REPLACE(#searchFrom#, '-', '')) AND TO_NUMBER(REPLACE(#searchTo#,'-','')))  
+                      OR (TO_NUMBER(A.BASEYYMM) BETWEEN TO_NUMBER(REPLACE(#searchFrom#, '-', '')) AND TO_NUMBER(REPLACE(#searchTo#,'-','')) ))
+		<isNotEmpty prepend="AND" property="crsType1">
+								<!-- 집합교육 검색 처리 -->
+								<isEqual property="crsType1" compareValue="00000">
+									(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+								</isEqual>
+								<isNotEqual property="crsType1" compareValue="00000">
+									A.CRSTYPE1 = #crsType1#
+								</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType2">
+						A.CRSTYPE2 = #crsType2#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType3">
+						A.CRSTYPE3 = #crsType3#
+		</isNotEmpty>
+  ORDER BY  A.EDUFROM, A.EDUTO, A.COURSENAME
+	</select>
+	
+	<!-- 교육생 계획 기준치를 입력/수정 여부 판단  -->
+	<select id="selectOpr_OrgStdPlanCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT 
+            COUNT(*) 
+      FROM  PLN_ORGSTD 
+     WHERE  PLNSTDNUMBER = #plnStdNumber#
+	</select>
+	
+	<!-- 과정별 교육생 신청자 계획을입력/수정 여부 판단  -->
+	<select id="selectOpr_OrgStdCourseCount" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT 
+            COUNT(*) 
+      FROM  OPR_ORGSTD 
+     WHERE  COURSECODE = #courseCode#
+	</select>
+	
+	<!--  교육생 계획 기준치를 삭제 -->
+	<delete id="deleteOpr_OrgStdPlan" parameterClass="java.lang.String">
+		DELETE	FROM PLN_ORGSTD
+		 WHERE 	PLNSTDNUMBER = #plnStdNumber#
+	</delete>
+	
+	<!--  과정별 교육생 신청자 계획을 삭제 -->
+	<delete id="deleteOpr_OrgStdCourse" parameterClass="java.lang.String">
+		DELETE	FROM OPR_ORGSTD
+		 WHERE 	COURSECODE = #courseCode#
+	</delete>
+	
+	<!-- 교육생 계획 기준치를 입력 -->
+	<insert id="insertOpr_OrgStdPlan" parameterClass="opr_OrgStd">
+		INSERT INTO PLN_ORGSTD (
+			   			PLNSTDNUMBER, 
+							ORG6430000, 
+							ORG4360000, 
+							ORG4390000, 
+							ORG4400000, 
+							ORG4410000, 
+							ORG4420000, 
+							ORG4430000, 
+							ORG4440000, 
+							ORG4450000, 
+							ORG4460000, 
+							ORG4470000, 
+							ORG4480000, 
+							ORG5570000, 
+							ORG9999999,
+							ORG5710000      
+		) VALUES (
+			   			#plnStdNumber#	,
+							#org6430000#, 
+							#org4360000#, 
+							#org4390000#, 
+							#org4400000#, 
+							#org4410000#, 
+							#org4420000#, 
+							#org4430000#, 
+							#org4440000#, 
+							#org4450000#, 
+							#org4460000#, 
+							#org4470000#, 
+							#org4480000#, 
+							#org5570000#, 
+							#org9999999#,
+							#org5710000#
+		)
+	</insert>
+	
+	<!-- 과정별 교육생 신청자 계획을 입력 -->
+	<insert id="insertOpr_OrgStdCourse" parameterClass="opr_OrgStd">
+		INSERT INTO OPR_ORGSTD (
+							COURSECODE,
+			   			PLNSTDNUMBER, 
+							ORG6430000, 
+							ORG4360000, 
+							ORG4390000, 
+							ORG4400000, 
+							ORG4410000, 
+							ORG4420000, 
+							ORG4430000, 
+							ORG4440000, 
+							ORG4450000, 
+							ORG4460000, 
+							ORG4470000, 
+							ORG4480000, 
+							ORG5570000, 
+							ORG9999999,
+							ORG5710000      
+		) VALUES (
+							#courseCode#, 
+			   			#plnStdNumber#	,
+							#org6430000#, 
+							#org4360000#, 
+							#org4390000#, 
+							#org4400000#, 
+							#org4410000#, 
+							#org4420000#, 
+							#org4430000#, 
+							#org4440000#, 
+							#org4450000#, 
+							#org4460000#, 
+							#org4470000#, 
+							#org4480000#, 
+							#org5570000#, 
+							#org9999999#,
+							#org5710000#
+		)
+	</insert>
+	
+	<!-- 교육생 계획 기준치를 수정 -->
+	<update id="updateOpr_OrgStdPlan" parameterClass="opr_OrgStd">
+		UPDATE	PLN_ORGSTD SET 
+						ORG6430000 = #org6430000#, 
+						ORG4360000 = #org4360000#, 
+						ORG4390000 = #org4390000#, 
+						ORG4400000 = #org4400000#, 
+						ORG4410000 = #org4410000#, 
+						ORG4420000 = #org4420000#, 
+						ORG4430000 = #org4430000#, 
+						ORG4440000 = #org4440000#, 
+						ORG4450000 = #org4450000#, 
+						ORG4460000 = #org4460000#, 
+						ORG4470000 = #org4470000#, 
+						ORG4480000 = #org4480000#, 
+						ORG5570000 = #org5570000#, 
+						ORG9999999 = #org9999999#,
+						ORG5710000 = #org5710000# 
+		 WHERE	PLNSTDNUMBER = #plnStdNumber#
+	</update>
+	
+	<!-- 과정별 교육생 신청자 계획을 수정 -->
+	<update id="updateOpr_OrgStdCourse" parameterClass="opr_OrgStd">
+		UPDATE	OPR_ORGSTD SET 
+						PLNSTDNUMBER = #plnStdNumber#,
+						ORG6430000 = #org6430000#, 
+						ORG4360000 = #org4360000#, 
+						ORG4390000 = #org4390000#, 
+						ORG4400000 = #org4400000#, 
+						ORG4410000 = #org4410000#, 
+						ORG4420000 = #org4420000#, 
+						ORG4430000 = #org4430000#, 
+						ORG4440000 = #org4440000#, 
+						ORG4450000 = #org4450000#, 
+						ORG4460000 = #org4460000#, 
+						ORG4470000 = #org4470000#, 
+						ORG4480000 = #org4480000#, 
+						ORG5570000 = #org5570000#, 
+						ORG9999999 = #org9999999#,
+						ORG5710000 = #org5710000# 
+		 WHERE	COURSECODE = #courseCode#
+	</update>
+</sqlMap>
+
+

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<settings cacheModelsEnabled="true" enhancementEnabled="true"
+              maxSessions="64" maxTransactions="8" maxRequests="128"
+              useStatementNamespaces="true"/>
+
+	<!-- JNDI Resource -->
+	<transactionManager type="JDBC">
+		<dataSource type="JNDI">
+			<!--<property name="DataSource" value="java:comp/env/loti"/>-->
+			<property name="DataSource" value="ehojo"/>
+		</dataSource>
+	</transactionManager>
+
+	<!-- ==========Framework Configuration Section============= -->
+	<!-- #############		메　　인			############# -->
+	<sqlMap resource="ext/ehojo/scheduler/Ehojo_SqlMap.xml" />	
+
+</sqlMapConfig>

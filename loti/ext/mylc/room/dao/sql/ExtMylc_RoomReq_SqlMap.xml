@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMylc_RoomReq">
+
+	<typeAlias alias="extMylc_RoomReq" type="loti.ext.mylc.room.model.ExtMylc_RoomReq"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMylc_RoomReq" parameterClass="extMylc_RoomReq" resultClass="extMylc_RoomReq">
+		SELECT   
+            A.LENDSEQ, B.NAME ROOMNONAME, B.CODE ROOMNO,
+            TO_CHAR(TO_DATE(A.LENDFROM,'YYYYMMDD'), 'YYYY-MM-DD') LENDFROM  ,
+            TO_CHAR(TO_DATE(A.LENDTO,'YYYYMMDD'), 'YYYY-MM-DD') LENDTO  , 
+            C.NAME STATUS, A.STATUS STATUSCODE, A.REQUSER, A.REQNAME, A.REQPHONE, A.LENDWHY, A.REQORGAN, A.LENDPEOPLE
+      FROM  RSC_ROOMLEND A,
+           (SELECT
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00021'
+               AND  CODE   != '00000') B, 
+           (SELECT     
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00014'
+               AND  CODE   != '00000') C
+     WHERE  A.ROOMNO = B.CODE
+       AND  A.STATUS = C.CODE
+			 AND	A.LENDSEQ = #lendSeq#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_RoomReqList" parameterClass="extMylc_RoomReq" resultClass="extMylc_RoomReq">
+		SELECT   
+            A.LENDSEQ, B.NAME ROOMNO,
+            TO_CHAR(TO_DATE(A.LENDFROM,'YYYYMMDD'), 'YYYY-MM-DD') LENDFROM  ,
+            TO_CHAR(TO_DATE(A.LENDTO,'YYYYMMDD'), 'YYYY-MM-DD') LENDTO  , 
+            C.NAME STATUS, A.REQUSER, A.REQNAME, A.REQPHONE, A.LENDWHY 
+      FROM  RSC_ROOMLEND A,
+           (SELECT
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00021'
+               AND  CODE   != '00000') B, 
+           (SELECT     
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00014'
+               AND  CODE   != '00000') C
+     WHERE  A.ROOMNO = B.CODE
+       AND  A.STATUS = C.CODE
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like #searchKeyword# 
+				</isNotEmpty>
+			</isNotEmpty>
+	ORDER BY	A.LENDFROM DESC, A.LENDTO DESC
+	</select>
+
+	<!-- 월 사용현황 목록조회쿼리 -->
+	<select id="selectExtMylc_RoomReqMonthList" parameterClass="extMylc_RoomReq" resultClass="extMylc_RoomReq">
+		SELECT	DISTINCT
+            TO_CHAR(#startDay# + A.NO) as dateNo, B.LECROOMNO ROOMNO, B.EDUFROM LENDFROM, B.EDUTO LENDTO,
+            '' STATUS, '' REQUSER, '' REQNAME, '' REQPHONE, 
+            B.COURSENAME || '(' || C.NAME || ')' LENDWHY
+      FROM  OPR_LECTURE B,
+           (SELECT
+                    CODE, SUBSTR(NAME, 0, 4) NAME 
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00021') C,
+           (SELECT
+                    LEVEL - 1 NO
+              FROM  DUAL
+        CONNECT BY  LEVEL <![CDATA[<=]]> #lengthDay#) A          
+     WHERE  C.CODE = B.LECROOMNO
+       AND  TO_CHAR(#startDay# + A.NO) BETWEEN B.EDUFROM AND B.EDUTO
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+						B.LECROOMNO like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+ UNION ALL
+		SELECT	TO_CHAR(#startDay# + A.NO) as dateNo, B.ROOMNO, B.LENDFROM, B.LENDTO, 
+						B.STATUS, B.REQUSER, B.REQNAME, B.REQPHONE, B.LENDWHY||'('||C.NAME||', '||B.REQNAME||')' LENDWHY
+			FROM	RSC_ROOMLEND B,
+           (SELECT
+                    CODE, SUBSTR(NAME, 0, 4) NAME 
+              FROM  SYS_SYSTEMCODE 
+             WHERE  CODEDIV = '00021') C,
+					 (SELECT    
+					 					LEVEL - 1 NO 
+							FROM	DUAL 
+	      CONNECT BY	LEVEL <![CDATA[<=]]> #lengthDay#) A
+		 WHERE	C.CODE = B.ROOMNO
+		   AND	TO_CHAR(#startDay# + A.NO) BETWEEN B.LENDFROM AND B.LENDTO
+		   AND	STATUS = '00004'
+			<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	ORDER BY	dateNo, LENDFROM, ROOMNO, LENDWHY
+	</select>
+	
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectExtMylc_RoomReqListCount" parameterClass="extMylc_RoomReq" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_ROOMLEND
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_RoomReqCount" parameterClass="extMylc_RoomReq" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_ROOMLEND
+		WHERE LENDSEQ = #lendSeq#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 최대값 구하기  -->
+	<select id="selectExtMylc_RoomReqMax" parameterClass="extMylc_RoomReq" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(LENDSEQ),0) 
+		FROM RSC_ROOMLEND
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertExtMylc_RoomReq" parameterClass="extMylc_RoomReq">
+		INSERT INTO RSC_ROOMLEND (	
+			   			LENDSEQ ,	
+			   			ROOMNO  ,	
+			   			LENDFROM,	
+			   			LENDTO  ,	
+			   			STATUS  ,	
+			   			REQUSER ,	
+			   			REQNAME ,	
+			   			REQPHONE,	
+			   			LENDWHY ,	
+			   			REQORGAN,
+			   			LENDPEOPLE	
+		) VALUES (
+						 
+			   			#lendSeq# ,	
+			   			#roomNo#  ,	
+			   			#lendFrom#,	
+			   			#lendTo#  ,	
+			   			#status#  ,	
+			   			#reqUser# ,	
+			   			#reqName# ,	
+			   			#reqPhone#,	
+			   			#lendWhy# ,	
+			   			#reqOrgan# ,	
+			   			#lendPeople# 	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateExtMylc_RoomReq" parameterClass="extMylc_RoomReq">
+		UPDATE RSC_ROOMLEND SET
+			   ROOMNO   = #roomNo#  ,
+			   LENDFROM = #lendFrom#,
+			   LENDTO   = #lendTo#  ,
+			   REQPHONE = #reqPhone#,
+			   LENDWHY  = #lendWhy# ,
+			   LENDPEOPLE = #lendPeople#	
+		WHERE LENDSEQ = #lendSeq#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_RoomReq" parameterClass="extMylc_RoomReq">
+		DELETE FROM RSC_ROOMLEND
+		WHERE LENDSEQ = #lendSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="lendseq">
+				LENDSEQ = #lendseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="roomno">
+				ROOMNO = #roomno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendfrom">
+				LENDFROM = #lendfrom#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendto">
+				LENDTO = #lendto#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="status">
+				STATUS = #status#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="requser">
+				REQUSER = #requser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqname">
+				REQNAME = #reqname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqphone">
+				REQPHONE = #reqphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="lendwhy">
+				LENDWHY = #lendwhy#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

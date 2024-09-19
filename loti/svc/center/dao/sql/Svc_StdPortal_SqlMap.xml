@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Svc_StdPortal">
+
+	<typeAlias alias="svc_StdPortal" type="loti.svc.center.model.Svc_StdPortal"/>
+
+	<!-- 집합 목록조회쿼리 -->
+	<select id="selectSvc_StdPortalList" parameterClass="svc_StdPortal" resultClass="svc_StdPortal">
+		SELECT  
+            A.COURSECODE, A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE,
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'YYYY-MM-DD') EDUFROM, TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'YYYY-MM-DD') EDUTO, 
+            TO_CHAR(TO_DATE(SYSDATE),'YYYY-MM-DD') TODAY, B.USERNAME, A.CRSTYPE1,
+           (SELECT SUBSTR(NAME, 0, 4) NAME FROM  SYS_SYSTEMCODE WHERE CODEDIV = '00021' AND CODE = A.LECROOMNO) ROOMNO,
+            CASE 
+                WHEN  TO_DATE(EDUFROM,'YYYYMMDD')+1 <![CDATA[<=]]> TO_DATE(SYSDATE) THEN 'F'
+                WHEN (SELECT COUNT(*) FROM OPR_TIMETABLE WHERE COURSECODE = A.COURSECODE) = 0 THEN 'I'
+                WHEN (SELECT COUNT(*) FROM OPR_TIMETABLE WHERE COURSECODE = A.COURSECODE) > 0 THEN 'U'
+            END TIMEFLAG
+      FROM  OPR_LECTURE A,
+           (SELECT
+                    JUMINNO, USERNAME
+              FROM  CMN_PUBWORKER) B
+     WHERE  A.CHARGER = B.JUMINNO
+       AND  A.CRSTYPE1 != '00003' 
+       AND (TO_DATE(EDUFROM,'YYYYMMDD') BETWEEN TO_DATE(SYSDATE-7) AND TO_DATE(SYSDATE+30)
+        OR  TO_DATE(EDUTO,'YYYYMMDD')   BETWEEN TO_DATE(SYSDATE-7) AND TO_DATE(SYSDATE+30))
+  ORDER BY  EDUFROM, EDUTO, COURSENAME
+	</select>
+	<!-- 사이버 목록조회쿼리 -->
+	<select id="selectSvc_StdPortalCyberList" parameterClass="svc_StdPortal" resultClass="svc_StdPortal">
+		SELECT  
+            A.COURSECODE, A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE,
+            TO_CHAR(TO_DATE(A.REQFROM,'YYYYMMDD'), 'MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(A.REQTO,'YYYYMMDD'), 'MM.DD') REQDATE,
+            TO_DATE(A.EDUFROM,'YYYYMMDD') EDUFROM, TO_DATE(A.EDUTO,'YYYYMMDD') EDUTO,
+            TO_DATE(A.REQFROM,'YYYYMMDD') REQFROM, TO_DATE(A.REQTO,'YYYYMMDD') REQTO,
+            B.USERNAME, A.CRSTYPE1
+      FROM  OPR_LECTURE A,
+           (SELECT
+                    JUMINNO, USERNAME
+              FROM  CMN_PUBWORKER) B
+     WHERE  A.CHARGER = B.JUMINNO
+       AND  A.CRSTYPE1 = '00003' 
+       AND  TO_DATE(SYSDATE) BETWEEN TO_DATE(EDUFROM,'YYYYMMDD') AND TO_DATE(EDUTO,'YYYYMMDD')
+  ORDER BY  EDUFROM, EDUTO, COURSENAME
+	</select>
+</sqlMap>
+
+

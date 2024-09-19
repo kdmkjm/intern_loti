@@ -1,0 +1,628 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_TimeTblDay">
+
+	<typeAlias alias="crs_TimeTblDay" type="loti.crs.timetbl.model.Crs_TimeTblDay"/>
+	<typeAlias alias="crs_TimeSubject" type="loti.crs.timetbl.model.Crs_TimeSubject"/>
+	<typeAlias alias="crs_TimeTblCourse" type="loti.crs.timetbl.model.Crs_TimeTblCourse"/>
+	<typeAlias alias="comCode" type="loti.cmn.code.model.ComCode"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCrs_TimeTblDay" parameterClass="crs_TimeTblDay" resultClass="crs_TimeTblDay">
+			SELECT
+				   		COURSECODE,
+				   		LECTDATE  ,
+				   		TIMESEQ   ,
+				   		SUBJSEQ   ,
+				   		FROMTIME  ,
+				   		TOTIME    ,
+				   		PROFNAME  ,
+				   		PROFASSIGN,
+				   		ORD
+			  FROM OPR_TIMETABLE
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_TimeTblCrsList" parameterClass="crs_TimeTblDay" resultClass="crs_TimeTblDay">
+		  SELECT A.COURSECODE,
+             A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+             (SELECT COUNT(COURSECODE) FROM OPR_CRSSTUDENT C WHERE C.COURSECODE = A.COURSECODE) STDCNT,
+             MAX(D.NAME) LECROOM,
+             B.LECTDATE
+        FROM OPR_LECTURE A,
+             OPR_TIMETABLE B,
+             SYS_SYSTEMCODE D
+       WHERE A.COURSECODE = B.COURSECODE
+         AND A.LECROOMNO = D.CODE(+)
+         AND D.CODEDIV(+) = '00021'
+			   AND B.LECTDATE LIKE REPLACE(#searchdate#,'-','')||'%'
+			   AND NVL(A.CHARGER,'%') LIKE #searchcharger#||'%'
+       GROUP BY A.COURSECODE, A.COURSENAME, LECTDATE
+       ORDER BY A.COURSECODE
+	</select>
+	
+	
+	<!-- 교육시간표 조회 - 과정별/기간별 -->
+	<select id="selectCrs_TimeTblCourseAndDayExcel" parameterClass="crs_TimeTblDay" resultClass="crs_TimeTblDay">
+		  SELECT
+            A.COURSECODE,
+            A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+           (SELECT COUNT(COURSECODE) FROM OPR_CRSSTUDENT C WHERE C.COURSECODE = A.COURSECODE) STDCNT,
+            MAX(D.NAME) LECROOM,
+            B.LECTDATE
+      FROM  OPR_LECTURE A, OPR_TIMETABLE B, SYS_SYSTEMCODE D
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.LECROOMNO = D.CODE(+)
+       AND  D.CODEDIV(+) = '00021'
+	<isEqual property="searchType" compareValue="course">
+		<!-- <isEqual property="searchCourseIsAll" compareValue="true">
+	       AND  A.COURSECODE LIKE SUBSTR(#searchCourseCode#, 1, 11)||'%'
+	  </isEqual>
+		<isEqual property="searchCourseIsAll" compareValue="false">
+	       AND  A.COURSECODE LIKE #searchCourseCode#
+	  </isEqual>-->
+	  AND  A.COURSECODE LIKE #searchCourseCode#
+	</isEqual>
+	<isEqual property="searchType" compareValue="day">
+	       AND  LECTDATE BETWEEN REPLACE(#searchFromDate#,'-','') AND REPLACE(#searchToDate#,'-','')
+	</isEqual>
+  GROUP BY  A.COURSECODE, A.COURSENAME, LECTDATE
+  ORDER BY  B.LECTDATE, A.COURSENAME
+	</select>
+	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_TimeTblDayList" parameterClass="crs_TimeTblDay" resultClass="crs_TimeTblDay">
+		  SELECT ROWNUM NUM,
+		         A.COURSECODE,
+             A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+             DECODE(FROMTIME,'09:00','1','10:00','2','11:00','3','12:00','4','13:00','5','14:00','6','15:00','7','16:00','8','17:00','9','18:00','10','19:00','11','12') AS GUBUN,
+             FLOOR( MOD( TO_DATE(TOTIME, 'HH24:MI') - TO_DATE(FROMTIME, 'HH24:MI'), 1) * 24 ) AS COLSPAN,
+             <!-- DECODE(B.SUBJSEQ, '98', '중식', '99', '석식', C.SUBJNAME) SUBJNAME, -->
+             B.TIMESUBJECT AS SUBJNAME,
+             LECTDATE  ,
+             TIMESEQ 		TIME_SEQ ,
+             B.SUBJSEQ 	SUBJ_SEQ,
+             FROMTIME 	FROM_TIME ,
+             TOTIME 		TO_TIME    ,
+             PROFNAME		PROF_NAME  ,
+             PROFASSIGN PROF_ASSIGN,
+             B.ORD
+        FROM OPR_LECTURE A,
+             OPR_TIMETABLE B,
+             OPR_LECSUBJECT C
+       WHERE A.COURSECODE = B.COURSECODE
+         AND B.COURSECODE = C.COURSECODE(+)
+         AND B.SUBJSEQ = C.SUBJSEQ(+)
+         AND A.COURSECODE = #coursecode#
+			   AND B.LECTDATE LIKE #lectdate#||'%'
+       ORDER BY COURSECODE,to_number(DECODE(FROMTIME,'09:00','1','10:00','2','11:00','3','12:00','4','13:00','5','14:00','6','15:00','7','16:00','8','17:00','9','18:00','10','19:00','11','12'))
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_TimeTblMonthList" parameterClass="crs_TimeTblDay" resultClass="crs_TimeTblDay">
+		  SELECT DISTINCT A.COURSECODE,
+             REPLACE(A.COURSENAME,'과정','') || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+             LECTDATE
+        FROM OPR_LECTURE A,
+             OPR_TIMETABLE B
+       WHERE A.COURSECODE = B.COURSECODE
+			   AND TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYYMM') LIKE TO_CHAR(TO_DATE(#searchdate#,'YYYY-MM'), 'YYYYMM')
+			   AND NVL(A.CHARGER,'%') LIKE #searchcharger#||'%'
+        <![CDATA[ORDER BY COURSECODE]]>
+	</select>
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_TimeTblEduDate" parameterClass="crs_TimeTblDay" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*) as CNT
+      FROM  OPR_LECTURE
+     WHERE  COURSECODE = #coursecode#
+       AND  TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD') BETWEEN EDUFROM AND EDUTO
+	</select>
+	
+	
+	<!-- 해당하는 과정의 시간표 조회 -->
+	<select id="selectCrs_TimeTblList" parameterClass="crs_TimeTblDay" resultClass="crs_TimeSubject">
+		  SELECT
+            A.COURSECODE, A.LECTDATE, A.TIMESEQ, A.SUBJSEQ,A.TIMESUBJECT, A.FROMTIME, A.TOTIME,
+            SUBSTR(A.TOTIME,0,2) - SUBSTR(A.FROMTIME,0,2) EDUHOUR,
+            A.PROFNAME, A.PROFASSIGN, B.PROFNO, B.PROFLEVEL,
+            DECODE(SIGN(A.LECTDATE-TO_CHAR(TO_DATE(sysdate), 'YYYYMMDD')), -1, 0, 1) MODYN
+      FROM  OPR_TIMETABLE A,
+           (SELECT  COURSECODE, LECTDATE, TIMESEQ, PROFLEVEL,
+                                SUBSTR(XMLAGG(XMLELEMENT("NM",','||PROFNO)ORDER BY PROFNO).EXTRACT('//text()'),2) PROFNO
+              FROM  OPR_LECTPROF
+             WHERE  COURSECODE LIKE #searchCourseCode#
+               AND  LECTDATE   LIKE TO_CHAR(TO_DATE(#searchdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+             GROUP BY COURSECODE, LECTDATE, TIMESEQ, PROFLEVEL
+            ) B
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.LECTDATE = B.LECTDATE(+)
+       AND  A.TIMESEQ = B.TIMESEQ(+)
+       AND  A.COURSECODE  LIKE #searchCourseCode#
+       AND  A.LECTDATE    LIKE TO_CHAR(TO_DATE(#searchdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+  ORDER BY  A.FROMTIME
+	</select>
+	
+	<!-- 해당하는 과정의 과목 조회 -->
+	<select id="selectCrs_SubjectList" parameterClass="crs_TimeTblDay" resultClass="crs_TimeSubject">
+		SELECT
+            '' SUBJSEQ,
+            '' SUBJNAME,
+            0  ORD
+      FROM  DUAL
+     UNION
+    SELECT
+            TO_CHAR(SUBJSEQ),
+            SUBJNAME,
+            ORD
+      FROM  OPR_SUBJECT
+     WHERE  COURSECODE = #searchCourseCode#
+     UNION
+    SELECT  '98'   SUBJSEQ,
+            '중식' SUBJNAME,
+            98     ORD
+      FROM  DUAL
+     UNION
+    SELECT
+            '99'   SUBJSEQ,
+            '석식' SUBJNAME,
+            99     ORD
+      FROM  DUAL
+  ORDER BY  ORD
+	</select>
+	
+	<!-- 해당하는 날짜로 조회했을때 몇개 과정 몇명의 학생이 수강하는지 체크 -->
+	<select id="selectCrs_TimeTblDayTotalInfo" parameterClass="crs_TimeTblDay" resultClass="java.lang.String">
+		SELECT
+            '- ' ||
+           (SELECT
+                    COUNT(COURSECODE) CRSCNT
+              FROM (SELECT
+                            COURSECODE
+                      FROM  OPR_TIMETABLE
+                     WHERE  LECTDATE = REPLACE(#searchdate#,'-','')
+                  GROUP BY  COURSECODE))
+            || '개 과정 ' ||
+           (SELECT
+                    COUNT(SEQ) STDCNT
+              FROM  OPR_CRSSTUDENT A,
+                   (SELECT
+                            COURSECODE
+                      FROM  OPR_TIMETABLE
+                     WHERE  LECTDATE = REPLACE(#searchdate#,'-','')
+                  GROUP BY  COURSECODE) B
+             WHERE  A.COURSECODE = B.COURSECODE)
+            || '명 -' TOTALINFO
+      FROM  DUAL
+	</select>
+
+	
+	<!-- 과정수&수강생수 조회-->
+	<select id="selectCrs_TimeTblCourseAndDayStdInfo" parameterClass="crs_TimeTblDay" resultClass="java.lang.String">
+		SELECT
+            '- ' ||
+           (SELECT
+                    COUNT(COURSECODE) CRSCNT
+              FROM (SELECT
+                            COURSECODE
+                      FROM  OPR_TIMETABLE
+								<isEqual property="searchType" compareValue="course">
+									<isEqual property="searchCourseIsAll" compareValue="true">
+								     WHERE  COURSECODE LIKE SUBSTR(#searchCourseCode#, 1, 11)||'%'
+								  </isEqual>
+									<isEqual property="searchCourseIsAll" compareValue="false">
+								     WHERE  COURSECODE LIKE #searchCourseCode#
+								  </isEqual>
+								</isEqual>
+								<isEqual property="searchType" compareValue="day">
+										 WHERE  LECTDATE BETWEEN REPLACE(#searchFromDate#,'-','') AND REPLACE(#searchToDate#,'-','')
+								</isEqual>
+                     
+                  GROUP BY  COURSECODE))
+            || '개 과정 ' ||
+           (SELECT
+                    COUNT(SEQ) STDCNT
+              FROM  OPR_CRSSTUDENT A,
+                   (SELECT
+                            COURSECODE
+                      FROM  OPR_TIMETABLE
+								<isEqual property="searchType" compareValue="course">
+									<isEqual property="searchCourseIsAll" compareValue="true">
+								     WHERE  COURSECODE LIKE SUBSTR(#searchCourseCode#, 1, 11)||'%'
+								  </isEqual>
+									<isEqual property="searchCourseIsAll" compareValue="false">
+								     WHERE  COURSECODE LIKE #searchCourseCode#
+								  </isEqual>
+								</isEqual>
+								<isEqual property="searchType" compareValue="day">
+										 WHERE  LECTDATE BETWEEN REPLACE(#searchFromDate#,'-','') AND REPLACE(#searchToDate#,'-','')
+								</isEqual>
+                  GROUP BY  COURSECODE) B
+             WHERE  A.COURSECODE = B.COURSECODE)
+            || '명 -' TOTALINFO
+      FROM  DUAL
+	</select>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCrs_TimeTblDayListCount" parameterClass="crs_TimeTblDay" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_TIMETABLE
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCrs_TimeTblDayCount" parameterClass="crs_TimeTblDay" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_TIMETABLE
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCrs_TimeTblDay" parameterClass="crs_TimeTblDay">
+		INSERT INTO OPR_TIMETABLE (
+			   			COURSECODE,
+			   			LECTDATE  ,
+			   			TIMESEQ   ,
+			   			SUBJSEQ   ,
+			   			TIMESUBJECT,
+			   			FROMTIME  ,
+			   			TOTIME    ,
+			   			PROFNAME  ,
+			   			PROFASSIGN,
+			   			
+			   			ORD
+		) VALUES (
+						 
+			   			#coursecode#,
+			   			#lectdate#  ,
+			   			#timeseq#   ,
+			   			#subjseq#   ,
+			   			#timesubject#  ,
+			   			#fromtime#  ,
+			   			#totime#    ,
+			   			#profName#  ,
+			   			#profAssign#,
+			   			#ord#
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCrs_TimeTblDay" parameterClass="crs_TimeTblDay">
+		UPDATE OPR_TIMETABLE SET
+			   COURSECODE = #coursecode#,
+			   LECTDATE   = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')  ,
+			   TIMESEQ    = #timeseq#   ,
+			   SUBJSEQ    = #subjseq#   ,
+			   TIMESUBJECT  = #timesubject#  ,
+			   FROMTIME   = #fromtime#  ,
+			   TOTIME     = #totime#    ,
+			   PROFNAME   = #profName#  ,
+			   PROFASSIGN = #profAssign#,
+			   ORD        = #ord#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_TimeTblDay" parameterClass="crs_TimeTblDay">
+		DELETE FROM OPR_TIMETABLE
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 시간표 삭제_엑셀 과정코드 -->
+	<delete id="delete___Crs_TimeTblByCourseCode" parameterClass="crs_TimeTblDay">
+		DELETE 	FROM OPR_TIMETABLE
+		WHERE 	COURSECODE = #coursecode#
+	</delete>
+	
+	<!--  레코드 삭제_엑셀 과정코드 -->
+	<delete id="delete___Crs_LectProfByCourseCode" parameterClass="crs_TimeTblDay">
+		DELETE FROM OPR_LECTPROF
+		 WHERE COURSECODE = #coursecode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제_엑셀 과정코드 -->
+	<delete id="delete___Crs_LectPayByCourseCode" parameterClass="crs_TimeTblDay">
+		DELETE FROM PRF_LECTPAY
+		 WHERE COURSECODE = #coursecode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 시간표 삭제 -->
+	<delete id="delete___Crs_TimeTbl" parameterClass="crs_TimeTblDay">
+		DELETE 	FROM OPR_TIMETABLE
+		WHERE 	COURSECODE = #coursecode#
+		AND		LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="delete___Crs_LectProfAll" parameterClass="crs_TimeTblDay">
+		DELETE FROM OPR_LECTPROF
+		 WHERE COURSECODE = #coursecode#
+		   AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="delete___Crs_LectPayAll" parameterClass="crs_TimeTblDay">
+		DELETE FROM PRF_LECTPAY
+		 WHERE COURSECODE = #coursecode#
+		   AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!-- 시간표 입력 -->
+	<insert id="insert___Crs_TimeTbl" parameterClass="crs_TimeSubject">
+		INSERT INTO OPR_TIMETABLE (
+			   			COURSECODE,
+			   			LECTDATE  ,
+			   			TIMESEQ   ,
+			   			SUBJSEQ   ,
+			   			TIMESUBJECT  ,
+			   			FROMTIME  ,
+			   			TOTIME    ,
+			   			PROFNAME  ,
+			   			PROFASSIGN
+		) VALUES (
+
+			   			#courseCode#,
+			   			TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')  ,
+			   			(SELECT NVL(MAX(TIMESEQ),0)+1
+						FROM OPR_TIMETABLE
+						WHERE COURSECODE = #courseCode#
+						AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')),
+			   			#subjseq#   ,
+			   			#subjname#  ,
+			   			#fromtime#  ,
+			   			#totime#    ,
+			   			#profName#  ,
+			   			#profAssign#
+		)
+	</insert>
+	
+	<!--  시간표 맥스값 가져오기 -->
+	<select id="select___Crs_MaxTimeTbl" parameterClass="crs_TimeSubject" resultClass="java.lang.String">
+			SELECT MAX(TIMESEQ)
+			  FROM OPR_TIMETABLE
+			 WHERE COURSECODE = #courseCode#
+				 AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+	</select>
+	
+	<!--  레코드 삭제 -->
+	<delete id="delete___Crs_LectPay" parameterClass="crs_TimeSubject">
+		DELETE FROM PRF_LECTPAY
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+		   AND PROFNO = #profNo#
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="delete___Crs_LectProf" parameterClass="crs_TimeSubject">
+		DELETE FROM OPR_LECTPROF
+		 WHERE COURSECODE = #courseCode#
+		   AND LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+		   AND TIMESEQ = #timeseq#
+		   AND PROFNO = #profNo#
+	</delete>
+	
+	<!-- 레코드 입력 -->
+	<insert id="insert___Crs_LectProf" parameterClass="crs_TimeSubject">
+		INSERT INTO OPR_LECTPROF (
+			   			COURSECODE,
+			   			LECTDATE  ,
+			   			TIMESEQ   ,
+			   			PROFNO   ,
+			   			PROFNAME  ,
+			   			PROFASSIGN    ,
+			   			PROFLEVEL  ,
+			   			ISPAYED
+		) (SELECT #courseCode#,
+			   			TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')  ,
+			   			#timeseq#   ,
+			   			PROFESSORNO   ,
+			   			PROFNAME  ,
+			   			WORKPLACE,
+			   			#profLevel#   ,
+							'N'
+				 FROM PRF_PROFESSOR
+				WHERE PROFESSORNO = #profNo#
+		)
+	</insert>
+	
+	<insert id="insert___Crs_LectPay" parameterClass="crs_TimeSubject">
+		INSERT INTO PRF_LECTPAY(
+			   			COURSECODE,
+			   			LECTDATE  ,
+			   			PROFNO   	,
+			   			YEAR			,
+			   			PROFNAME  ,
+			   			PROFLEVEL ,
+			   			LECTHOUR
+		) (SELECT #courseCode#,
+			   			TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')  ,
+			   			A.PROFESSORNO   ,
+			   			SUBSTR(#lectdate#,1,4),
+			   			A.PROFNAME  ,
+			   			#profLevel#,
+			   			B.LECTHOUR
+				 FROM PRF_PROFESSOR A,
+				      (SELECT A.PROFNO, SUM(FLOOR( MOD( TO_DATE(TOTIME, 'HH24:MI') - TO_DATE(FROMTIME, 'HH24:MI'), 1) * 24 )) LECTHOUR
+				         FROM OPR_LECTPROF A, OPR_TIMETABLE B
+				        WHERE A.COURSECODE = B.COURSECODE
+				          AND A.LECTDATE = B.LECTDATE
+				          AND A.TIMESEQ = B.TIMESEQ
+				          AND A.COURSECODE = #courseCode#
+				          AND A.LECTDATE = TO_CHAR(TO_DATE(#lectdate#,'YYYY-MM-DD'), 'YYYYMMDD')
+				          AND A.PROFNO = #profNo#
+				        GROUP BY A.PROFNO
+				      ) B
+				WHERE A.PROFESSORNO = B.PROFNO
+				  AND A.PROFESSORNO = #profNo#
+		)
+	</insert>
+	
+	
+	<!-- 과목 추가 -->
+	<insert id="insertCrs_AddSubject" parameterClass="crs_TimeTblDay">
+		INSERT INTO OPR_SUBJECT (
+                COURSECODE,
+                SUBJSEQ,
+                SUBJNAME,
+                ORD
+        ) VALUES (
+               #coursecode#,
+               (SELECT NVL(MAX(SUBJSEQ),0)+1 FROM  OPR_SUBJECT WHERE  COURSECODE = #coursecode#),
+               #subjname#,
+               (SELECT NVL(MAX(ORD),0)+1 FROM  OPR_SUBJECT WHERE  COURSECODE = #coursecode#)
+        )
+	</insert>
+	
+	
+	<!-- 과목 추가 후 해당 과목 seq 조회 -->
+	<select id="selectCrs_AddSubjectMax" parameterClass="crs_TimeTblDay" resultClass="java.lang.Integer">
+		SELECT
+            NVL(MAX(SUBJSEQ),0) CNT
+      FROM  OPR_SUBJECT
+     WHERE  COURSECODE = #coursecode#
+	</select>
+	
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteCrs_DelSubject" parameterClass="crs_TimeTblDay">
+		DELETE	FROM OPR_SUBJECT
+		 WHERE  COURSECODE = #coursecode#
+		   AND	SUBJSEQ = #subjname#
+	</delete>
+	
+	
+	<!--  해당하는 조건(담당자, 일자)에 진행되는 과정수 카운트 -->
+	<select id="selectCrs_TblDayCount" parameterClass="crs_TimeTblDay" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*) CNT
+      FROM  OPR_LECTURE A,
+           (SELECT  DISTINCT
+                    COURSECODE, LECTDATE
+              FROM  OPR_TIMETABLE
+             WHERE  LECTDATE LIKE REPLACE(#searchdate#,'-','')) B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  B.LECTDATE LIKE REPLACE(#searchdate#,'-','')
+       AND  A.CHARGER LIKE #searchcharger# || '%'
+	</select>
+
+	<!-- 강사수당 기준표 코드조회  쿼리 -->
+	<select id="selectProfLevelList" parameterClass="comCode" resultClass="comCode" >
+				<isEqual property="isAll" compareValue="true">
+	        SELECT
+	               	'' CODE,
+	               	'' NAME,
+	               	'00' DISPORDER
+	        FROM    DUAL
+	        UNION
+				</isEqual>
+				SELECT PROFLEVEL AS CODE, LEVELNAME AS NAME, DISPORDER
+				  FROM PRF_PAYTABLE
+			ORDER BY DISPORDER, CODE NULLS FIRST
+	</select>
+	
+	<!-- 시간표 생성_일자생성 쿼리  -->
+	<select id="selectTimeTblDayList" parameterClass="java.lang.String" resultClass="crs_TimeTblCourse" >
+		SELECT SRC.RESULTDATE
+		     , SRC.RESULTDAY
+		     , SRC.RESULTDAYKOR 
+		FROM (
+		SELECT TO_CHAR(TO_DATE((SELECT EDUFROM FROM OPR_LECTURE WHERE COURSECODE = #value#), 'YYYYMMDD') + LEV - 1,'YYYYMMDD') AS RESULTDATE 
+		     , TO_CHAR(TO_DATE((SELECT EDUFROM FROM OPR_LECTURE WHERE COURSECODE = #value#), 'YYYYMMDD') + LEV - 1,'D') AS RESULTDAY
+		     , TO_CHAR(TO_DATE((SELECT EDUFROM FROM OPR_LECTURE WHERE COURSECODE = #value#), 'YYYYMMDD') + LEV - 1,'DY') AS RESULTDAYKOR
+		  FROM (SELECT LEVEL LEV 
+		        FROM DUAL 
+		CONNECT BY LEVEL <![CDATA[ <= ]]> (TO_DATE((SELECT EDUTO FROM OPR_LECTURE WHERE COURSECODE = #value#), 'YYYYMMDD') - TO_DATE((SELECT EDUFROM FROM OPR_LECTURE WHERE COURSECODE = #value#), 'YYYYMMDD')+1) 
+		) ) SRC
+		WHERE SRC.RESULTDAY NOT IN ('1','7')
+		ORDER BY SRC.RESULTDATE
+	</select>
+	
+	<!-- 시간표 생성_과목생성 쿼리 -->
+	<select id="selectTimeTblSubjectList" parameterClass="java.lang.String" resultClass="crs_TimeTblCourse" >
+		SELECT SRC.COURSECODE
+		     , SRC.LECTDATE
+		     , SRC.TIMESEQ
+		     , SRC.SUBJSEQ
+		     , SRC.EDUHOUR
+		     , SRC.FROMTIME
+		     , SRC.TOTIME
+		     , SRC.PROFNAME
+		     , SRC.PROFASSIGN
+		     , SRC.ORD
+		     , SRC.TIMESUBJECT
+		     , SRC.RESULTDAY
+		     , SUM(SRC.EDUHOUR) OVER (PARTITION BY SRC.TIMESUBJECT ORDER BY SRC.FROMTIME, SRC.LECTDATE) AS TIMESUM
+             , SUM(SRC.EDUHOUR) OVER (PARTITION BY SRC.TIMESUBJECT) AS TIMETOTAL
+		FROM (
+		     
+		SELECT A.*
+		     , TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD'),'d') AS RESULTDAY
+		     , SUBSTR(A.TOTIME,0,2) - SUBSTR(A.FROMTIME,0,2) AS EDUHOUR
+		FROM OPR_TIMETABLE A
+		WHERE COURSECODE = #value#
+		) SRC
+		ORDER BY SRC.FROMTIME, SRC.LECTDATE
+	</select>
+	
+	<select id="selectPrfProfessor" parameterClass="java.lang.String" resultClass="crs_TimeSubject">
+		SELECT PROFESSORNO AS PROFNO
+		     , PROFLEVEL 
+		     , WORKPLACE AS PROFASSIGN
+		     , PROFNAME
+		FROM PRF_PROFESSOR WHERE PROFNAME LIKE '%'||#value#||'%'
+	</select>
+	
+	<select id="selectTimeTblOneDayList" parameterClass="java.lang.String" resultClass="crs_TimeTblCourse">
+		SELECT DISTINCT (SELECT coursename FROM OPR_LECTURE WHERE coursecode = a.coursecode)    AS coursename
+	         , (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE coursecode = a.coursecode) 		    AS stdCnt
+	         , (SELECT name FROM SYS_SYSTEMCODE WHERE codediv = '00021' AND code = b.lecroomno) AS lectRoom
+			 , SUBSTR(a.coursecode,12,1) AS crsSeq         
+	         , b.charger         
+	      FROM OPR_TIMETABLE a, OPR_LECTURE b       
+	     WHERE a.coursecode = b.coursecode 
+	       AND a.lectdate   = #value#
+	</select>
+	
+	<select id="selectTimeTblOneDaySubjectList" parameterClass="java.lang.String" resultClass="crs_TimeTblCourse">
+ 		SELECT AA.coursecode
+		     , AA.lectdate
+		     , AA.timeseq
+		     , AA.subjseq
+		     , AA.eduhour
+		     , AA.fromtime
+		     , AA.totime
+		     , AA.profname
+		     , AA.profassign
+		     , AA.ord
+		     , AA.timesubject
+		     , AA.resultday
+		     , SUM(AA.eduhour) OVER (PARTITION BY AA.coursecode, AA.timesubject ORDER BY AA.fromtime, AA.lectdate) AS TIMESUM
+             , SUM(AA.eduhour) OVER (PARTITION BY AA.coursecode, AA.timesubject) AS TIMETOTAL
+		  FROM ( SELECT a.*
+				      , TO_CHAR(TO_DATE(a.lectdate,'YYYYMMDD'),'d') AS RESULTDAY
+				      , SUBSTR(a.totime, 0, 2) - SUBSTR(a.fromtime, 0, 2) AS EDUHOUR
+				   FROM OPR_TIMETABLE a
+				  WHERE lectdate = #value# ) AA
+		ORDER BY AA.coursecode, AA.fromtime, AA.lectdate	
+	</select>	
+</sqlMap>
+
+

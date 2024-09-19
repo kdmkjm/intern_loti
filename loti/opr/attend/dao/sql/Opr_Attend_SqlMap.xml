@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_Attend">
+
+	<typeAlias alias="opr_Attend" 	type="loti.opr.attend.model.Opr_Attend"/>
+	<typeAlias alias="opr_EduDate" 	type="loti.opr.attend.model.Opr_EduDate"/>
+	<typeAlias alias="opr_RollBook" type="loti.opr.attend.model.Opr_RollBook"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectOpr_Attend" parameterClass="opr_Attend" resultClass="opr_Attend">
+		SELECT  
+            B.COURSECODE, E.COURSENAME, B.SEQ, B.JUMINNO, B.STDNAME, B.STDNO, B.ASSIGN, 
+            B.ASSIGNNAME, B.RANKNAME, B.GRADENAME,  
+            TO_CHAR(to_date(D.EDUDATE,'YYYY-MM-DD'), 'YYYY"년 "MM"월 "DD"일"') EDUDATE,
+            TO_CHAR(to_date(D.EDUDATE,'YYYY-MM-DD'), 'YYYY-MM-DD') SEARCHDATE,
+            D.ATTENDYN, D.ATTENDGUBN, D.ATNDSCORE, D.REMARKS
+      FROM  OPR_CRSSTUDENT B,
+           (SELECT
+                    ORB.COURSECODE, ORB.SEQ, ORB.EDUDATE, ORB.ATTENDYN, 
+                    ORB.ATTENDGUBN, ORB.ATNDSCORE, ORB.REMARKS
+              FROM  OPR_ROLLBOOK ORB,
+                   (SELECT TO_CHAR(TO_DATE(#eduDate#,'YYYY-MM-DD'), 'yyyymmdd') TODAY FROM DUAL) TODAY
+             WHERE  TODAY.TODAY = ORB.EDUDATE) D,
+           (SELECT  COURSECODE, COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME
+              FROM  OPR_LECTURE
+             WHERE  COURSECODE = #courseCode#) E                   
+     WHERE  B.COURSECODE 	= E.COURSECODE
+       AND  B.COURSECODE 	= D.COURSECODE(+)
+       AND  B.SEQ 				= D.SEQ(+)
+       AND  B.COURSECODE 	= #courseCode#
+       AND  B.SEQ 				= #seq#
+       AND  D.EDUDATE 		= TO_CHAR(TO_DATE(#eduDate#,'YYYY-MM-DD'), 'yyyymmdd')
+  ORDER BY  B.SEQ
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_AttendList" parameterClass="opr_Attend" resultClass="opr_Attend">
+		SELECT  B.COURSECODE, B.SEQ, B.JUMINNO, B.STDNAME, B.STDNO, B.ASSIGN, 
+            B.ASSIGNNAME, B.RANKNAME, D.EDUDATE, D.ATTENDYN, F.NAME ATTENDNAME          
+      FROM  OPR_CRSSTUDENT B,
+           (SELECT
+                    D.COURSECODE, D.SEQ, D.EDUDATE, D.ATTENDYN, 
+                    D.ATTENDGUBN, D.ATNDSCORE, D.REMARKS
+              FROM  OPR_ROLLBOOK D,
+                   (SELECT TO_CHAR(TO_DATE(#searchDate#,'YYYY-MM-DD'), 'yyyymmdd') TODAY FROM DUAL) TODAY
+             WHERE  TODAY.TODAY = D.EDUDATE) D,
+           (SELECT  
+                    COURSECODE, CRSTYPE1
+              FROM  OPR_LECTURE) E,
+           (SELECT  
+                    CODE, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV = '00011'
+               AND  CODE != '00000') F
+     WHERE  B.COURSECODE = D.COURSECODE(+)
+       AND  B.COURSECODE = E.COURSECODE
+       AND  D.ATTENDGUBN = F.CODE(+)
+       AND  B.SEQ = D.SEQ(+)
+       AND  E.CRSTYPE1 != '00003'
+       AND  B.COURSECODE LIKE #searchCourseCode#
+  ORDER BY  B.STDNO
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectOpr_AttendListCount" parameterClass="opr_Attend" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_ROLLBOOK
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	
+	<!--  교번이 생성 되어 있는 데이터 인지 체크 -->
+	<select id="selectOpr_AttendListStdNoCount" parameterClass="opr_Attend" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*)
+      FROM  OPR_CRSSTUDENT
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  STDNO IS NULL
+	</select>
+	
+	<!--  이수처리가 완료되었는지 체크 -->
+	<select id="checkPassYN" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*)
+      FROM  OPR_LECTURE
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  ISPASS LIKE 'Y'
+	</select>
+
+
+	<!--  해당하는 과정의 교육기간을 조회한다. -->
+	<select id="selectCourseEduDate" parameterClass="java.lang.String" resultClass="opr_EduDate">
+		SELECT  
+						EDUFROM, EDUTO, TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'), 'YYYY-MM-DD') EDUSTART,
+            TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY.MM.DD') || ' ~ ' || TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'MM.DD') EDUDATE
+      FROM  OPR_LECTURE
+     WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectOpr_AttendCount" parameterClass="opr_Attend" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) as CNT
+			FROM	OPR_ROLLBOOK
+		 WHERE	COURSECODE = #courseCode#
+		   AND	EDUDATE    = #eduDate#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertOpr_Attend" parameterClass="opr_RollBook">
+		INSERT INTO OPR_ROLLBOOK (	
+			   			COURSECODE,	
+			   			SEQ       ,	
+			   			EDUDATE   ,	
+			   			ATTENDYN  ,	
+			   			ATTENDGUBN,	
+			   			ATNDSCORE ,	
+			   			REMARKS   	
+		) VALUES (
+						 
+			   			#courseCode#,	
+			   			#seq#       ,	
+			   			#eduDate#   ,	
+			   			#attendYN#  ,	
+			   			#attendGubn#,	
+			   			#atndScore# ,	
+			   			#remarks#   	
+		)
+	</insert>
+
+
+	<!-- 레코드 삭제 -->
+	<insert id="deleteOpr_Attend" parameterClass="opr_Attend">
+		DELETE 
+			FROM	OPR_ROLLBOOK
+		 WHERE	COURSECODE = #courseCode#
+		   AND	EDUDATE    = #eduDate#					
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateOpr_Attend" parameterClass="opr_Attend">
+		UPDATE	OPR_ROLLBOOK SET
+						ATTENDYN   = #attendYN#  ,
+						ATTENDGUBN = #attendGubn#,
+						ATNDSCORE  = #atndScore# ,
+						REMARKS    = #remarks#
+		 WHERE	COURSECODE = #courseCode#
+		   AND	SEQ    		 = #seq#
+		   AND	EDUDATE    = #eduDate#
+	</update>
+
+</sqlMap>
+
+

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="sysTestForm" type="loti.sys.test.model.SysMenu"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  	<forward name="main" path="/index.do"/>
+  </global-forwards>
+  <action-mappings>
+    <action path="/testMenu" name="sysTestForm" type="loti.sys.test.action.SysMenuAction" scope="request" unknown="false">
+      <forward name="list" path="/sys/test/sysMenuList.jsp"/>
+      <forward name="insert" path="/testMenu.act?task=list"/>
+      <forward name="modify" path="/sys/test/sysMenuAdd.jsp"/>
+      <forward name="del" path="/sys/test/sysMenuList.jsp"/>
+      <forward name="update" path="/sysMenu.act?task=list"/>
+      <forward name="create" path="/sys/test/sysMenuAdd.jsp"/>
+      <forward name="delete" path="/testMenu.act?task=list"/>
+    </action>
+    <action path="/ozMenu" type="loti.sys.menu.action.ozCardAction" scope="request" unknown="false">
+     	<forward name="oz" path="/include/ozreport.jsp"/>
+    </action>
+    <action path="/onHelp" type="loti.cmn.onHelp.action.onHelpAction" scope="request" unknown="false">
+     	<forward name="index" path="/help/index.jsp"/>
+     	<forward name="left" 	path="/help/frame.jsp"/>
+    </action>
+    <action path="/index" type="loti.cmn.biz.action.IndexAction" unknown="false">
+			<forward name="login" path="/index_f.jsp" />
+    </action>
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+</struts-config>

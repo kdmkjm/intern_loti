@@ -1,0 +1,543 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ComCode">
+
+	<cacheModel id="cacheOrgTypeList" type="MEMORY">
+		<flushInterval hours="24"/>
+	</cacheModel>
+	<cacheModel id="cacheCrsTypeSearch" type="MEMORY">
+		<flushInterval hours="24"/>
+	</cacheModel>
+	<cacheModel id="cacheApplyYear" type="MEMORY">
+		<flushInterval hours="24"/>
+	</cacheModel>
+
+	<typeAlias alias="comCode" type="loti.cmn.code.model.ComCode"/>
+
+	<!-- 과정분류 코드 조회  쿼리 -->
+	<select id="selectCrsTypeList" parameterClass="comCode" resultClass="comCode" >
+				<isEqual property="isAll" compareValue="true">
+					SELECT 		'' TYPE1   ,
+				   				'' TYPE2   ,
+				   				'' TYPE3   ,
+				   				'전체' TYPENAME
+				   	FROM 		DUAL
+				    UNION
+				 </isEqual>
+					SELECT 		TYPE1   ,
+				   				TYPE2   ,
+				   				TYPE3   ,
+				   				TYPENAME
+			  		FROM 		CMN_COURSETYPE
+			  		WHERE 1 = 1
+			<isNotEmpty prepend="AND" property="type1">
+					TYPE1 = #type1#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="type2">
+					TYPE2 = #type2#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="type3">
+					TYPE3 = #type3#
+			</isNotEmpty>
+				ORDER BY SORT, TYPE1 NULLS FIRST
+
+	</select>
+
+		<!-- Tree 구성용 과정분류 코드 조회  쿼리 -->
+	<select id="selectCrsTypeTree" parameterClass="comCode" resultClass="comCode" >
+				SELECT  LEVELS "LEVEL", TYPE1, TYPE2, TYPE3, TYPENAME
+				FROM (
+        			SELECT CASE WHEN TYPE1='00000' THEN '0'
+                    WHEN TYPE2='00000' THEN '1'
+                    WHEN TYPE3='00000' THEN '2'
+                    ELSE '3' END  LEVELS, TYPE1, TYPE2, TYPE3,
+           			TYPENAME
+        			FROM CMN_COURSETYPE
+        			ORDER BY SORT
+     				)
+
+	</select>
+
+	<!-- 기관 코드 조회쿼리 -->
+	<select id="selectOrgTypeList" parameterClass="comCode" resultClass="comCode" cacheModel="cacheOrgTypeList">
+				<isEqual property="isAll" compareValue="true">
+		            SELECT
+		                   	'' CHIEFORGAN,
+		                   	'' SIMPLENAME,
+		                   	'전체' ORGANNAME ,
+		                   	'' ORGANGU   ,
+		                   	'0' BIGO
+		            FROM    DUAL
+		            UNION
+		        </isEqual>
+		            SELECT
+		                   	CHIEFORGAN,
+		                   	SIMPLENAME,
+		                   	ORGANNAME ,
+		                 	ORGANGU   ,
+		                   	BIGO
+		            FROM 	CMN_MSTORGAN
+						<isNotEqual property="inUser" compareValue="Y">
+						   WHERE  CHIEFORGAN = #chiefOrgan#
+						</isNotEqual>
+            ORDER BY BIGO, ORGANGU NULLS FIRST, CHIEFORGAN
+	</select>
+
+	<!-- 기관 코드 상세조회쿼리 -->
+	<select id="infoOrgTypeCode" parameterClass="comCode" resultClass="comCode">
+      SELECT
+             	CHIEFORGAN,
+             	SIMPLENAME,
+             	ORGANNAME ,
+           		ORGANGU   ,
+             	BIGO
+      FROM 	CMN_MSTORGAN
+	   	WHERE  CHIEFORGAN = #chiefOrgan#
+      ORDER BY BIGO, ORGANGU NULLS FIRST, CHIEFORGAN
+	</select>
+
+	<!-- 기관 코드 조회쿼리 -->
+	<select id="selectOrganCode" parameterClass="comCode" resultClass="comCode">
+		<isEqual property="isAll" compareValue="true">
+			SELECT
+             '' CODE,
+             '전체' NAME
+        FROM DUAL
+       UNION
+    </isEqual>
+      SELECT
+             ORGANCODE CODE,
+             SIMPLENAME NAME
+        FROM CMN_ORGANMAP
+       WHERE CHIEFORGAN = #type#
+      ORDER BY ORGANORDER
+	</select>
+
+		<!--  조사서 등록 년도 조회 -->
+	<select id="selectSurvYearList" parameterClass="comCode" resultClass="comCode" >
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-12),'YYYY')  PLANYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(SYSDATE,'YYYY')  PLANYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY')  PLANYEAR
+				FROM DUAL
+				ORDER BY PLANYEAR DESC
+
+
+<!--    SELECT DISTINCT PLANYEAR
+				FROM PLN_SURVEY
+				WHERE PLANYEAR IS NOT NULL
+				UNION
+				SELECT TO_CHAR(SYSDATE,'YYYY')  PLANYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY')  PLANYEAR
+				FROM DUAL
+				ORDER BY PLANYEAR DESC
+-->
+	</select>
+
+	<!--  계획서  등록 년도 조회 -->
+	<select id="selectPlanYearList" parameterClass="comCode" resultClass="comCode">
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-24),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-12),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(SYSDATE,'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY')  APPLYYEAR
+				FROM DUAL
+				ORDER BY APPLYYEAR DESC
+
+<!--
+				SELECT DISTINCT APPLYYEAR
+				FROM PLN_EDUPLAN
+				WHERE APPLYYEAR IS NOT NULL
+				UNION
+				SELECT TO_CHAR(SYSDATE,'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY')  APPLYYEAR
+				FROM DUAL
+				ORDER BY APPLYYEAR DESC
+-->
+	</select>
+
+	<!--  과정   등록 년도 조회 -->
+	<select id="selectCrsOrgYearList" parameterClass="comCode" resultClass="comCode">
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-60),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-48),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-36),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-24),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-12),'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(SYSDATE,'YYYY')  APPLYYEAR
+				FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY')  APPLYYEAR
+				FROM DUAL
+				ORDER BY APPLYYEAR DESC
+	</select>
+
+	<!--  과정   등록 년도 조회 -->
+	<select id="selectCrsYearList" parameterClass="comCode" resultClass="comCode">
+		<isEqual property="isAll" compareValue="true">
+				SELECT
+				        '전체' YEAR
+			    FROM  DUAL
+		     UNION
+		</isEqual>
+				SELECT
+				DISTINCT YEAR
+				FROM OPR_LECTURE
+				ORDER BY YEAR DESC
+	</select>
+
+		<!-- 시스템  코드 조회  쿼리 -->
+	<select id="selectSysCodeList" parameterClass="comCode" resultClass="comCode" >
+			<isEqual property="isAll" compareValue="true">
+					SELECT
+		        			'' CODEDIV,
+					        '' CODE,
+					        '전체' NAME,
+					        '' PROPERTY,
+					        '' DEFAULTVALUE,
+					        0 DISPORDER,
+					        '' INSDATE,
+					        '' MODDATE,
+					        '' DELDATE,
+					        '' REMARKS
+					FROM DUAL
+				    UNION
+		    </isEqual>
+		    <isEqual property="isNull" compareValue="true">
+					SELECT
+		        			'' CODEDIV,
+					        '' CODE,
+					        '' NAME,
+					        '' PROPERTY,
+					        '' DEFAULTVALUE,
+					        0 DISPORDER,
+					        '' INSDATE,
+					        '' MODDATE,
+					        '' DELDATE,
+					        '' REMARKS
+					FROM DUAL
+				    UNION
+		    </isEqual>
+					SELECT
+		        			CODEDIV,
+					        CODE,
+					        NAME,
+					        PROPERTY,
+					        DEFAULTVALUE,
+					        DISPORDER,
+					        INSDATE,
+					        MODDATE,
+					        DELDATE,
+					        REMARKS
+					FROM 	SYS_SYSTEMCODE
+					WHERE 	CODEDIV = #codeDiv#
+					AND 	CODE !='00000'
+					AND   DELDATE IS NULL
+					ORDER BY DISPORDER NULLS FIRST
+	</select>
+
+	<!-- 시스템  코드 조회  쿼리 -->
+	<select id="selectJobCodeList" parameterClass="comCode" resultClass="comCode" >
+			<isEqual property="isAll" compareValue="true">
+					SELECT
+					        '' CODE,
+					        '전체' NAME,
+					        0 ORD
+					FROM DUAL
+				    UNION
+		    </isEqual>
+		    <isEqual property="isNull" compareValue="true">
+					SELECT
+		        			'' CODE,
+					        '' NAME,
+					        0 ORD
+					FROM DUAL
+				    UNION
+		    </isEqual>
+			    SELECT '행정' CODE, '행정' NAME, 1 ORD FROM DUAL
+			     UNION
+			    SELECT '세무' CODE, '세무' NAME, 2 ORD FROM DUAL
+			     UNION
+			    SELECT '사회복지' CODE, '사회복지' NAME, 3 ORD FROM DUAL
+			     UNION
+			    SELECT '전산' CODE, '전산' NAME, 4 ORD FROM DUAL
+			     UNION
+			    SELECT '사서' CODE, '사서' NAME, 5 ORD FROM DUAL
+			     UNION
+			    SELECT '공업' CODE, '공업' NAME, 6 ORD FROM DUAL
+			     UNION
+			    SELECT '농업' CODE, '농업' NAME, 7 ORD FROM DUAL
+			     UNION
+			    SELECT '녹지' CODE, '녹지' NAME, 8 ORD FROM DUAL
+			     UNION
+			    SELECT '보건' CODE, '보건' NAME, 9 ORD FROM DUAL
+			     UNION
+			    SELECT '식품위생' CODE, '식품위생' NAME, 10 ORD FROM DUAL
+			     UNION
+			    SELECT '의료기술' CODE, '의료기술' NAME, 11 ORD FROM DUAL
+			     UNION
+			    SELECT '간호' CODE, '간호' NAME, 12 ORD FROM DUAL
+			     UNION
+			    SELECT '환경' CODE, '환경' NAME, 13 ORD FROM DUAL
+			     UNION
+			    SELECT '시설' CODE, '시설' NAME, 14 ORD FROM DUAL
+			     UNION
+			    SELECT '통신' CODE, '통신' NAME, 15 ORD FROM DUAL
+			     UNION
+			    SELECT '기능' CODE, '기능' NAME, 16 ORD FROM DUAL
+			     UNION
+			    SELECT '기타' CODE, '기타' NAME, 17 ORD FROM DUAL
+				ORDER BY ORD
+
+<!--  	SELECT  DISTINCT DISPLAYNAME CODE,
+		        		DISPLAYNAME NAME
+					FROM 	CMN_JOBCODE
+-->
+	</select>
+
+	<!-- 과정 전체 선택용  과정분류 코드 조회  쿼리(등록용) -->
+	<select id="selectCrsTypeAll" parameterClass="comCode" resultClass="comCode" >
+			<isEqual property="isAll" compareValue="true">
+			SELECT '전체' CD_TYPENAME, '' TYPE1, ''TYPE2, ''TYPE3, ''TYPE, '00' SORT
+			FROM DUAL
+			UNION
+		    </isEqual>
+			SELECT CASE WHEN TYPE2='00000' AND TYPE3='00000' THEN TYPENAME
+			            WHEN TYPE2!='00000' AND TYPE3='00000' THEN (SELECT TYPENAME
+			                                                        FROM CMN_COURSETYPE A
+			                                                        WHERE A.TYPE1=B.TYPE1
+			                                                        AND TYPE2='00000'
+			                                                        AND TYPE3='00000')||'-'||TYPENAME
+			            WHEN TYPE2!='00000' AND TYPE3!='00000' THEN (SELECT TYPENAME
+			                                                        FROM CMN_COURSETYPE A
+			                                                        WHERE A.TYPE1=B.TYPE1
+			                                                        AND TYPE2='00000'
+			                                                        AND TYPE3='00000')||'-'||
+			                                                        (SELECT TYPENAME
+			                                                        FROM CMN_COURSETYPE A
+			                                                        WHERE A.TYPE1=B.TYPE1
+			                                                        AND A.TYPE2=B.TYPE2
+			                                                        AND TYPE3='00000')||'-'||
+			                                                        TYPENAME END CD_TYPENAME ,
+			       TYPE1, TYPE2, TYPE3, TYPE1||TYPE2||TYPE3 TYPE, SORT
+			FROM (
+			    SELECT  *
+			    FROM CMN_COURSETYPE
+			    WHERE TYPE2 = '00000'
+			    AND TYPE3 = '00000'
+			    AND TYPE1 NOT IN (
+			                    SELECT TYPE1
+			                    FROM CMN_COURSETYPE
+			                    WHERE TYPE2 != '00000'
+			                    )
+			    UNION
+			    SELECT  *
+			    FROM CMN_COURSETYPE
+			    WHERE TYPE3 = '00000'
+			    AND TYPE2 != '00000'
+			    AND TYPE1||TYPE2 NOT IN (SELECT TYPE1||TYPE2
+			                    FROM CMN_COURSETYPE
+			                    WHERE TYPE3 != '00000'
+			                    )
+			 	UNION
+          		SELECT *
+            	FROM CMN_COURSETYPE
+           		WHERE TYPE3 = '00000'
+             	AND TYPE2 != '00000'
+             	AND TYPE2 NOT IN (	SELECT TYPE2
+                                 	FROM CMN_COURSETYPE
+                                	WHERE TYPE3 != '00000')
+			    UNION
+			    SELECT  *
+			    FROM CMN_COURSETYPE
+			    WHERE TYPE3 != '00000'
+			    ) B
+			<isEqual property="isTrue" compareValue="true">
+				<isNotEmpty prepend="WHERE" property="type1">
+						TYPE1 != #type1#
+				</isNotEmpty>
+			</isEqual>
+			<isEqual property="isTrue" compareValue="false">
+				<isNotEmpty prepend="WHERE" property="type1">
+						TYPE1 = #type1#
+				</isNotEmpty>
+			</isEqual>
+
+			    ORDER BY  SORT, TYPE1 NULLS FIRST, TYPE2, TYPE3
+	</select>
+
+		<!-- 과정 전체 조회용  과정분류 코드 조회  쿼리(조회용) -->
+	<select id="selectCrsTypeSearch" parameterClass="comCode" resultClass="comCode" cacheModel="cacheCrsTypeSearch">
+			<isEqual property="isSelect" compareValue="true">
+			SELECT '분류를 선택하세요' CD_TYPENAME, '' TYPE1, ''TYPE2, ''TYPE3, ''TYPE, '00' SORT
+            FROM DUAL
+            UNION
+			</isEqual>
+			<isEqual property="isAll" compareValue="true">
+			SELECT '전체' CD_TYPENAME, '' TYPE1, ''TYPE2, ''TYPE3, ''TYPE, '00' SORT
+            FROM DUAL
+            UNION
+			</isEqual>
+            SELECT CASE WHEN TYPE2='00000' AND TYPE3='00000' THEN TYPENAME
+                        WHEN TYPE2!='00000' AND TYPE3='00000' THEN (SELECT TYPENAME
+                                                                    FROM CMN_COURSETYPE A
+                                                                    WHERE A.TYPE1=B.TYPE1
+                                                                    AND TYPE2='00000'
+                                                                    AND TYPE3='00000')||'-'||TYPENAME
+                        WHEN TYPE2!='00000' AND TYPE3!='00000' THEN (SELECT TYPENAME
+                                                                    FROM CMN_COURSETYPE A
+                                                                    WHERE A.TYPE1=B.TYPE1
+                                                                    AND TYPE2='00000'
+                                                                    AND TYPE3='00000')||'-'||
+                                                                    (SELECT TYPENAME
+                                                                    FROM CMN_COURSETYPE A
+                                                                    WHERE A.TYPE1=B.TYPE1
+                                                                    AND A.TYPE2=B.TYPE2
+                                                                    AND TYPE3='00000')||'-'||
+                                                                    TYPENAME END CD_TYPENAME ,
+                   TYPE1, TYPE2, TYPE3, TYPE1||TYPE2||TYPE3 TYPE, SORT
+            FROM CMN_COURSETYPE B
+            ORDER BY  SORT, TYPE1 NULLS FIRST, TYPE2, TYPE3
+	</select>
+
+	<!-- 담당자 조회  쿼리 -->
+	<select id="selectCrsUser" parameterClass="comCode" resultClass="comCode" >
+				<isEqual property="isAll" compareValue="true">
+	        SELECT
+	               	'' JUMINNO,
+	               	'전체' USERNAME
+	        FROM    DUAL
+	        UNION
+				</isEqual>
+				SELECT
+										JUMINNO, USERNAME
+				FROM CMN_PUBWORKER
+				WHERE ISEDUCHARGER = 'Y'
+				ORDER BY JUMINNO NULLS FIRST
+	</select>
+
+		<!-- 적용년도  -->
+	<select id="selectApplyYear" parameterClass="comCode" resultClass="comCode" cacheModel="cacheApplyYear">
+				SELECT TO_CHAR(SYSDATE,'YYYY') APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,12),'YYYY') APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,24),'YYYY') APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,36),'YYYY') APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,48),'YYYY') APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,60),'YYYY')  APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-12),'YYYY')  APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-24),'YYYY')  APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-36),'YYYY')  APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-48),'YYYY')  APPLYYEAR FROM DUAL
+				UNION
+				SELECT TO_CHAR(ADD_MONTHS(SYSDATE,-60),'YYYY')  APPLYYEAR FROM DUAL
+				ORDER BY APPLYYEAR
+	</select>
+
+		<!-- 과정별 과목 조회  쿼리 -->
+	<select id="selectCrsSubject" parameterClass="comCode" resultClass="comCode" >
+				SELECT
+				JUMINNO, USERNAME
+				FROM CMN_PUBWORKER
+				WHERE ISEDUCHARGER = 'Y'
+	</select>
+
+	<!-- 과정조회  쿼리 -->
+	<select id="selectCrsCourseAll" parameterClass="comCode" resultClass="comCode" >
+				SELECT COURSECODE AS CODE, COURSENAME AS NAME
+				  FROM OPR_LECTURE
+				 WHERE CHARGER = #type#
+	</select>
+
+	<!-- 강사수당 기준표 코드조회  쿼리 -->
+	<select id="selectPrfPayAll" parameterClass="comCode" resultClass="comCode" >
+				<isEqual property="isAll" compareValue="true">
+	        SELECT
+	               	'' CODE,
+	               	'전체' NAME,
+	               	'00' DISPORDER
+	        FROM    DUAL
+	        UNION
+				</isEqual>
+				SELECT PROFLEVEL AS CODE, LEVELNAME AS NAME, DISPORDER
+				  FROM PRF_PAYTABLE
+			ORDER BY DISPORDER, CODE NULLS FIRST
+	</select>
+
+		<!-- 목록조회쿼리 -->
+	<select id="selectPrfCourseSearch" parameterClass="comCode" resultClass="comCode">
+			<isEqual property="isSelect" compareValue="true">
+		SELECT
+						'분류를 선택하세요' CD_TYPENAME,
+						'' TYPE,
+            '' EDUFROM,
+            '' EDUTO
+      FROM	DUAL
+     UNION
+			</isEqual>
+			<isEqual property="isAll" compareValue="true">
+		SELECT
+            '전체' CD_TYPENAME,
+            '' TYPE,
+            '' EDUFROM,
+            '' EDUTO
+      FROM  DUAL
+     UNION
+			</isEqual>
+    SELECT  COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' CD_TYPENAME,
+            A.COURSECODE TYPE,
+            EDUFROM,
+            EDUTO
+      FROM  OPR_LECTURE A,
+           (SELECT
+                    COURSECODE
+              FROM  OPR_LECTPROF
+             WHERE  PROFNO = #type#) B
+     WHERE  A.COURSECODE = B.COURSECODE
+  ORDER BY  EDUFROM DESC NULLS FIRST, EDUTO DESC NULLS FIRST
+	</select>
+
+	<!-- 과정명 조회 -->
+	<select id="selectCourseName" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT
+            COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' AS COURSENAME
+      FROM  OPR_LECTURE
+     WHERE  COURSECODE LIKE #courseCode#
+	</select>
+
+</sqlMap>
+
+

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="EUC-KR" ?>
+
+<!DOCTYPE daoConfig
+    PUBLIC "-//ibatis.apache.org//DTD DAO Configuration 2.0//EN"
+    "http://ibatis.apache.org/dtd/dao-2.dtd">
+
+<daoConfig>
+
+  <context>
+
+    <transactionManager type="SQLMAP">
+      <property name="SqlMapConfigResource"
+        value="loti/cmn/sqlmap-config2.xml"/>
+    </transactionManager>
+
+<!-- ##########		Common 		########## -->
+		<!--  샘플 페이지  -->
+    <dao interface="ext.ehojo.scheduler.EhojoDAO"
+    implementation="ext.ehojo.scheduler.EhojoDAOImpl"/>
+	
+   </context>
+
+</daoConfig>

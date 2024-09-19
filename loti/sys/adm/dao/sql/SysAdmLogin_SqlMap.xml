@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysAdmLogin">
+
+	<typeAlias alias="sysAdmLogin" type="loti.sys.adm.model.SysAdmLogin"/>
+
+	<!-- 로그인 사용자 정보 -->
+	<select id="selectLoginInfo" parameterClass="sysAdmLogin" resultClass="sysAdmLogin">    
+		SELECT  
+            A.JUMINNO, A.USERNAME, A.EMAIL, B.SIMPLENAME, B.ORGANNAME,
+            B.CHIEFORGAN, A.ISEDUCHARGER, A.ISADMIN, A.ISGUCHARGER, A.ISPLANCHARGER, A.ISINUSER,
+            A.CELLPHONE, A.TELPHONE, TO_CHAR (SYSDATE, 'YYYY-MM-DD HH24:MI:SS') LOGINDATE, A.INITMENU,
+           NVL((SELECT 
+                        SUBSTR(XMLAGG(XMLELEMENT("NM",','||GROUPNO)ORDER BY GROUPNO).EXTRACT('//text()'),2) 
+                  FROM  SYS_GROUPMEMBER 
+                 WHERE  JUMINNO = #adminId#), 10)||',10' GROUPNO
+      FROM  CMN_PUBWORKER A, CMN_ORGANMAP B
+     WHERE  A.ORGANCODE = B.ORGANCODE 
+       AND  A.JUMINNO = #adminId#
+       AND  A.PASSWD 	= #password#	
+	</select>
+	
+		<!-- 로그인 사용자 조직 정보 -->
+	<select id="selectChiefOrgan" parameterClass="java.lang.String" resultClass="java.lang.String">
+		SELECT ORGANNAME 
+		FROM CMN_MSTORGAN
+		WHERE CHIEFORGAN = #chiefOrgan#
+	</select>
+
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="juminno">
+				JUMINNO = #juminno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="passwd">
+				PASSWD = #passwd#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="username">
+				USERNAME = #username#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cellphone">
+				CELLPHONE = #cellphone#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="nodeno">
+				NODENO = #nodeno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="grade">
+				GRADE = #grade#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="rank">
+				RANK = #rank#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="jobkind">
+				JOBKIND = #jobkind#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="isadmin">
+				ISADMIN = #isadmin#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="email">
+				EMAIL = #email#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insway">
+				INSWAY = #insway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upddate">
+				UPDDATE = #upddate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="updway">
+				UPDWAY = #updway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upduser">
+				UPDUSER = #upduser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="deldate">
+				DELDATE = #deldate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="delway">
+				DELWAY = #delway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="deluser">
+				DELUSER = #deluser#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

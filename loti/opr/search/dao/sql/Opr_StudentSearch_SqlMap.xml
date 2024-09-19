@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_StudentSearch">
+
+	<typeAlias alias="opr_StudentSearch" type="loti.opr.search.model.Opr_StudentSearch"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentSearchList" parameterClass="opr_StudentSearch" resultClass="opr_StudentSearch">
+		SELECT  A.COURSECODE, A.JUMINNO, A.SEQ,
+            DECODE(A.ISFINISH, 'Y', '이수', 'N', '미이수', '수강중')  ISFINISH, 
+            B.COURSENAME || '(' || TO_NUMBER(SUBSTR(B.COURSECODE,11,2)) || '기)' COURSENAME, 
+            DECODE(TO_CHAR(TO_DATE(B.EDUFROM,'YYYYMMDD'), 'YYYY.MM.DD')||'~'||TO_CHAR(TO_DATE(B.EDUTO,'YYYYMMDD'), 'MM.DD'), '~', '-',
+             TO_CHAR(TO_DATE(B.EDUFROM,'YYYYMMDD'), 'YYYY.MM.DD')||'~'||TO_CHAR(TO_DATE(B.EDUTO,'YYYYMMDD'), 'MM.DD')) EDUDATE 
+      FROM  OPR_CRSSTUDENT A, OPR_LECTURE B
+     WHERE  A.COURSECODE = B.COURSECODE
+		<isNotEmpty prepend="AND" property="searchCode">
+			A.JUMINNO like '%' || #searchCode# || '%'
+		</isNotEmpty>
+  ORDER BY B.YEAR DESC, B.BASEYYMM DESC, B.COURSECODE DESC
+	</select>
+	
+	<!-- 개인정보 조회쿼리 -->
+	<select id="selectOpr_StudentSearch" parameterClass="opr_StudentSearch" resultClass="opr_StudentSearch">
+		SELECT  
+            A.USERNAME, A.CELLPHONE, A.EMAIL,
+            A.ORGANCODE, 
+            ( SELECT DECODE(LEVEL,1,SIMPLENAME,SIMPLENAME||' '||(SELECT SIMPLENAME FROM CMN_ORGANMAP C WHERE C.ORGANCODE = A.ORGANCODE)) 
+                FROM CMN_ORGANMAP D
+               WHERE LEVEL = DECODE((SELECT MAX(LEVEL) FROM CMN_ORGANMAP E START WITH E.ORGANCODE = A.ORGANCODE CONNECT BY prior E.parentorgan =  E.organcode),4,3,3,2,1) 
+               START WITH D.ORGANCODE = A.ORGANCODE
+             CONNECT BY PRIOR D.PARENTORGAN =  D.organcode) POSITION, 
+            B.RANKNAME GRADE,
+            A.JUMINNO JUMINNO, A.BIRTHSEX JUMINNO2
+      FROM  CMN_PUBWORKER A, 
+           (SELECT
+                    RANKCODE, RANKNAME
+              FROM  CMN_RANKCODE) B
+     WHERE  A.RANK = B.RANKCODE(+)
+		<isNotEmpty prepend="AND" property="searchCode">
+			A.JUMINNO like '%' || #searchCode# || '%'
+		</isNotEmpty>
+	</select>
+</sqlMap>
+
+

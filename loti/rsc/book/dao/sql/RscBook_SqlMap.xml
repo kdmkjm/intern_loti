@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscBook">
+
+	<typeAlias alias="rscBook" 				type="loti.rsc.book.model.RscBook"/>
+	<typeAlias alias="rscBookCourse" 	type="loti.rsc.book.model.RscBookCourse"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectRscBook" parameterClass="rscBook" resultClass="rscBook">
+				SELECT     
+                   A.TXBOOKSEQ ,
+                   A.TXBOOKNAME,
+                   A.WRITER    ,
+                   A.PUBLISHER ,
+                   A.PUBYEAR   ,
+                   A.BOOKPRICE ,
+                   TO_CHAR(TO_DATE(B.INSDATE,'YYYYMMDD'), 'YYYY-MM-DD') INSDATE ,
+                   B.STOCKIN   ,
+                   B.STOCKOUT  ,
+                   B.STOCKTOTAL 
+          FROM     RSC_TXBOOKS A, (SELECT  TXBOOKSEQ, 
+          																 MIN(INSDATE) INSDATE,
+                                           SUM(STOCKIN) STOCKIN, 
+                                           SUM(NVL(STOCKOUT,0)) STOCKOUT, 
+                                           SUM(STOCKIN) - SUM(NVL(STOCKOUT,0)) STOCKTOTAL
+                                   FROM        RSC_TXBOOKIO
+                                   GROUP BY TXBOOKSEQ) B
+         WHERE    A.TXBOOKSEQ = B.TXBOOKSEQ
+				 AND			A.TXBOOKSEQ = #txBookSeq#
+	</select>
+	<!-- 입출고 수정시 기본조회쿼리 -->
+	<select id="selectRscBookStock" parameterClass="rscBook" resultClass="rscBook">
+				SELECT     
+                   A.TXBOOKSEQ ,
+                   A.TXBOOKNAME,
+                   A.WRITER    ,
+                   A.PUBLISHER ,
+                   A.PUBYEAR   ,
+                   A.BOOKPRICE ,
+                   B.SEQNO		 ,
+                   TO_CHAR(TO_DATE(B.IODATE,'YYYYMMDD'), 'YYYY-MM-DD') IODATE ,
+                   TO_CHAR(TO_DATE(B.INSDATE,'YYYYMMDD'), 'YYYY-MM-DD') INSDATE ,
+                   B.STOCKIN   ,
+                   B.STOCKOUT  ,
+                   B.STOCKTOTAL ,
+         					 B.REMARKS
+          FROM     RSC_TXBOOKS A, (SELECT 
+                                            TXBOOKSEQ,
+                                            INSDATE,
+                                            SEQNO,
+                                            IODATE,
+                                            NVL(STOCKIN, 0) STOCKIN,
+                                            NVL(STOCKOUT, 0) STOCKOUT,
+                                            NVL(STOCKIN, 0) - NVL(STOCKOUT, 0) STOCKTOTAL,
+                                            REMARKS
+                                    FROM    RSC_TXBOOKIO
+                                    WHERE   TXBOOKSEQ = #txBookSeq#
+                                    AND     SEQNO = #seqNo#) B
+         WHERE    A.TXBOOKSEQ = B.TXBOOKSEQ
+	</select>
+	
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectRscBookList" parameterClass="rscBook" resultClass="rscBook">
+		SELECT
+            A.TXBOOKSEQ, A.TXBOOKNAME, A.WRITER, A.PUBLISHER, A.PUBYEAR, A.BOOKPRICE,
+            TO_CHAR(TO_DATE(B.INSDATE,'YYYYMMDD'), 'YYYY-MM-DD') INSDATE ,
+            B.STOCKIN, B.STOCKOUT, B.STOCKTOTAL, C.CONNCRS
+      FROM  RSC_TXBOOKS A, 
+           (SELECT  
+                    TXBOOKSEQ,  MIN(INSDATE) INSDATE,
+                    SUM(STOCKIN) STOCKIN, SUM(NVL(STOCKOUT,0)) STOCKOUT, 
+                    SUM(STOCKIN) - SUM(NVL(STOCKOUT,0)) STOCKTOTAL
+              FROM  RSC_TXBOOKIO
+          GROUP BY  TXBOOKSEQ) B,
+           (SELECT   
+                    DECODE(COUNT(*), 1, 
+                           MIN(D.COURSENAME || '(' || TO_NUMBER(SUBSTR(D.COURSECODE, 11, 2)) || '기)'), 
+                           MIN(D.COURSENAME || '(' || TO_NUMBER(SUBSTR(D.COURSECODE, 11, 2)) || '기)') || ' 외 ' || TO_CHAR(COUNT(*)-1)  || '개 과정') CONNCRS,
+                    E.TXBOOKSEQ
+              FROM  OPR_LECTURE D, RSC_TXBOOKCOURSE E
+             WHERE  E.COURSECODE = D.COURSECODE
+          GROUP BY  E.TXBOOKSEQ) C
+     WHERE  A.TXBOOKSEQ = B.TXBOOKSEQ
+       AND  A.TXBOOKSEQ = C.TXBOOKSEQ(+)     
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+  ORDER BY	A.TXBOOKSEQ				
+	</select>
+	
+	<!--  연결된 과정연결 목록을 조회 쿼리 -->
+	<select id="selectRscBookGetCrsList" parameterClass="rscBook" resultClass="rscBookCourse">
+		SELECT        
+            ROWNUM, A.COURSECODE, A.YEAR COURSEYEAR, 
+            A.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME, 
+            A.CHARGER, B.TXBOOKSEQ
+      FROM  OPR_LECTURE A, RSC_TXBOOKCOURSE B
+     WHERE  B.COURSECODE = A.COURSECODE
+       AND  TXBOOKSEQ = #txBookSeq#			
+	</select>
+	
+	
+	<!-- 교재 입출고 이력 조회쿼리 -->
+	<select id="selectRscBookHistoryList" parameterClass="rscBook" resultClass="rscBook">
+				SELECT   DECODE (R_TBIO.STOCKIN, NULL, '출고', '입고') IOTYPE,
+				         R_TBIO.TXBOOKSEQ,
+				         R_TBIO.SEQNO,
+				         R_TBS.TXBOOKNAME,
+				         TO_CHAR (TO_DATE (R_TBIO.IODATE,'YYYYMMDD'), 'YYYY-MM-DD') IODATE,
+				         R_TBIO.STOCKIN,
+				         R_TBIO.STOCKOUT,
+				         R_TBIO.INSUSER,
+				         R_TBIO.INSDATE,
+				         R_TBIO.UPDUSER,
+				         R_TBIO.UPDDATE,
+                 R_TBIO.REMARKS
+				  FROM   RSC_TXBOOKIO R_TBIO, RSC_TXBOOKS R_TBS 
+				 WHERE   R_TBIO.TXBOOKSEQ = R_TBS.TXBOOKSEQ
+				   AND   R_TBIO.TXBOOKSEQ = #txBookSeq#
+			ORDER BY	 IODATE
+	</select>
+
+	<!-- 엑셀 다운용 교재 입출고이력 조회쿼리 -->
+	<select id="selectRscBookListExcel" parameterClass="rscBook" resultClass="rscBook">
+	    	SELECT  IOTYPE     COL_A   ,
+	              IODATE     COL_B   ,
+	              STOCKIN    COL_C   ,
+	              STOCKOUT   COL_D   ,
+	              REMARKS    COL_E   
+	      FROM    (
+	              SELECT  0 NUM,
+	                      '교재명 :' IOTYPE,
+	                      TXBOOKNAME IODATE,
+	                      '' STOCKIN    ,
+	                      '' STOCKOUT    ,
+	                      '' REMARKS                        
+	                FROM  RSC_TXBOOKS
+	               WHERE  TXBOOKSEQ = #txBookSeq#
+	                        
+	              UNION ALL
+	              SELECT  1 NUM,
+	                      '구분' IOTYPE    ,
+	                      '일자' IODATE,
+	                      '입고' STOCKIN    ,
+	                      '출고' STOCKOUT    ,
+	                      '비고' REMARKS    
+	                FROM   DUAL
+	              UNION ALL
+	              SELECT  ROWNUM+1 NUM , A.*
+	              FROM    (
+	                          SELECT   
+	                                   DECODE (R_TBIO.STOCKIN, NULL, '출고', '입고') IOTYPE       ,
+	                                   TO_CHAR (TO_DATE (R_TBIO.IODATE,'YYYYMMDD'), 'YYYY-MM-DD') IODATE     ,
+	                                   TO_CHAR (NVL (R_TBIO.STOCKIN,0)) STOCKIN  ,
+	                                   TO_CHAR (NVL(R_TBIO.STOCKOUT,0)) STOCKOUT,
+	                                   R_TBIO.REMARKS
+	                            FROM   RSC_TXBOOKIO R_TBIO, RSC_TXBOOKS R_TBS 
+	                           WHERE   R_TBIO.TXBOOKSEQ = R_TBS.TXBOOKSEQ
+	                             AND   R_TBIO.TXBOOKSEQ = #txBookSeq#
+	                      ORDER BY     R_TBIO.IODATE
+	                      ) A
+	              ORDER BY NUM
+	      )
+	</select>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectRscBookListCount" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_TXBOOKS
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectRscBookCount" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_TXBOOKS
+		WHERE TXBOOKSEQ = #txBookSeq#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectRscBookStockCount" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM RSC_TXBOOKIO
+		WHERE TXBOOKSEQ = #txBookSeq#
+		AND		SEQNO = #seqNo#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- txbookseq 최대값  가져오기  -->
+	<select id="selectRscBookMax" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(TXBOOKSEQ),0) +1
+		FROM	RSC_TXBOOKS
+	</select>
+
+	<!-- 해당하는 교제 seqno 최대값  가져오기  -->
+	<select id="selectRscBookIOMax" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT  NVL(MAX(SEQNO),0) +1
+		FROM	RSC_TXBOOKIO
+		WHERE	TXBOOKSEQ = #txBookSeq#
+	</select>
+	
+
+	<!-- 과정이 연결되어 있는지 조회한다. -->
+	<select id="selectRscBookCourse" parameterClass="rscBook" resultClass="java.lang.Integer">
+		SELECT	NVL(COUNT(*),0) COUNT
+			FROM	RSC_TXBOOKCOURSE
+		 WHERE	TXBOOKSEQ = #txBookSeq#
+	</select>
+	
+		
+	<!-- 레코드 입력 [교재 Master] -->
+	<insert id="insertRscBook" parameterClass="rscBook">
+		INSERT INTO RSC_TXBOOKS (	
+			   			TXBOOKSEQ ,
+				   		TXBOOKNAME,
+				   		WRITER    ,
+				   		PUBLISHER ,
+				   		PUBYEAR   ,
+				   		BOOKPRICE
+		) VALUES (
+			   			#txBookSeq# ,	
+			   			#txBookName#,
+			   			#writer#,
+			   			#publisher#,
+			   			#pubYear#  ,
+			   			#bookPrice#
+		)
+	</insert>
+	
+	
+	<!-- 레코드 입력 [교재 사용 교육과정] -->
+	<insert id="insertRscBookCourse" parameterClass="rscBookCourse">
+		INSERT INTO RSC_TXBOOKCOURSE (	
+			   			TXBOOKSEQ ,
+				   		COURSECODE,
+				   		INSUSER 	,
+				   		INSDATE 
+		) VALUES (
+			   			#txBookSeq# ,	
+			   			#courseCode#,
+			   			#insUser#		,
+			   			TO_CHAR(sysdate, 'YYYYMMddhh24miss')
+		)
+	</insert>
+
+
+	<!-- 레코드 입력 [교재 입출력] -->
+	<insert id="insertRscBookIO" parameterClass="rscBook">
+		INSERT INTO RSC_TXBOOKIO (	
+			   			TXBOOKSEQ ,	
+			   			SEQNO	  ,
+				   		IODATE    ,
+				   		STOCKIN	  ,
+				   		STOCKOUT  ,
+				   		INSUSER   ,
+				   		INSDATE   ,
+				   		UPDUSER   ,
+				   		UPDDATE   ,
+				   		REMARKS
+		) VALUES (
+						 
+			   			#txBookSeq# ,	
+			   			#seqNo#     ,
+			   			#ioDate#	  ,
+			   			#stockIn#   ,
+			   			#stockOut#  ,
+			   			#insUser#   ,
+			   			TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD'),
+			   			#updUser#   ,
+			   			TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD'),
+			   			#remarks#
+		)
+	</insert>
+
+
+	<!-- 레코드 수정 [교재 Master] -->
+	<update id="updateRscBook" parameterClass="rscBook">
+		UPDATE RSC_TXBOOKS SET
+			   TXBOOKNAME = #txBookName#,
+			   WRITER     = #writer#    ,
+			   PUBLISHER  = #publisher# ,
+			   PUBYEAR    = #pubYear#   ,
+			   BOOKPRICE  = #bookPrice#
+		WHERE  TXBOOKSEQ = #txBookSeq#
+	</update>
+	
+	
+	<!-- 레코드 수정 [교재 입출력] -->
+	<update id="updateRscBookIO" parameterClass="rscBook">		
+		UPDATE RSC_TXBOOKIO SET
+			   IODATE   = #ioDate#	  ,
+			   STOCKIN	  = #stockIn#   ,
+			   STOCKOUT   = #stockOut#  ,
+			   UPDUSER    = #updUser#   ,
+			   UPDDATE    = TO_CHAR(TO_DATE(SYSDATE), 'YYYYMMDD'),
+			   REMARKS		= #remarks#
+		WHERE  TXBOOKSEQ = #txBookSeq#
+		AND		SEQNO = #seqNo#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscBook" parameterClass="rscBook">
+		DELETE FROM RSC_TXBOOKS
+		WHERE TXBOOKSEQ = #txBookSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscBookIO" parameterClass="rscBook">
+		DELETE FROM RSC_TXBOOKIO
+		WHERE TXBOOKSEQ = #txBookSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteRscBookCourse" parameterClass="rscBook">
+		DELETE FROM RSC_TXBOOKCOURSE
+		WHERE TXBOOKSEQ = #txBookSeq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="txbookseq">
+				TXBOOKSEQ = #txbookseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="txbookname">
+				TXBOOKNAME = #txbookname#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="writer">
+				WRITER = #writer#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="publisher">
+				PUBLISHER = #publisher#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="pubyear">
+				PUBYEAR = #pubyear#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="bookprice">
+				BOOKPRICE = #bookprice#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

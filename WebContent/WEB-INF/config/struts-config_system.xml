@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="sysMenuForm" type="loti.sys.menu.model.SysMenu"/>
+    <form-bean name="sysUserForm" type="loti.sys.user.model.SysUser"/>
+    <form-bean name="sysGroupForm" type="loti.sys.user.model.SysGroup"/>
+    <form-bean name="sysCodeForm" type="loti.sys.code.model.SysCode"/>
+    <form-bean name="sysOrgForm" type="loti.sys.org.model.SysOrg"/>
+    <form-bean name="sysAgentForm" type="loti.sys.agent.model.SysAgent"/>
+    <form-bean name="sysAdmLoginForm" type="loti.sys.adm.model.SysAdmLogin"/>
+    <form-bean name="sysAdmSqlQueryForm" type="loti.sys.adm.model.SysAdmSqlQuery"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+	<!-- 시스템 메뉴관리 -->
+	<action path="/sysMenu" name="sysMenuForm" type="loti.sys.menu.action.SysMenuAction" scope="request" unknown="false" roles="6,7">
+	   <forward name="list" path="/sys/menu/sysMenuList.jsp"/>
+	   <forward name="insert" path="/sysMenu.act?task=list"/>
+	   <forward name="modify" path="/sys/menu/sysMenuAdd.jsp"/>
+	   <forward name="update" path="/sysMenu.act?task=list"/>
+	   <forward name="create" path="/sys/menu/sysMenuAdd.jsp"/>
+	   <forward name="delete" path="/sysMenu.act?task=list"/>
+	   <forward name="group_menu" path="/sys/menu/sysGroupMenu.jsp"/>
+	   <forward name="group_menu_list" path="/sys/menu/sysGroupMenu.jsp"/>
+	   <forward name="ins_group_menu" path="/sys/menu/sysGroupMenu.jsp"/>
+	   <forward name="user_menu" path="/sys/menu/sysUserMenu.jsp"/>
+	   <forward name="sel_user" path="/sys/menu/sysUserMenu_pop.jsp"/>
+	   <forward name="user_menu_list" path="/sys/menu/sysUserMenu.jsp"/>
+	   <forward name="ins_user_menu" path="/sys/menu/sysUserMenu.jsp"/>
+	</action>
+
+	<!-- 시스템 사용자 관리 -->
+	<action path="/sysUser" name="sysUserForm" type="loti.sys.user.action.SysUserAction" scope="request" unknown="false" roles="17">
+		<forward name="move" path="/sys/user/sysUserList.jsp"/>
+		<forward name="list" path="/sys/user/sysUserList.jsp"/>
+		<forward name="insert" path="/sysUser.act?task=list"/>
+		<forward name="modify" path="/sys/user/sysUserAdd.jsp"/>
+		<forward name="update" path="/sysUser.act?task=list"/>
+		<forward name="create" path="/sys/user/sysUserAdd.jsp"/>
+		<forward name="delete" path="/sysUser.act?task=list"/>
+		<forward name="user_copy" path="/sys/user/sysUserCopy_pop.jsp"/>
+		<forward name="copy_list" path="/sys/user/sysUserCopy_pop.jsp"/>
+		<forward name="copy_auth" path="/sys/user/sysUserCopy_pop.jsp"/>
+	</action>
+
+	<!-- 시스템 그룹 관리 -->
+	<action path="/sysGroup" name="sysGroupForm" type="loti.sys.user.action.SysGroupAction" scope="request" unknown="false" roles="4">
+		<forward name="list" path="/sys/user/sysGroupList.jsp"/>
+		<forward name="insert" path="/sysGroup.act?task=list"/>
+		<forward name="modify" path="/sys/user/sysGroupAdd.jsp"/>
+		<forward name="update" path="/sysGroup.act?task=list"/>
+		<forward name="create" path="/sys/user/sysGroupAdd.jsp"/>
+		<forward name="delete" path="/sysGroup.act?task=list"/>
+		<forward name="user_list" path="/sys/user/sysGroupUserList.jsp"/>
+		<forward name="user_add" path="/sys/user/sysGroupUserAdd_pop.jsp"/>
+		<forward name="add_list" path="/sys/user/sysGroupUserAdd_pop.jsp"/>
+		<forward name="ins_user" path="/sys/user/sysGroupUserAdd_pop.jsp"/>
+		<forward name="del_user" path="/sysGroup.act?task=list"/>
+	</action>
+
+	<!-- 사용자 / 교육생 비교 -->
+	<action path="/sysStdCheck" name="sysUserForm" type="loti.sys.user.action.SysStdCheckAction" scope="request" unknown="false" roles="124">
+		<forward name="list" path="/sys/user/sysStdCheckList.jsp"/>
+	</action>
+	
+	<!-- 공통 코드 관리 -->
+	<action path="/sysCode" name="sysCodeForm" type="loti.sys.code.action.SysCodeAction" scope="request" unknown="false" roles="19">
+		<forward name="list" 		path="/sys/code/sysCodeList.jsp"/>
+		<forward name="info" 		path="/sys/code/sysCodeList.jsp"/>
+		<forward name="insert" 	path="/sysCode.act?task=list"/>
+		<forward name="modify" 	path="/sys/code/sysCodeList.jsp"/>
+		<forward name="update" 	path="/sysCode.act?task=list"/>
+		<forward name="create" 	path="/sys/code/sysCodeAdd.jsp"/>
+		<forward name="delete" 	path="/sys/code/sysCodeList.jsp"/>
+		<forward name="rankpop" path="/sys/code/sysRankSearch.jsp"/>
+		<forward name="jobpop" path="/sys/code/sysJobSearch.jsp"/>
+	</action>
+
+	<!-- 조직도  관리 -->
+ 	<action path="/sysOrg" name="sysOrgForm" type="loti.sys.org.action.SysOrgAction" scope="request" unknown="false" roles="11">
+		<forward name="list" path="/sys/org/sysOrgQry.jsp"/>
+		<forward name="sync" path="/sys/org/sysSyncOrg.jsp"/>
+	</action>
+	
+	<!-- AGENT 관리 -->
+ 	<action path="/sysAgent" name="sysAgentForm" type="loti.sys.agent.action.SysAgentAction" scope="request" unknown="false" roles="93">
+		<forward name="agent" path="/sys/agent/sysAgent.jsp"/>
+		<forward name="admin" path="/sysAgent.act?task=agent"/>
+		<forward name="list" path="/sys/agent/sysAgentList.jsp"/>
+		<forward name="info" path="/sys/agent/sysAgentMod.jsp"/>
+		<forward name="insert" path="/sysAgent.act?task=list"/>
+		<forward name="delete" path="/sysAgent.act?task=list"/>
+		<forward name="create" path="/sys/agent/sysAgentMod.jsp"/>
+	</action>
+	
+	<!-- ADMIN관리자 로그인관리 -->
+	<action path="/su_login" name="sysAdmLoginForm" type="loti.sys.adm.action.SysAdmLoginAction" scope="request" unknown="false">
+		<forward name="login" path="/sys/adm/admLogin.jsp"/>
+	</action>
+	
+	<!-- ADMIN관리자 로그인OK관리 -->
+	<action path="/su_loginOk" name="sysAdmLoginForm" type="loti.sys.adm.action.SysAdmLoginOkAction" scope="request" unknown="false">
+		<forward name="loginok" path="/index_f.jsp"/>
+		<forward name="back" path="/su_login.act"/>
+	</action>
+	
+	<!-- ADMIN관리자 쿼리조회 -->
+  <action path="/sysSqlQuery" name="sysAdmSqlQueryForm" type="loti.sys.adm.action.SysAdmSqlQueryAction" scope="request" unknown="false">
+    <forward name="info" path="/sys/adm/sqlQuery.jsp"/>
+  </action>
+  
+  <!-- ADMIN관리자 쿼리 엑셀다운 -->
+  <action path="/sysSqlQueryExcel" name="sysAdmSqlQueryForm" type="loti.sys.adm.action.SysAdmSqlQueryExcelAction" scope="request" unknown="false"></action>
+  
+  </action-mappings>
+  
+	 <controller processorClass="fw.nexti.common.NewRequestProcessor"/>
+	 <message-resources parameter="loti.cmn.ApplicationResources" /> 
+</struts-config>

@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtMylc_Survey">
+	<typeAlias alias="extMylc_Research" type="loti.ext.mylc.survey.model.ExtMylc_Research"/>
+	<typeAlias alias="extMylc_Survey" type="loti.ext.mylc.survey.model.ExtMylc_Survey"/>
+	<typeAlias alias="extMylc_SurveyItem" type="loti.ext.mylc.survey.model.ExtMylc_SurveyItem"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMylc_ResearchList" parameterClass="extMylc_Research" resultClass="extMylc_Research">
+			SELECT ROWNUM SEQ,
+			       COURSECODE,
+			       COURSENAME,
+			       SURVEYNO,
+			       JUMINNO,
+			       STDNO,
+			       EDUFROM,
+			       EDUTO
+			  FROM (SELECT A.COURSECODE,
+				             B.COURSENAME, 
+				             SURVEYNO,
+				             JUMINNO,
+				             STDNO,
+				             EDUFROM,
+				             EDUTO 
+				        FROM TST_COURSEMATCH A, 
+				             OPR_LECTURE B,
+				             OPR_CRSSTUDENT C
+				       WHERE A.COURSECODE = B.COURSECODE
+				         AND A.COURSECODE = C.COURSECODE
+				         AND C.JUMINNO = #juminNo#
+				         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN EDUFROM  AND TO_CHAR(TO_DATE(EDUTO,'YYYY-MM-DD')+3,'YYYYMMDD')
+				       MINUS 
+							SELECT A.COURSECODE, B.COURSENAME, TO_CHAR(SURVEYNO), C.JUMINNO, A.STDNO, EDUFROM, EDUTO 
+				        FROM TST_RSPTINFO A, OPR_LECTURE B, OPR_CRSSTUDENT C 
+				       WHERE A.COURSECODE = B.COURSECODE
+				         AND A.COURSECODE = C.COURSECODE
+				         AND A.STDNO = C.STDNO
+				         AND C.JUMINNO = #juminNo#
+				         AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN EDUFROM  AND TO_CHAR(TO_DATE(EDUTO,'YYYY-MM-DD')+3,'YYYYMMDD')
+				     ) A
+	</select>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMylc_Survey" parameterClass="extMylc_Survey" resultClass="extMylc_Survey">
+			SELECT 	
+				   		A.SURVEYNO    ,
+				   		TITLE       ,
+				   		FROMDATE    ,
+				   		TODATE      ,
+				   		SUMMARY     ,
+				   		ISLECTSURVEY,
+				   		TARGET      ,
+				   		HEADTEXT    ,
+				   		TAILTEXT    ,
+				   		ITEMCOUNT   ,
+				   		CHARGER     ,
+				   		NVL(RANKCODE, '') RANKCODE,
+				   		NVL(JOBCODE, '') JOBCODE,
+				   		NVL(GENDER, '') GENDER,
+				   		NVL(WORKDAY, '') WORKDAY     
+			  FROM TST_SURVEY A,
+			       (SELECT SURVEYNO, 
+			               REPLYSEQ, 
+			               RANKCODE, 
+			               JOBCODE,
+			               GENDER, 
+			               WORKDAY 
+			          FROM TST_RSPTINFO
+			         WHERE SURVEYNO = #surveyno# 
+			           AND (JUMINNO = #userId# OR STDNO = #stdno#)
+			           <isNotEmpty property="coursecode">
+			           AND COURSECODE = #coursecode#
+			           </isNotEmpty>
+			        )B
+			 WHERE  A.SURVEYNO = B.SURVEYNO(+)
+			   AND  A.SURVEYNO = #surveyno#
+	</select>
+	
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtMylc_Course" parameterClass="extMylc_Survey" resultClass="extMylc_Survey">
+			SELECT 	
+				   		COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME   ,
+				   		EDUFROM       ,
+				   		EDUTO    			     
+			  FROM  OPR_LECTURE
+			 WHERE  COURSECODE = #coursecode#
+	</select>	
+	
+		<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_ItemList" parameterClass="extMylc_Survey" resultClass="extMylc_SurveyItem">
+			SELECT A.SURVEYNO,
+			       A.REQSEQ,
+			       DECODE(A.REPLYTYPE,6,(SELECT  MIN( REQSEQ ) REQ1     FROM TST_SURVITEM   WHERE  SURVEYNO = #surveyno# AND REPLYTYPE = 6  ), A.REQSEQ) DISREQSEQ,
+			       A.ITEMGROUP,
+			       A.ITEMCONTENTS,
+			       NVL(B.PROFNO,'') PROFNO,
+			       NVL(B.ITEMCONTENTS,'') PROFNAME,
+			       NVL(B.SUBJNAME,'') SUBJNAME,
+			       A.REPLYTYPE,
+			       A.ETCFLAG,
+			       NVL(B.REPLY,'') REPLY,
+			       NVL(B.OTHER,'') OTHER
+			  FROM TST_SURVITEM A,
+			       (SELECT TO_CHAR(SURVEYNO) SURVEYNO, REQSEQ, '' COURSECODE, '' PROFNO, '' ITEMCONTENTS, '' SUBJNAME, REPLY, OTHER 
+			          FROM TST_COMMRSPT
+			         WHERE SURVEYNO = #surveyno#
+			           AND REPLYSEQ = (SELECT REPLYSEQ FROM TST_RSPTINFO WHERE SURVEYNO = #surveyno# AND (JUMINNO = #userId# OR STDNO = #stdno#) <isNotEmpty property="coursecode"> AND COURSECODE = #coursecode#</isNotEmpty>)
+			        UNION ALL
+			        SELECT SURVEYNO, REQSEQ, '' COURSECODE, '' PROFNO, '' ITEMCONTENTS, '' SUBJNAME, REPLY, ''
+			          FROM TST_LECTRSPT
+			         WHERE SURVEYNO = #surveyno#
+			           AND REPLYSEQ = (SELECT REPLYSEQ FROM TST_RSPTINFO WHERE SURVEYNO = #surveyno# AND (JUMINNO = #userId# OR STDNO = #stdno#) <isNotEmpty property="coursecode"> AND COURSECODE = #coursecode#</isNotEmpty>)
+			        UNION ALL
+			        SELECT TO_CHAR(A.SURVEYNO), A.REQSEQ, A.COURSECODE, TO_CHAR(A.PROFNO), A.ITEMCONTENTS, A.SUBJNAME, B.REPLY, 
+										 (SELECT MIN(LECTDATE)||MIN(TIMESEQ) FROM OPR_LECTPROF WHERE COURSECODE = A.COURSECODE AND PROFNO = A.PROFNO GROUP BY COURSECODE, PROFNO)
+			          FROM TST_TEACHERITEM A,
+			               (SELECT B.SURVEYNO, B.REQSEQ, B.COURSECODE, B.PROFNO, B.REPLY 
+			                  FROM TST_TEACHERRSPT B
+			                 WHERE SURVEYNO = #surveyno#
+			                   AND  COURSECODE LIKE #coursecode#||'%'
+			                   AND REPLYSEQ = (SELECT REPLYSEQ FROM TST_RSPTINFO WHERE SURVEYNO = #surveyno# AND (JUMINNO = #userId# OR STDNO = #stdno#)<isNotEmpty property="coursecode"> AND COURSECODE = #coursecode#</isNotEmpty>) 
+			               ) B               
+			         WHERE A.SURVEYNO = B.SURVEYNO(+)
+			           AND A.REQSEQ = B.REQSEQ(+)
+			           AND A.COURSECODE = B.COURSECODE(+)
+			           AND A.PROFNO = B.PROFNO(+)
+			           AND A.SURVEYNO = #surveyno#
+			           AND A.COURSECODE LIKE #coursecode#||'%'
+			       ) B
+			 WHERE A.SURVEYNO = B.SURVEYNO(+) 
+			   AND A.REQSEQ = B.REQSEQ(+)
+			   AND A.SURVEYNO = #surveyno#
+			 ORDER BY 3, OTHER, PROFNO, 2
+	
+	
+	
+	
+	<!--  	SELECT A.SURVEYNO    ,
+			       A.REQSEQ      ,
+			       DECODE(A.REPLYTYPE,6,(SELECT  MIN( REQSEQ ) REQ1     FROM TST_SURVITEM   WHERE  SURVEYNO = #surveyno# AND REPLYTYPE = 6  ), A.REQSEQ) DISREQSEQ,
+			       A.ITEMGROUP,
+			       A.ITEMCONTENTS,
+			       NVL(B.PROFNO,'') PROFNO,
+			       NVL(B.ITEMCONTENTS,'') PROFNAME,
+			       NVL(B.SUBJNAME,'') SUBJNAME,
+			       A.REPLYTYPE,
+			       A.ETCFLAG     
+			  FROM TST_SURVITEM A,
+			       TST_TEACHERITEM B
+			 WHERE A.SURVEYNO = B.SURVEYNO(+)
+			   AND A.REQSEQ = B.REQSEQ(+)
+			   AND A.SURVEYNO = #surveyno#
+			   AND B.COURSECODE(+) LIKE #coursecode#||'%'
+			 ORDER BY 3, 7, 2, 4 asc
+-->				 
+	</select>	
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_ItemList1" parameterClass="extMylc_Survey" resultClass="extMylc_SurveyItem">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO    ,
+				   		REQSEQ      ,
+				   		ITEMGROUP   ,
+				   		ITEMCONTENTS ,
+				   		REPLYTYPE,
+				   		ETCFLAG      
+			  FROM TST_SURVITEM
+       WHERE  SURVEYNO = #surveyno#
+       ORDER BY REQSEQ
+	</select>	
+	
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_ProfList" parameterClass="extMylc_Survey" resultClass="extMylc_SurveyItem">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		COURSECODE,
+				   		SUBJSEQ,
+				   		PROFNO,
+				   		ITEMCONTENTS PROFNAME,
+				   		SUBJNAME,
+				   		DISPLAYNO       
+			  FROM TST_TEACHERITEM
+       WHERE  SURVEYNO = #surveyno#
+         AND  COURSECODE = #coursecode#
+       ORDER BY PROFNAME, PROFNO, REQSEQ
+	</select>	
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectExtMylc_ExamList" parameterClass="extMylc_SurveyItem" resultClass="extMylc_SurveyItem">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		EXAMSEQ   ,
+				   		EXAMCONTENTS       
+			  FROM TST_SURVITEMEXAM
+       WHERE  SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq#
+        ORDER BY EXAMSEQ
+	</select>		
+	
+	<!-- 보기조회쿼리 -->
+	<select id="selectExtMylc_TeacherList" parameterClass="extMylc_SurveyItem" resultClass="extMylc_SurveyItem">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		COURSECODE,
+				   		SUBJSEQ,
+				   		PROFNO,
+				   		ITEMCONTENTS PROFNAME,
+				   		SUBJNAME,
+				   		DISPLAYNO       
+			  FROM TST_TEACHERITEM
+       WHERE  SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq#
+         AND  COURSECODE = #coursecode#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtMylc_SurveyList" parameterClass="extMylc_Survey" resultClass="extMylc_Survey">
+			SELECT A.SURVEYNO,
+			       A.TITLE,
+			       A.FROMDATE,
+			       A.TODATE,
+			       DECODE(GREATEST(TO_DATE(TO_CHAR(SYSDATE,'YYYY-MM-DD'),'YYYY-MM-DD'),TO_DATE(TODATE,'YYYY-MM-DD')),TO_DATE(TODATE,'YYYY-MM-DD'),1,0) STATFLAG,
+			       DECODE(NVL(B.REPLYSEQ,0),0,'C','M') AS CHKMOD
+			  FROM TST_SURVEY A, 
+			       TST_RSPTINFO B
+			 WHERE A.SURVEYNO = B.SURVEYNO(+)
+			   AND (FROMDATE LIKE #searchdate#||'%' OR TODATE LIKE #searchdate#||'%' OR FROMDATE IS NULL OR TODATE IS NULL) 
+			   AND A.ISLECTSURVEY = '0'
+			   AND B.JUMINNO(+) = #userId#
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectExtMylc_SurveyListCount" parameterClass="extMylc_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(A.SURVEYNO) as CNT
+		FROM TST_SURVEY A
+     WHERE (FROMDATE LIKE #searchdate#||'%' OR TODATE LIKE #searchdate#||'%' OR FROMDATE IS NULL OR TODATE IS NULL) 
+			 AND A.ISLECTSURVEY = '0'
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_SurveyCount" parameterClass="extMylc_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_SURVEY A
+		WHERE (FROMDATE LIKE #searchdate#||'%' OR TODATE LIKE #searchdate#||'%' OR FROMDATE IS NULL OR TODATE IS NULL) 
+			 AND A.ISLECTSURVEY = '0'
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_MacReplySeq" parameterClass="extMylc_Survey" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(REPLYSEQ),0)+1 AS REPLYSEQ
+		  FROM TST_RSPTINFO
+	   WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_ReplySeq" parameterClass="extMylc_Survey" resultClass="java.lang.Integer">
+		SELECT REPLYSEQ
+		  FROM TST_RSPTINFO
+	   WHERE SURVEYNO = #surveyno#
+	     AND COURSECODE = #coursecode#
+	     AND (JUMINNO = #userId# OR STDNO =#stdno#)
+		<!-- 조회조건 Key 추가 -->
+	</select>	
+	
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtMylc_ReplyCount" parameterClass="extMylc_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(REPLYSEQ)
+		  FROM TST_RSPTINFO
+	   WHERE SURVEYNO = #surveyno#
+       AND COURSECODE = #coursecode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertExtMylc_RsptInfo" parameterClass="extMylc_Survey">
+		INSERT INTO TST_RSPTINFO (	
+			   			SURVEYNO,	
+			   			REPLYSEQ,	
+			   			JUMINNO,
+			   			COURSECODE,	
+			   			STDNO,
+			   			RSPTNAME,
+			   			JOBCODE,
+			   			RANKCODE,
+			   			GENDER,
+			   			AGES,  
+			   			WORKDAY,
+			   			RESPDATE 	
+		) VALUES (
+			   			#surveyno#,	
+			   			#replyseq#,	
+			   			DECODE(#stdno#,'',#userId#,(SELECT JUMINNO FROM OPR_CRSSTUDENT WHERE COURSECODE=#coursecode# AND STDNO = #stdno#)),
+			   			#coursecode#,	
+			   			DECODE(#stdno#,'',(SELECT NVL(STDNO,'') FROM OPR_CRSSTUDENT WHERE COURSECODE=#coursecode# AND JUMINNO=#userId#),#stdno#),
+			   			#rsptname#,  
+			   			#jobcode#,
+			   			#rankcode#,
+			   			#gender#,
+			   			#ages#,
+			   			#workday#,
+			   			SYSDATE 	
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="InsertExtMylc_CommRspt" parameterClass="extMylc_Survey">
+		INSERT INTO TST_COMMRSPT (	
+			   			SURVEYNO,	
+			   			REQSEQ  ,	
+			   			REPLYSEQ,	
+			   			REPLY,
+			   			OTHER   	
+		) VALUES (
+						 
+			   			#surveyno#,	
+			   			#reqseq#  ,	
+			   			#replyseq#,	
+			   			#reply#,
+			   			#other#   	
+		)
+	</insert>
+	
+	<!-- 레코드 입력 -->
+	<insert id="InsertExtMylc_LectRspt" parameterClass="extMylc_Survey">
+		INSERT INTO TST_LECTRSPT (	
+			   			SURVEYNO,	
+			   			REQSEQ  ,	
+			   			REPLYSEQ,	
+			   			COURSECODE,
+			   			REPLY   	
+		) VALUES (
+						 
+			   			#surveyno#,	
+			   			#reqseq#  ,	
+			   			#replyseq#,
+			   			#coursecode#,	
+			   			#reply#   	
+		)
+	</insert>
+	
+	<!-- 레코드 입력 -->
+	<insert id="InsertExtMylc_TeacherRspt" parameterClass="extMylc_Survey">
+		INSERT INTO TST_TEACHERRSPT (	
+			   			SURVEYNO,	
+			   			REQSEQ  ,	
+			   			REPLYSEQ,	
+			   			COURSECODE,
+			   			PROFNO,
+			   			REPLY   	
+		) VALUES (
+						 
+			   			#surveyno#,	
+			   			#reqseq#  ,	
+			   			#replyseq#,
+			   			#coursecode#,
+			   			#profno#,	
+			   			#reply#   	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateExtMylc_Survey" parameterClass="extMylc_Survey">
+		UPDATE TST_COMMRSPT SET
+			   SURVEYNO = #surveyno#,
+			   REQSEQ   = #reqseq#  ,
+			   REPLYSEQ = #replyseq#,
+			   REPLY    = #reply#   
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_Survey" parameterClass="extMylc_Survey">
+		DELETE FROM TST_COMMRSPT
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_RsptInfo" parameterClass="extMylc_Survey">
+		DELETE FROM TST_RSPTINFO
+		 WHERE SURVEYNO = #surveyno#
+		   AND REPLYSEQ = #replyseq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_CommRspt" parameterClass="extMylc_Survey">
+		DELETE FROM TST_COMMRSPT
+		 WHERE SURVEYNO = #surveyno#
+		   AND REPLYSEQ = #replyseq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_LectRspt" parameterClass="extMylc_Survey">
+		DELETE FROM TST_LECTRSPT
+		 WHERE SURVEYNO = #surveyno#
+		   AND REPLYSEQ = #replyseq#		
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+			<!--  레코드 삭제 -->
+	<delete id="deleteExtMylc_TeacherRspt" parameterClass="extMylc_Survey">
+		DELETE FROM TST_TEACHERRSPT
+		 WHERE SURVEYNO = #surveyno#
+		   AND REPLYSEQ = #replyseq#		
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="surveyno">
+				SURVEYNO = #surveyno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqseq">
+				REQSEQ = #reqseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="replyseq">
+				REPLYSEQ = #replyseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reply">
+				REPLY = #reply#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="SysLotiSchedule">
+
+<typeAlias alias="sysLotiSchedule" type="loti.sys.loti.model.SysLotiSchedule"/>
+
+	<!-- 스케줄  조회 [sysAgent] -->
+	<select id="selectSchedule" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+		SELECT A.*,B.P_SEQ, B.RUN_RESULT FROM AGENT_MST A, 
+			(SELECT B.P_ID, B.P_SEQ, B.P_TYPE, B.P_T1, B.P_T2, B.P_T3, B.P_T4, B.P_T5, B.P_T6,C.RUN_DT,NVL(C.RUN_RESULT,'0') RUN_RESULT
+			 FROM AGENT_DTL B,  
+			     (SELECT A.P_ID,A.P_SEQ,A.RUN_DT,A.RUN_RESULT 
+				  	FROM AGENT_LOG A,  
+					 		(SELECT P_ID,P_SEQ, MAX(RUN_DT) RUN_DT  
+					   		FROM AGENT_LOG  
+					   		WHERE  SUBSTR(RUN_DT,1,8) = TO_CHAR(SYSDATE,'YYYYMMDD')  
+					   		GROUP BY P_ID, P_SEQ) B  
+				  	WHERE A.P_ID=B.P_ID AND A.P_SEQ=B.P_SEQ AND A.RUN_DT = B.RUN_DT ) C 
+			 WHERE ( 
+					( B.P_TYPE = '00001' AND B.P_T1 <![CDATA[<=]]> TO_CHAR(SYSDATE,'HH24MI') ) OR  
+					( B.P_TYPE = '00002' AND SUBSTR(B.P_T2,1,2) = '0'||TO_CHAR(SYSDATE,'D') AND SUBSTR(B.P_T2,3,4) <![CDATA[<=]]>  TO_CHAR(SYSDATE,'HH24MI') )  OR  
+					( B.P_TYPE = '00003' AND SUBSTR(B.P_T3,1,2) = TO_CHAR(SYSDATE,'DD') AND  SUBSTR(B.P_T3,3,4) <![CDATA[<=]]>  TO_CHAR(SYSDATE,'HH24MI') ) OR  
+					( B.P_TYPE = '00004' AND SUBSTR(B.P_T3,1,4) = TO_CHAR(SYSDATE,'MMDD') AND  SUBSTR(B.P_T4,5,4) <![CDATA[<=]]>  TO_CHAR(SYSDATE,'HH24MI') ) 
+			) AND B.P_ID = C.P_ID(+) AND B.P_SEQ = C.P_SEQ(+) ) B 
+		WHERE A.P_ID = B.P_ID AND B.RUN_RESULT <![CDATA[<]]>  '1'
+	</select>
+	
+	
+	<!-- AGENT_LOG 시작  -->
+	
+	<!-- AGENT로그(AGENT_LOG) MAX SEQ  [sysLotiSchedule] -->
+	<select id="selectSys_SysLotiScheduleCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(LSEQ),0)+1 AS LSEQ 
+		FROM AGENT_LOG
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- AGENT로그(AGENT_LOG) 등록 [sysLotiSchedule] -->
+	<insert id="insertAgentLog" parameterClass="sysLotiSchedule">
+			INSERT INTO AGENT_LOG(
+						LSEQ				,
+						P_ID				,
+						P_SEQ				,
+						RUN_DT			,
+						RUN_RESULT
+			) VALUES (
+					#l_seq#				,
+					#p_id#				,
+					#p_seq#				,
+					TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),
+					'1'
+			)
+	</insert>
+	
+	<!-- AGENT로그(AGENT_LOG) 수정  [sysLotiSchedule] -->
+	<update id="modifyAgentLog"  parameterClass="sysLotiSchedule">
+		UPDATE AGENT_LOG 
+		SET RUN_RESULT = '2' 
+		WHERE LSEQ = #l_seq#
+	</update>
+	
+	<!-- AGENT_LOG 끝   -->
+	
+	
+	<!-- SEND_SMS 시작 -->
+	
+	<!-- step1 SMS발송(SEND_SMS) 삭제 [sysLotiSchedule] -->
+	<delete id="deleteSendSms" parameterClass="sysLotiSchedule">
+			DELETE 
+			FROM SEND_SMS 
+			WHERE SEND_YN = 'Y'
+	</delete>
+	
+	<!-- step2 SMS발송(SEND_SMS) 보낼 문자 갯수 [sysLotiSchedule] -->
+	<select id="selectSys_SysSendSmsCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">	
+			SELECT COUNT(SEND_NO) AS CNT 
+			FROM SEND_SMS
+			WHERE SUBSTR(SEND_DTTM, 1,10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD') 	
+			AND SEND_YN IS NULL
+	</select>
+	
+	<!-- step3. step3-1 SMS발송(SEND_SMS)에서 오늘 발송할 문자중에 SEND_NO으로 그룹 조회 [sysLotiSchedule] -->
+	<select id="selectSendSmsGroup" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+			SELECT SEND_NO
+			FROM SEND_SMS
+			WHERE SUBSTR(SEND_DTTM, 1,10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+			AND SEND_YN IS NULL
+			GROUP BY SEND_NO
+	</select>
+	
+	<!-- step3. step3-2 SMS발송_히스토리(SEND_SMS_HISTORY) MAX SEQ [sysLotiSchedule] -->
+	<select id="selectSys_SysSendSmsHistoryCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">
+			SELECT NVL(MAX(SEND_NO),0)+1 AS MAX_SEQ 
+			FROM SEND_SMS_HISTORY 
+	</select>
+	
+	<!-- step3. step3-3 SMS발송(SEND_SMS) 조회 [sysLotiSchedule] -->
+	<select id="selectSendSms" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+			SELECT 	SEND_NO  	 ,
+							SEND_SEQ 	 ,     
+						  JUMINNO    ,   
+						  SMS_GBN    ,   
+						  FROM_NAME  ,   
+						  FROM_TEL   ,   
+						  TO_NAME    ,   
+						  TO_TEL     ,   
+						  MSG        ,   
+						  SEND_DTTM  ,   
+						  SEND_GBN   ,   
+						  SEND_YN    ,
+						  COURSECODE     
+			FROM SEND_SMS
+			WHERE SUBSTR(SEND_DTTM, 1,10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+			AND SEND_YN IS NULL
+			AND SEND_NO = #send_no#
+	</select>
+	
+	<!-- step3. step3-5 SMS발송(SEND_SMS) 수정  [sysLotiSchedule] -->
+	<update id="modifySendSms"  parameterClass="sysLotiSchedule">
+		UPDATE SEND_SMS 
+		SET  SEND_YN = 'Y'
+		WHERE SEND_NO= #send_no#
+	</update>
+	
+	<!-- step3. step3-6 SMS발송_히스토리(SEND_SMS_HISTORY) 등록 [sysLotiSchedule] -->
+	<insert id="insertSendSmsHistory" parameterClass="sysLotiSchedule">
+			INSERT INTO SEND_SMS_HISTORY(
+						SEND_NO  	 ,     
+						SEND_SEQ	 ,     
+					  JUMINNO    ,   
+					  SMS_GBN    ,   
+					  FROM_NAME  ,   
+					  FROM_TEL   ,   
+					  TO_NAME    ,   
+					  TO_TEL     ,   
+					  MSG        ,   
+					  SEND_DTTM  ,   
+					  SEND_GBN   ,   
+					  COURSECODE    
+			) VALUES (
+					  #send_no#			,
+					  #send_seq#		,
+					  #juminno#			,
+					  #sms_gbn#			,
+					  #from_name#   ,
+					  #from_tel#   	,
+					  #to_name#   	,
+					  #to_tel#   		,
+					  #msg#   			,
+					  #send_dttm#   ,
+					  #send_gbn#    ,
+					  #coursecode#    
+			)
+	</insert>
+	
+	<!-- SEND_SMS 끝    -->
+	
+	
+	<!-- SEND_MAIL 시작    -->
+	
+	<!-- step1 ~ step3 EMAIL발송_보내는사람(SEND_MAIL_FROM) 보낸 메일 갯수 [sysLotiSchedule] -->
+	<select id="selectSys_SysSendEmailFromYNCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">	
+			SELECT COUNT(FROM_NO) AS CNT 
+			FROM SEND_MAIL_FROM
+			WHERE SEND_YN = 'Y'
+	</select>
+	
+	<!-- step1 ~ step3 EMAIL발송_보내는사람(SEND_MAIL_FROM) 보낸 메일 갯수 [sysLotiSchedule] -->
+	<select id="selectSendMailFromFromNo" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">	
+			SELECT FROM_NO
+			FROM SEND_MAIL_FROM
+			WHERE SEND_YN = 'Y'
+	</select>
+	
+	<!-- step1 ~ step3 EMAIL발송_받는사람(SEND_MAIL_TO) 보낸 메일 삭제  [sysLotiSchedule] -->
+	<delete id="deleteSendMailTo" parameterClass="sysLotiSchedule">	
+			DELETE
+			FROM SEND_MAIL_TO
+			WHERE FROM_NO = #from_no#
+	</delete>
+	
+	<!-- step1 ~ step3 EMAIL발송_보내는사람(SEND_MAIL_FROM) 보낸 메일 삭제  [sysLotiSchedule] -->
+	<delete id="deleteSendMailFrom" parameterClass="sysLotiSchedule">	
+			DELETE
+			FROM SEND_MAIL_FROM
+			WHERE SEND_YN = 'Y'
+	</delete>
+	
+	<!-- step4 EMAIL발송_보내는사람(SEND_MAIL_FROM) 보낼 메일 갯수 [sysLotiSchedule] -->
+	<select id="selectSys_SysSendMailCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">	
+			SELECT COUNT(FROM_NO) AS CNT 
+			FROM SEND_MAIL_FROM
+			WHERE SUBSTR(SEND_DTTM, 1,10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD') 	
+			AND SEND_YN IS NULL
+	</select>
+	
+	<!-- step5-1 EMAIL발송_보내는사람(SEND_MAIL_FROM), EMAIL발송_받는사람(SEND_MAIL_TO) 조회 [sysLotiSchedule] -->
+	<select id="selectSendMailList" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+			SELECT A.FROM_NO AS FROM_NO,
+						 A.FROM_NAME			AS FROM_NAME, 
+						 A.FROM_EMAIL			AS FROM_EMAIL, 
+						 A.SUBJECT				AS SUBJECT, 
+						 A.CONTENT				AS CONTENT, 
+						 A.SEND_DTTM			AS SEND_DTTM, 
+						 A.SEND_GBN				AS SEND_GBN, 
+						 A.SEND_YN				AS SEND_YN,
+						 A.SEND_REFER_YN	AS SEND_REFER_YN,
+						 B.TO_NO					AS TO_NO, 
+						 B.TO_NAME				AS TO_NAME, 
+						 B.TO_EMAIL				AS TO_EMAIL, 
+						 B.ORG_FNAME			AS ORG_FNAME, 
+						 B.FNAME					AS FNAME, 
+						 B.FSIZE					AS FSIZE, 
+						 B.SEND_REFER 		AS SEND_REFER
+			FROM SEND_MAIL_FROM A, SEND_MAIL_TO B 
+			WHERE A.FROM_NO = B.FROM_NO
+			AND SUBSTR(A.SEND_DTTM, 1,10) = TO_CHAR(SYSDATE, 'YYYY-MM-DD')
+			AND A.SEND_YN IS NULL
+			AND B.SEND_REFER = '01'
+	</select>
+	
+	<!-- step5-2 EMAIL발송_받는사람(SEND_MAIL_TO) 중에 참조자  조회 [sysLotiSchedule] -->
+	<select id="selectSendMailTo02" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+			SELECT FROM_NO				, 
+						 TO_NO					, 
+						 TO_NAME				, 
+						 TO_EMAIL				, 
+						 ORG_FNAME			, 
+						 FNAME					, 
+						 FSIZE					, 
+						 SEND_REFER 
+			FROM SEND_MAIL_TO 
+			WHERE FROM_NO= #from_no#
+			AND SEND_REFER = '02'
+	</select>
+	
+	<!-- step5-3 EMAIL발송_보내는사람_히스토리(SEND_MAIL_FROM_HISTORY) MAX SEQ [sysLotiSchedule] -->
+	<select id="selectSys_SysSendMailFromHistoryCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">
+			SELECT NVL(MAX(FROM_NO),0)+1 AS MAX_SEQ 
+			FROM SEND_MAIL_FROM_HISTORY 
+	</select>
+	
+	<!-- step5-4 EMAIL발송_보내는사람(SEND_MAIL_FROM) 수정  [sysLotiSchedule] -->
+	<update id="modifySendMail"  parameterClass="sysLotiSchedule">
+		UPDATE SEND_MAIL_FROM 
+		SET	SEND_YN = 'Y'
+		WHERE FROM_NO= #from_no#
+	</update>
+	
+	<!-- step5-5 EMAIL발송_받는사람(SEND_MAIL_TO) 중에 수신자  조회 [sysLotiSchedule] -->
+	<select id="selectSendMailTo01" parameterClass="sysLotiSchedule" resultClass="sysLotiSchedule">
+			SELECT FROM_NO				, 
+						 TO_NO					, 
+						 TO_NAME				, 
+						 TO_EMAIL				, 
+						 ORG_FNAME			, 
+						 FNAME					, 
+						 FSIZE					, 
+						 SEND_REFER 
+			FROM SEND_MAIL_TO 
+			WHERE FROM_NO= #from_no#
+			AND SEND_REFER = '01'
+	</select>
+	
+	<!-- step5-6 EMAIL발송_받는사람_히스토리(SEND_MAIL_TO_HISTORY) MAX SEQ [sysLotiSchedule] -->
+	<select id="selectSys_SysSendMailToHistoryCount" parameterClass="sysLotiSchedule" resultClass="java.lang.Integer">
+			SELECT NVL(MAX(TO_NO),0)+1 AS MAX_SEQ 
+			FROM SEND_MAIL_TO_HISTORY 
+			WHERE FROM_NO  = #from_no#    
+	</select>
+	
+	<!-- step5-5~step5-6 EMAIL발송_받는사람_히스토리(SEND_MAIL_TO_HISTORY) 등록 [sysLotiSchedule] -->
+	<insert id="insertSendMailToHistory" parameterClass="sysLotiSchedule">
+			INSERT INTO SEND_MAIL_TO_HISTORY(
+					FROM_NO     ,             
+			    TO_NO       ,            
+			    TO_NAME     ,             
+			    TO_EMAIL    ,             
+			    ORG_FNAME   ,             
+			    FNAME       ,             
+			    FSIZE       ,             
+			    SEND_REFER                           
+			) VALUES (
+			    #from_no#    ,              
+			    #to_no#      ,              
+			    #to_name#    ,              
+			    #to_email#   ,              
+			    #org_fname#  ,             
+			    #fname#      ,              
+			    #fsize#      ,              
+			    #send_refer#                                 							            
+			)
+	</insert>
+	
+	<!-- step5~7 EMAIL발송_보내는사람_히스토리(SEND_MAIL_FROM_HISTORY) 등록 [sysLotiSchedule] -->
+	<insert id="insertSendMailFromHistory" parameterClass="sysLotiSchedule">
+			INSERT INTO SEND_MAIL_FROM_HISTORY(
+			    FROM_NO       	,           
+			    FROM_NAME     	,            
+			    FROM_EMAIL    	,            
+			    SUBJECT       	,           
+			    CONTENT       	,            
+			    SEND_DTTM     	,            
+			    SEND_GBN      	,     
+					SEND_REFER_YN 	,
+					SEND_BIGO	  
+			) VALUES (
+			    #from_no#      	,             
+			    #from_name#    	,             
+			    #from_email#   	,             
+			    #subject#      	,             
+			    #content#      	,             
+			    #send_dttm#    	,             
+			    #send_gbn#     	,
+					#send_refer_yn# ,
+					#send_bigo#             							            
+			)
+	</insert>
+	
+	<!-- step6-1 EMAIL발송_보내는사람(SEND_MAIL_FROM) 수정 [sysLotiSchedule] -->
+	<update id="modifySendMailFrom"  parameterClass="sysLotiSchedule">
+		UPDATE SEND_MAIL_FROM 
+		SET	SEND_BIGO = #send_bigo#	,
+				SEND_YN = 'Y'
+		WHERE FROM_NO= #from_no#
+	</update>
+	<!--SEND_MAIL 시작  -->
+	
+</sqlMap>

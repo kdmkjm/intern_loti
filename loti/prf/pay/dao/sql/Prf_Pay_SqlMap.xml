@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_Pay">
+
+	<typeAlias alias="prf_Pay" 					type="loti.prf.pay.model.Prf_Pay"/>
+	<typeAlias alias="prf_Pay_CalcCode" type="loti.prf.pay.model.Prf_Pay_CalcCode"/>
+	<typeAlias alias="prf_LectPay" type="loti.prf.pay.model.Prf_LectPay"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPrf_Pay" parameterClass="prf_Pay" resultClass="prf_Pay">
+			SELECT
+				   		COURSECODE,
+				   		LECTDATE  ,
+				   		PROFNO    ,
+				   		YEAR      ,
+				   		PROFNAME  ,
+				   		PROFLEVEL ,
+				   		LECTHOUR  ,
+				   		LECTPAY   ,
+				   		INCOMETAX ,
+				   		INHABTAX  ,
+				   		TRAVEL    ,
+				   		NETPAY    ,
+				   		MSCTFEE   ,
+				   		CALCDATE
+			  FROM 	PRF_LECTPAY
+			 WHERE  COURSECODE LIKE #searchCourseCode#
+	</select>
+	<!-- 강사수당이 계산됐는지 체크  Count -->
+	<select id="selectPrf_PayCalcCount" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+		SELECT	COUNT(*) as CNT
+			FROM  PRF_PAYTABLE PPT, PRF_LECTPAY PLP
+     WHERE  PLP.PROFLEVEL   = PPT.PROFLEVEL
+		<isNotEmpty property="searchKeyword">
+			<isNotEmpty prepend="AND" property="searchColumn">
+				PLP.$searchColumn$ like #searchKeyword#
+			</isNotEmpty>
+		</isNotEmpty>
+		<isNotEmpty property="searchCourseCode">
+			<isNotEmpty prepend="AND" property="searchCourseColumn">
+				PLP.$searchCourseColumn$ like '%' || #searchCourseCode# || '%'
+			</isNotEmpty>
+		</isNotEmpty>
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<select id="selectPrf_PaySearchDate" parameterClass="prf_Pay" resultClass="prf_Pay">
+		SELECT
+            TO_CHAR(TO_DATE(A.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE  ,
+            A.COURSECODE,
+            C.COURSENAME || '(' || TO_NUMBER(SUBSTR(C.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            A.PROFNO    ,
+            A.PROFNAME  ,
+            B.LEVELNAME PROFLEVEL,
+            E.FROMTIME || '~' || TO_CHAR(TO_NUMBER(SUBSTR(E.TOTIME,1,2))-1) || ':50' 		EDUTIME,
+            TO_NUMBER(SUBSTR(E.TOTIME,1,2))-TO_NUMBER(SUBSTR(E.FROMTIME,1,2)) || '시간'	LECTHOUR,
+            A.LECTPAY-A.INCOMETAX-A.INHABTAX   NETPAY
+      FROM  PRF_LECTPAY A, PRF_PAYTABLE B, OPR_LECTURE C, OPR_LECTPROF D, OPR_TIMETABLE E
+     WHERE  A.PROFLEVEL  = B.PROFLEVEL
+       AND  A.COURSECODE = C.COURSECODE
+       AND  A.COURSECODE = D.COURSECODE
+       AND  A.LECTDATE   = D.LECTDATE
+       AND  A.PROFNO     = D.PROFNO
+       AND  A.COURSECODE = E.COURSECODE
+       AND  A.LECTDATE   = E.LECTDATE
+       AND  D.TIMESEQ    = E.TIMESEQ
+       AND  A.LECTDATE  BETWEEN  REPLACE(#searchFrom#, '-', '')  AND  REPLACE(#searchTo#, '-', '')
+       AND  A.CALCDATE IS NOT NULL
+  ORDER BY  LECTDATE, COURSENAME, E.FROMTIME
+	</select>
+	
+	
+	
+	
+	
+	<!-- 강사수당이 계산된 목록조회쿼리 -->
+	<select id="selectPrf_PayCalcList" parameterClass="prf_Pay" resultClass="prf_Pay">
+		<!-- SELECT  DISTINCT
+            B.COURSECODE,  B.PROFNO,
+            TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE  ,
+            B.YEAR, B.PROFNAME, B.LECTHOUR,
+            A.LEVELNAME PROFLEVEL,
+           (CASE WHEN B.LECTPAY IS NOT NULL
+                 THEN B.LECTPAY
+                 WHEN B.LECTPAY IS NULL
+                 THEN A.BASEPAY + DECODE (SIGN (B.LECTHOUR - A.STDHOUR), 1, (B.LECTHOUR - A.STDHOUR) * A.EXCEEDPAY, 0) END) LECTPAY,
+           (CASE WHEN B.LECTPAY IS NOT NULL
+                 THEN B.INCOMETAX
+                 WHEN B.LECTPAY IS NULL
+                 THEN NVL(B.INCOMETAX, 0) END) INCOMETAX,
+           (CASE WHEN B.LECTPAY IS NOT NULL
+                 THEN B.INHABTAX
+                 WHEN B.LECTPAY IS NULL
+                 THEN NVL(B.INHABTAX, 0) END) INHABTAX,
+            NVL(B.TRAVEL, 0) TRAVEL,
+            NVL(B.MSCTFEE, 0) MSCTFEE,
+            NVL(B.NETPAY, 0) NETPAY,
+            TO_CHAR(TO_DATE(B.CALCDATE,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE
+      FROM  PRF_PAYTABLE A, PRF_LECTPAY B,
+           (SELECT
+                    COURSECODE, LECTDATE, PROFNO, PROFNAME, ISPAYED, LECTUREFLAG
+              FROM  OPR_LECTPROF
+					<isNotEmpty prepend="WHERE" property="searchCourseCode">
+						COURSECODE LIKE #searchCourseCode#
+					</isNotEmpty>
+			) C
+     WHERE  B.PROFLEVEL   = A.PROFLEVEL
+       AND  B.COURSECODE = C.COURSECODE
+       AND  B.LECTDATE   = C.LECTDATE
+       AND  B.PROFNO     = C.PROFNO
+       AND  C.LECTUREFLAG LIKE 'Y'
+       		<isNotEmpty prepend="AND" property="searchCourseCode">
+       			B.COURSECODE LIKE #searchCourseCode#
+			</isNotEmpty>
+  ORDER BY  LECTDATE, B.PROFNAME -->
+  
+		SELECT AA.*
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+		  FROM (
+		SELECT a.*
+		     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+		     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+		  FROM (
+		 SELECT DISTINCT B.COURSECODE
+		      , ROW_NUMBER() OVER (ORDER BY b.coursecode) rnum
+		      , B.PROFNO AS profNo            
+		      , TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE
+		      , B.YEAR
+		      , B.PROFNAME
+		      , B.LECTHOUR
+		      , A.LEVELNAME PROFLEVEL
+		      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+		             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+		      , NVL(B.MSCTFEE, 0) MSCTFEE
+		      , TO_CHAR(TO_DATE(B.CALCDATE,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+		      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+		      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+		      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+		      , 0 AS staypay
+		   FROM PRF_PAYTABLE A, PRF_LECTPAY B, PRF_PROFESSOR C,
+		(SELECT COURSECODE, LECTDATE, PROFNO, PROFNAME, ISPAYED, LECTUREFLAG
+		   FROM OPR_LECTPROF
+			<isNotEmpty prepend="WHERE" property="searchCourseCode">
+				COURSECODE LIKE #searchCourseCode#
+			</isNotEmpty>
+		   ) D
+		  WHERE B.PROFLEVEL  = A.PROFLEVEL
+		    AND B.COURSECODE = D.COURSECODE
+		    AND B.LECTDATE   = D.LECTDATE
+		    AND B.PROFNO     = D.PROFNO
+		    AND b.profno     = c.professorno
+		    AND D.LECTUREFLAG LIKE 'Y'
+			<isNotEmpty prepend="AND" property="searchCourseCode">
+				B.COURSECODE LIKE #searchCourseCode#
+			</isNotEmpty>
+		  ORDER BY LECTDATE, B.PROFNAME) A) AA
+  </select>
+  
+  <select id="selectPrf_PayDupCount" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+  	SELECT COUNT(*) FROM (
+  		SELECT AA.*
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+		  FROM (
+		SELECT a.*
+		     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+		     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+		  FROM (
+		 SELECT DISTINCT B.COURSECODE
+		 	  , ROW_NUMBER() OVER (ORDER BY b.coursecode) rnum
+		      , B.PROFNO AS profNo            
+		      , TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE
+		      , B.YEAR
+		      , B.PROFNAME
+		      , B.LECTHOUR
+		      , A.LEVELNAME PROFLEVEL
+		      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+		             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+		      , NVL(B.MSCTFEE, 0) MSCTFEE
+		      , TO_CHAR(TO_DATE(B.CALCDATE,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+		      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+		      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+		      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+		      , 0 AS staypay
+		   FROM PRF_PAYTABLE A, PRF_LECTPAY B, PRF_PROFESSOR C,
+		(SELECT COURSECODE, LECTDATE, PROFNO, PROFNAME, ISPAYED, LECTUREFLAG
+		   FROM OPR_LECTPROF
+		   ) D
+		  WHERE B.PROFLEVEL  = A.PROFLEVEL
+		    AND B.COURSECODE = D.COURSECODE
+		    AND B.LECTDATE   = D.LECTDATE
+		    AND B.PROFNO     = D.PROFNO
+		    AND b.profno     = c.professorno
+		    AND D.LECTUREFLAG LIKE 'Y'
+		  ORDER BY LECTDATE, B.PROFNAME) A) AA ) AAA
+		WHERE AAA.lectDate = #lectDate#
+		  AND AAA.profNo   = #profNo#
+		  AND AAA.profName = #profName#
+  </select>
+  
+  <select id="selectPrf_MaxRnum" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+  	SELECT MAX(AAA.rnum) FROM ( 
+  		SELECT AA.*
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+		  FROM (
+		SELECT a.*
+		     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+		     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+		  FROM (
+		 SELECT DISTINCT B.COURSECODE
+		      , ROW_NUMBER() OVER (ORDER BY b.coursecode) rnum
+		      , B.PROFNO AS profNo            
+		      , TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE
+		      , B.YEAR
+		      , B.PROFNAME
+		      , B.LECTHOUR
+		      , A.LEVELNAME PROFLEVEL
+		      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+		             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+		      , NVL(B.MSCTFEE, 0) MSCTFEE
+		      , TO_CHAR(TO_DATE(B.CALCDATE,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+		      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+		      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+		      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+		      , 0 AS staypay
+		   FROM PRF_PAYTABLE A, PRF_LECTPAY B, PRF_PROFESSOR C,
+		(SELECT COURSECODE, LECTDATE, PROFNO, PROFNAME, ISPAYED, LECTUREFLAG
+		   FROM OPR_LECTPROF
+		   ) D
+		  WHERE B.PROFLEVEL  = A.PROFLEVEL
+		    AND B.COURSECODE = D.COURSECODE
+		    AND B.LECTDATE   = D.LECTDATE
+		    AND B.PROFNO     = D.PROFNO
+		    AND b.profno     = c.professorno
+		    AND D.LECTUREFLAG LIKE 'Y'
+		  ORDER BY LECTDATE, B.PROFNAME) A) AA ) AAA
+	WHERE AAA.lectDate = #lectDate#
+	  AND AAA.profNo   = #profNo#
+	  AND AAA.profName = #profName#
+  </select>
+  
+  <select id="selectPrf_PayTaxCount" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+    	SELECT COUNT(*) FROM ( 
+  		SELECT AA.*
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay),NULL,0,(AA.foodpay + AA.daypay + AA.trafficpay)) AS travel
+		     , DECODE((AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax), null, 0, 
+		              (AA.foodpay + AA.daypay + AA.trafficpay + AA.lectpay) - (AA.incometax + AA.inhabtax)) AS NETPAY
+		  FROM (
+		SELECT a.*
+		     , CASE WHEN a.lectpay >= 250000 THEN a.lectpay * 0.04 ELSE 0 END AS incometax
+		     , CASE WHEN a.lectpay >= 250000 THEN (a.lectpay * 0.04) * 0.1 ELSE 0 END AS inhabtax     
+		  FROM (
+		 SELECT DISTINCT B.COURSECODE
+		      , ROW_NUMBER() OVER (ORDER BY b.coursecode) rnum
+		      , B.PROFNO AS profNo            
+		      , TO_CHAR(TO_DATE(B.LECTDATE,'YYYYMMDD'), 'YYYY-MM-DD') LECTDATE
+		      , B.YEAR
+		      , B.PROFNAME
+		      , B.LECTHOUR
+		      , A.LEVELNAME PROFLEVEL
+		      , CASE WHEN b.lecthour = 1 THEN a.basepay 
+		             WHEN b.lecthour > 1 THEN a.basepay + ((b.lecthour - 1) * a.exceedpay) END AS lectpay      
+		      , NVL(B.MSCTFEE, 0) MSCTFEE
+		      , TO_CHAR(TO_DATE(B.CALCDATE,'YYYYMMDD'), 'YYYY-MM-DD') CALCDATE      
+		      , DECODE(c.profho, '1', 25000, 20000) AS FOODPAY
+		      , DECODE(c.profho, '1', 20000, 20000) AS DAYPAY      
+		      , REPLACE((SELECT areacharge FROM PRF_AREA WHERE areano =(SELECT areacode FROM PRF_PROFESSOR WHERE professorno = B.PROFNO)),',','') AS trafficpay
+		      , 0 AS staypay
+		   FROM PRF_PAYTABLE A, PRF_LECTPAY B, PRF_PROFESSOR C,
+		(SELECT COURSECODE, LECTDATE, PROFNO, PROFNAME, ISPAYED, LECTUREFLAG
+		   FROM OPR_LECTPROF
+		   ) D
+		  WHERE B.PROFLEVEL  = A.PROFLEVEL
+		    AND B.COURSECODE = D.COURSECODE
+		    AND B.LECTDATE   = D.LECTDATE
+		    AND B.PROFNO     = D.PROFNO
+		    AND b.profno     = c.professorno
+		    AND D.LECTUREFLAG LIKE 'Y'
+		  ORDER BY LECTDATE, B.PROFNAME) A) AA ) AAA
+	WHERE AAA.lectDate <![CDATA[ >= ]]> #dateFrom#
+	  AND AAA.lectDate <![CDATA[ <= ]]> #dateTo#
+	  AND AAA.profNo   = #profNo#
+	  AND AAA.profName = #profName#
+  </select>
+  
+  
+	<!-- 목록조회쿼리 -->
+	<select id="selectPrf_PayCalcData" parameterClass="prf_Pay" resultClass="prf_Pay_CalcCode">
+		SELECT
+		        TAXCODE,
+		        SEQ,
+		        TAXNAME,
+		        TAXFROM,
+		        TAXTO,
+		        TAXRATIO
+		  FROM  PRF_TAX
+  </select>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPrf_PayListCount" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PRF_LECTPAY
+		<isNotEmpty property="searchKeyword">
+			<isNotEmpty prepend="WHERE" property="searchColumn">
+				$searchColumn$ like '%' || #searchKeyword# || '%'
+			</isNotEmpty>
+		</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_PayCount" parameterClass="prf_Pay" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM 	 PRF_LECTPAY
+		WHERE  COURSECODE = #courseCode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count [Prf_LectPay용] -->
+	<select id="selectPrf_LectPayCount" parameterClass="prf_LectPay" resultClass="java.lang.Integer">
+		SELECT	NVL(CALCDATE,0)
+		  FROM 	PRF_LECTPAY
+		 WHERE	COURSECODE = #courseCode#
+		   AND  LECTDATE	 = #lectDate#
+			 AND  PROFNO 		 = #profNo#
+		   AND  YEAR 			 = #year#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPrf_Pay" parameterClass="prf_LectPay">
+		UPDATE	PRF_LECTPAY SET
+						LECTPAY    = #lectPay#   ,
+						INCOMETAX  = #inCometax# ,
+						INHABTAX   = #inHabtax#  ,
+						TRAVEL     = #travel#    ,
+						NETPAY     = #netPay#    ,
+						MSCTFEE    = #msctFee#   ,
+						CALCDATE   = to_char(to_date(sysdate), 'YYYYMMDD')
+		 WHERE	COURSECODE = #courseCode#
+		   AND  LECTDATE	 = #lectDate#
+			 AND  PROFNO 		 = #profNo#
+		   AND  YEAR 			 = #year#
+	</insert>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="updateIsPayedLectPay" parameterClass="prf_LectPay">
+		UPDATE	OPR_LECTPROF SET
+						ISPAYED    = #isPayed#
+		 WHERE	COURSECODE = #courseCode#
+		   AND  LECTDATE	 = #lectDate#
+			 AND  PROFNO 		 = #profNo#
+	</insert>
+	
+	<!-- 강사수당 계산된 목록 가져오기 쿼리 -->
+	<select id="selectPrf_PayLectProf" parameterClass="prf_Pay" resultClass="prf_LectPay">
+		SELECT
+            A.COURSECODE, A.LECTDATE, A.TIMESEQ, A.PROFNO, A.PROFNAME, A.ISPAYED,
+            B.YEAR, B.CALCDATE
+      FROM  OPR_LECTPROF A,
+           (SELECT
+                    COURSECODE, LECTDATE, PROFNO, YEAR, CALCDATE
+              FROM  PRF_LECTPAY
+             WHERE  COURSECODE LIKE #searchCourseCode#
+               AND  CALCDATE = TO_CHAR(TO_DATE(#searchKeyword#,'YYYY-MM-DD'), 'yyyymmdd')) B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.LECTDATE  = B.LECTDATE
+       AND  A.PROFNO    = B.PROFNO
+       AND  A.COURSECODE  LIKE #searchCourseCode#
+       AND  CALCDATE    = TO_CHAR(TO_DATE(#searchKeyword#,'YYYY-MM-DD'), 'yyyymmdd')
+  </select>
+	
+
+
+	<!--  레코드 수정 -->
+	<update id="updatePrf_Pay" parameterClass="prf_LectPay">
+		UPDATE	PRF_LECTPAY SET
+						TRAVEL     = #travel#    ,
+						NETPAY     = #netPay#    ,
+						MSCTFEE    = #msctFee#
+		 WHERE	COURSECODE = #courseCode#
+		   AND  LECTDATE	 = #lectDate#
+			 AND  PROFNO 		 = #profNo#
+		   AND  YEAR 			 = #year#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePrf_Pay" parameterClass="prf_Pay">
+		UPDATE  PRF_LECTPAY SET
+						INCOMETAX	= #inCometax# ,
+						INHABTAX	= #inHabtax#  ,
+						TRAVEL		= #travel#    ,
+						NETPAY		= #netPay#    ,
+						MSCTFEE		= #msctFee#   ,
+            CALCDATE	= NULL
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  CALCDATE = to_char(to_date(#searchKeyword#,'YYYY-MM-DD'), 'YYYYMMDD')
+	</delete>
+
+</sqlMap>
+
+

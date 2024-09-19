@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/crsReq.do" location="50,350" dimension="226,96" />
+  <StrutsActivity path="/crs/req/Crs_CourseList.jsp" location="350,350" dimension="173,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseCyberQry.jsp" location="650,50" dimension="205,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseQry.jsp" location="650,350" dimension="174,51" />
+  <StrutsActivity path="/plnSurv.act" location="0,216" dimension="96,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurv_pop.jsp" location="196,216" dimension="207,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurv.jsp" location="503,216" dimension="181,51" />
+  <StrutsActivity path="/pln/survey/Pln_EduSurvExcelUp.jsp" location="784,216" dimension="223,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlan.jsp" location="0,528" dimension="169,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlanMod.jsp" location="269,528" dimension="194,51" />
+  <StrutsActivity path="/pln/plan/Pln_EduPlanCyberMod.jsp" location="563,528" dimension="225,51" />
+  <StrutsActivity path="/eduPlan.act" location="888,528" dimension="98,51" />
+  <StrutsTransition id="/crsReq.do,list,/crs/req/Crs_CourseList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="276,386" />
+      <AbsolutePoint location="350,386" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsReq.do,cyberinfo,/crs/req/Crs_CourseCyberQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="163,350" />
+      <AbsolutePoint location="163,75" />
+      <AbsolutePoint location="650,75" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsReq.do,info,/crs/req/Crs_CourseQry.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="276,416" />
+      <AbsolutePoint location="737,416" />
+      <AbsolutePoint location="737,401" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

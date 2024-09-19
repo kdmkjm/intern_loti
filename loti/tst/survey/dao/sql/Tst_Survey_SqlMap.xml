@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Tst_Survey">
+
+	<typeAlias alias="tst_Survey" type="loti.tst.survey.model.Tst_Survey"/>
+	<typeAlias alias="tst_SurveyItem" type="loti.tst.survey.model.Tst_SurveyItem"/>
+	<typeAlias alias="prf_ProfInfo" type="loti.prf.baseinfo.model.Prf_ProfInfo"/>
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectTst_Survey" parameterClass="tst_Survey" resultClass="tst_Survey">
+			SELECT
+				   		A.SURVEYNO    ,
+				   		A.TITLE       ,
+				   		TO_CHAR(TO_DATE(FROMDATE,'YYYYMMDD'),'YYYY-MM-DD') FROMDATE ,
+				   		TO_CHAR(TO_DATE(TODATE,'YYYYMMDD'),'YYYY-MM-DD') TODATE,
+				   		A.SUMMARY     ,
+				   		A.ISLECTSURVEY,
+				   		A.TARGET      ,
+				   		A.HEADTEXT    ,
+				   		A.TAILTEXT    ,
+				   		A.ITEMCOUNT   ,
+				   		A.CHARGER     ,
+				   		DECODE((SELECT COUNT(SURVEYNO) FROM TST_RSPTINFO WHERE SURVEYNO=#surveyno#),0,'Y','N') CHKMOD,
+			            B.COURSECODE,
+			            B.COURSEYEAR
+			  FROM TST_SURVEY A,
+            (SELECT A.*, B.YEAR AS COURSEYEAR
+            FROM TST_COURSEMATCH A, OPR_LECTURE B
+            WHERE SURVEYNO = #surveyno#
+                  AND A.COURSECODE = B.COURSECODE) B
+			 WHERE  A.SURVEYNO = #surveyno#
+              AND a.surveyno = B.SURVEYNO
+	</select>
+
+	<select id="selectTst_SurveyTemp" parameterClass="tst_Survey" resultClass="tst_Survey">
+			SELECT
+				   		SESSI    		,
+				   		TITLE       ,
+				   		TO_CHAR(TO_DATE(FROMDATE,'YYYYMMDD'),'YYYY-MM-DD') FROMDATE,
+				   		TO_CHAR(TO_DATE(TODATE,'YYYYMMDD'),'YYYY-MM-DD') TODATE,
+				   		SUMMARY     ,
+				   		ISLECTSURVEY,
+				   		TARGET      ,
+				   		HEADTEXT    ,
+				   		TAILTEXT    ,
+				   		ITEMCOUNT   ,
+				   		CHARGER			,
+				   		'Y' CHKMOD
+			  FROM TST_SURVEYTEMP
+			 WHERE  SESSI = #sessi#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_SurveyItemList" parameterClass="tst_Survey" resultClass="tst_SurveyItem">
+			SELECT 	ROWNUM NUM,
+				   		SURVEYNO    ,
+				   		REQSEQ      ,
+				   		ITEMGROUP   ,
+				   		ITEMCONTENTS ,
+				   		REPLYTYPE,
+				   		ETCFLAG,
+				   		SCOREFLAG,
+				   		profNo
+			  FROM TST_SURVITEM
+       WHERE  SURVEYNO = #surveyno#
+       		<!-- 	<isEqual prepend="AND" property="islectsurveyforomr" compareValue="0">
+       				ITEMCONTENTS NOT LIKE '강의만족도' || '%'
+       			</isEqual>
+       			<isEqual prepend="AND" property="islectsurveyforomr" compareValue="1">
+       				ITEMCONTENTS LIKE '강의만족도' || '%'
+       			</isEqual> -->
+       ORDER BY REQSEQ
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_SurveyItemTempList" parameterClass="tst_Survey" resultClass="tst_SurveyItem">
+			SELECT 	ROWNUM NUM,
+				   		SESSI       ,
+				   		REQSEQ      ,
+				   		ITEMGROUP   ,
+				   		ITEMCONTENTS ,
+				   		REPLYTYPE,
+				   		ETCFLAG,
+				   		SCOREFLAG
+			  FROM TST_SURVITEMTEMP
+       WHERE  SESSI = #sessi#
+       ORDER BY REQSEQ
+	</select>
+
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_ItemExamList" remapResults="true" parameterClass="tst_SurveyItem" resultClass="tst_SurveyItem">
+			SELECT 	ROWNUM NUM,
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		EXAMSEQ   ,
+				   		EXAMCONTENTS
+			  FROM TST_SURVITEMEXAM
+       WHERE  SURVEYNO = #surveyno#
+         AND  REQSEQ = #reqseq#
+       ORDER BY REQSEQ, EXAMSEQ
+	</select>
+
+	<!-- 보기조회쿼리 -->
+	<select id="selectTst_ItemTempExamList" parameterClass="tst_SurveyItem" resultClass="tst_SurveyItem">
+			SELECT 	ROWNUM NUM,
+				   		SESSI     ,
+				   		REQSEQ    ,
+				   		EXAMSEQ   ,
+				   		EXAMCONTENTS
+			  FROM TST_SURVITEMEXAMTEMP
+       WHERE  SESSI = #sessi#
+         AND  REQSEQ = #reqseq#
+       ORDER BY REQSEQ, EXAMSEQ
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectTst_SurveyList" parameterClass="tst_Survey" resultClass="tst_Survey">
+			SELECT 	ROWNUM NUM,
+				   		SURVEYNO    ,
+				   		TITLE       ,
+				   		FROMDATE    ,
+				   		TODATE      ,
+				   		SUMMARY     ,
+				   		ISLECTSURVEY,
+				   		TARGET      ,
+				   		HEADTEXT    ,
+				   		TAILTEXT    ,
+				   		ITEMCOUNT   ,
+				   		CHARGER			,
+				   		DECODE((SELECT COUNT(SURVEYNO) FROM TST_RSPTINFO B WHERE A.SURVEYNO=B.SURVEYNO),0,'Y','N') CHKMOD
+			  FROM TST_SURVEY A
+			 WHERE (FROMDATE LIKE #searchdate#||'%' OR TODATE LIKE #searchdate#||'%' OR FROMDATE IS NULL OR TODATE IS NULL)
+			 AND SURVEYNO IN (
+			 	SELECT SURVEYNO
+			 	FROM TST_COURSEMATCH
+			 	WHERE COURSECODE IN (
+			 		SELECT COURSECODE FROM OPR_LECTURE WHERE YEAR = #searchdate#
+			 	)
+			 )
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			ORDER BY FROMDATE DESC, TITLE ASC
+	</select>
+
+
+	<!-- 과정 옵션용 쿼리 -->
+	<select id="selectOpr_Lecture" parameterClass="tst_Survey" resultClass="tst_Survey">
+			SELECT DISTINCT COURSENAME || '(' || TO_NUMBER(SUBSTR(COURSECODE, 11, 2)) || '기)' COURSENAME,
+							COURSECODE
+			FROM	OPR_LECTURE
+			WHERE CRSTYPE1 NOT LIKE '00003'
+			<isNotEmpty prepend="AND" property="courseYear">
+			YEAR = #courseYear#
+			</isNotEmpty>
+			ORDER BY COURSENAME
+	</select>
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectTst_SurveyListCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_SURVEY
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_Count" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		  FROM TST_SURVEY
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_SurveyCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_SURVEY
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_SurveyMaxNo" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(SURVEYNO),0)+1 AS MAXNO
+		FROM TST_SURVEY
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_SurveyItemCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(REQSEQ)
+		  FROM TST_SURVITEM
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 해당 설문에 대하여 설문답변 이력이 존재하는지 조회 -->
+	<select id="selectTst_SurveyRSPTInfoCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT
+            COUNT(*)
+      FROM  TST_RSPTINFO
+     WHERE  SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectTst_ItemMaxSeq" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(REQSEQ),0) AS REQSEQ
+		  FROM TST_SURVITEM
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 해당 과정에 속하는 설문지 리스트 조회 -->
+	<select id="selectTst_SurveyCourseMatch" parameterClass="tst_Survey" resultClass="tst_Survey">
+		SELECT SURVEYNO, COURSECODE
+		FROM TST_COURSEMATCH
+		WHERE COURSECODE = #coursecode#
+	</select>
+
+
+	<!-- 설문대상자 수 count -->
+	<select id="selectTst_SurveyRsptTargetCount" parameterClass="tst_Survey" resultClass="java.lang.Integer">
+		SELECT COUNT(*) AS targetcount
+		FROM OPR_CRSSTUDENT
+		WHERE COURSECODE = #coursecode#
+	</select>
+
+
+	<!-- 문제은행 리스트 조회 -->
+	<select id="selectTst_SurveyItemListFromBank" parameterClass="tst_Survey" resultClass="tst_SurveyItem">
+	<dynamic>
+			SELECT
+				ITEMNO,
+				ITEMGROUP,
+				ITEMCONTENTS,
+				ITEMGBN,
+				REPLYTYPE,
+				EXAMNO EXAMSEQ,
+				EXAMCONTENTS
+			FROM TST_SURVITEMBANK
+			<isNotEmpty property="itemno_array">
+				<iterate conjunction=", " open="(" close=")" prepend="WHERE ITEMNO IN" property="itemno_array">
+					#itemno_array[]#
+				</iterate>
+			</isNotEmpty>
+			ORDER BY ITEMNO
+	</dynamic>
+	</select>
+
+	<select id="selectTst_SurveyItemBankStat" parameterClass="tst_Survey" resultClass="tst_SurveyItem">
+		<![CDATA[
+		SELECT  A.ITEMNO, A.ITEMCONTENTS, A.EXAMNO, A.EXAMCONTENTS, COUNT(B.REPLY) COUNT, SUM(COUNT(B.REPLY)) OVER (PARTITION BY ITEMNO) SUM
+		FROM    TST_SURVITEMBANK A,
+		        (SELECT  B.ITEMCONTENTS, A.REPLY
+		        FROM    TST_COMMRSPT A, TST_SURVITEM B, TST_SURVEY C
+		        WHERE   A.SURVEYNO = B.SURVEYNO
+		        AND     C.SURVEYNO = A.SURVEYNO
+		        AND     A.REQSEQ = B.REQSEQ
+		        /* AND		TO_NUMBER(SUBSTR(C.FROMDATE,1,4)) >= TO_NUMBER(TO_CHAR(SYSDATE,'YYYY'))
+		        AND		TO_NUMBER(SUBSTR(C.TODATE,1,4)) <= TO_NUMBER(TO_CHAR(SYSDATE,'YYYY')) */
+		        ) B
+		WHERE   A.ITEMCONTENTS = TRIM(REPLACE(REPLACE(B.ITEMCONTENTS,'&##40;','('),'&##41;',')'))
+		AND     B.REPLY LIKE A.EXAMNO || '%'
+		GROUP BY A.ITEMNO, A.ITEMCONTENTS, A.EXAMNO, A.EXAMCONTENTS
+		ORDER BY ITEMNO, EXAMNO
+		]]>
+	</select>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_Survey" parameterClass="tst_Survey">
+		INSERT INTO TST_SURVEY (
+			   			SURVEYNO    ,
+			   			TITLE       ,
+			   			FROMDATE    ,
+			   			TODATE      ,
+			   			SUMMARY     ,
+			   			ISLECTSURVEY,
+			   			TARGET      ,
+			   			HEADTEXT    ,
+			   			TAILTEXT    ,
+			   			ITEMCOUNT   ,
+			   			CHARGER		,
+			   			SURVEY_PASSWORD
+		) VALUES (
+
+			   			#surveyno#    ,
+			   			#title#       ,
+			   			REPLACE(#fromdate#,'-',''),
+			   			REPLACE(#todate#,'-',''),
+			   			#summary#     ,
+			   			#islectsurvey#,
+			   			#target#      ,
+			   			#headtext#    ,
+			   			#tailtext#    ,
+			   			#itemcount#   ,
+			   			#charger#	  ,
+			   			#surveyPassword#
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyTemp" parameterClass="tst_Survey">
+		INSERT INTO TST_SURVEYTEMP (
+			   			SESSI    		,
+			   			TITLE       ,
+			   			FROMDATE    ,
+			   			TODATE      ,
+			   			SUMMARY     ,
+			   			ISLECTSURVEY,
+			   			TARGET      ,
+			   			HEADTEXT    ,
+			   			TAILTEXT    ,
+			   			ITEMCOUNT   ,
+			   			CHARGER
+		) VALUES (
+
+			   			#sessi#    		,
+			   			#title#       ,
+			   			REPLACE(#fromdate#,'-',''),
+			   			REPLACE(#todate#,'-',''),
+			   			#summary#     ,
+			   			#islectsurvey#,
+			   			#target#      ,
+			   			#headtext#    ,
+			   			#tailtext#    ,
+			   			#itemcount#   ,
+			   			#charger#
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemList" parameterClass="java.util.List">
+		INSERT ALL
+		<dynamic>
+			<iterate conjunction=" ">
+				INTO TST_SURVITEM (
+		            SURVEYNO  	,
+		            REQSEQ		,
+		            ITEMGROUP	,
+		            ITEMCONTENTS,
+		            REPLYTYPE	,
+		            ETCFLAG		,
+		            SCOREFLAG,
+		            profno		            
+		      	) VALUES (
+		            #[].surveyno# ,
+					#[].reqseq# ,
+					#[].itemgroup#	,
+					#[].itemcontents#,
+					#[].replytype#,
+					#[].etcflag#,
+					#[].scoreflag#,
+					#[].profNo#
+		            )
+		    </iterate>
+		 </dynamic>
+		 SELECT * FROM DUAL
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemMake" parameterClass="tst_SurveyItem">
+		INSERT INTO TST_SURVITEM (
+			   			SURVEYNO 		,
+			   			REQSEQ      ,
+			   			ITEMGROUP   ,
+			   			ITEMCONTENTS,
+			   			REPLYTYPE,
+			   			ETCFLAG,
+			   			SCOREFLAG,
+			   			profno
+		) VALUES (
+
+			   			#surveyno#   	 ,
+			   			#reqseq#       ,
+			   			#itemgroup#    ,
+			   			#itemcontents# ,
+			   			#replytype#,
+			   			#etcflag#,
+			   			#scoreflag#,
+			   			#profNo#
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemMakeTemp" parameterClass="tst_SurveyItem">
+		INSERT INTO TST_SURVITEMTEMP (
+			   			SESSI    		,
+			   			REQSEQ      ,
+			   			ITEMGROUP   ,
+			   			ITEMCONTENTS,
+			   			REPLYTYPE,
+			   			ETCFLAG,
+			   			SCOREFLAG
+		) VALUES (
+
+			   			#sessi#    		 ,
+			   			#reqseq#       ,
+			   			#itemgroup#    ,
+			   			#itemcontents# ,
+			   			#replytype#,
+			   			#etcflag#,
+			   			#scoreflag#
+		)
+	</insert>
+
+
+		<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemExam" parameterClass="tst_SurveyItem">
+		INSERT INTO TST_SURVITEMEXAM (
+			   			SURVEYNO 		,
+			   			REQSEQ      ,
+			   			EXAMSEQ   ,
+			   			EXAMCONTENTS
+		) VALUES (
+
+			   			#surveyno#   	 ,
+			   			#reqseq#       ,
+			   			#examseq#    ,
+			   			#examcontents#
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemExamList" parameterClass="java.util.List">
+		INSERT ALL
+		<dynamic>
+			<iterate conjunction=" ">
+				INTO TST_SURVITEMEXAM (
+		            SURVEYNO  	,
+		            REQSEQ		,
+		            EXAMSEQ		,
+		            EXAMCONTENTS
+		      	) VALUES (
+		            #[].surveyno# ,
+					#[].reqseq# ,
+					#[].examseq#	,
+					#[].examcontents#
+		            )
+		    </iterate>
+		 </dynamic>
+		 SELECT * FROM DUAL
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_SurveyItemExamTemp" parameterClass="tst_SurveyItem">
+		INSERT INTO TST_SURVITEMEXAMTEMP (
+			   			SESSI    		,
+			   			REQSEQ      ,
+			   			EXAMSEQ     ,
+			   			EXAMCONTENTS
+		) VALUES (
+
+			   			#sessi#    		 ,
+			   			#reqseq#       ,
+			   			#examseq#    ,
+			   			#examcontents#
+		)
+	</insert>
+
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_ItemCopy" parameterClass="tst_Survey">
+		INSERT INTO TST_SURVITEM (
+			   			SURVEYNO 		,
+			   			REQSEQ      ,
+			   			ITEMGROUP   ,
+			   			ITEMCONTENTS,
+			   			REPLYTYPE ,
+			   			ETCFLAG
+		) SELECT  #surveyno#  ,
+			   			REQSEQ      ,
+			   			ITEMGROUP   ,
+			   			ITEMCONTENTS,
+			   			REPLYTYPE,
+			   			ETCFLAG
+			  FROM  TST_SURVITEMTEMP
+			 WHERE  SESSI = #sessi#
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_ExamCopy" parameterClass="tst_Survey">
+		INSERT INTO TST_SURVITEMEXAM (
+			   			SURVEYNO 		,
+			   			REQSEQ      ,
+			   			EXAMSEQ     ,
+			   			EXAMCONTENTS
+		) SELECT  #surveyno#,
+		          REQSEQ,
+		          EXAMSEQ,
+		          EXAMCONTENTS
+		    FROM  TST_SURVITEMEXAMTEMP
+		   WHERE  SESSI = #sessi#
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_CourseMatch" parameterClass="tst_Survey">
+		INSERT INTO TST_COURSEMATCH(
+ 						SURVEYNO,
+  						COURSECODE,
+  						RSPTCNT,
+  						INSUSER,
+  						INSDATE
+		)VALUES(
+		          #surveyno#,
+		          #coursecode#,
+		          (SELECT COUNT(JUMINNO) FROM  OPR_CRSSTUDENT WHERE  COURSECODE = #coursecode#),
+		          'System',
+		          (SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertTst_TeacherItem" parameterClass="tst_Survey">
+		INSERT INTO TST_TEACHERITEM(
+							SURVEYNO,
+  						REQSEQ,
+  						COURSECODE,
+  						PROFNO,
+  						ITEMCONTENTS,
+  						SUBJNAME,
+  						DISPLAYNO
+		) SELECT  B.SURVEYNO,
+		          B.REQSEQ,
+		          A.COURSECODE,
+		          A.PROFNO,
+		          A.PROFNAME,
+		          A.SUBJNAME,
+		          ROW_NUMBER() OVER(PARTITION BY B.REQSEQ ORDER BY A.PROFNAME) ORD
+		    FROM (SELECT COURSECODE, PROFNO, PROFNAME, SUBSTR(XMLAGG(XMLELEMENT("NM",','||SUBJNAME)ORDER BY SUBJNAME).EXTRACT('//text()'),2) SUBJNAME
+							  FROM (SELECT A.COURSECODE, A.SUBJSEQ, C.SUBJNAME, B.PROFNO, B.PROFNAME
+							          FROM OPR_TIMETABLE A,
+							                OPR_LECTPROF B,
+							                OPR_SUBJECT C
+							          WHERE A.COURSECODE = B.COURSECODE
+							            AND A.LECTDATE = B.LECTDATE
+							            AND A.TIMESEQ = B.TIMESEQ
+							            AND A.COURSECODE = C.COURSECODE
+							            AND A.SUBJSEQ = C.SUBJSEQ
+							            AND A.COURSECODE = #coursecode#
+							       GROUP BY A.COURSECODE, A.SUBJSEQ, C.SUBJNAME, B.PROFNO, B.PROFNAME)
+							 GROUP BY COURSECODE, PROFNO, PROFNAME) A,
+						 (SELECT SURVEYNO, REQSEQ
+  							FROM TST_SURVITEM
+ 							 WHERE REPLYTYPE = '6'
+   							 AND SURVEYNO = #surveyno#
+   					 ) B
+	</insert>
+
+	<insert id="insertTst_SurveyItemBank" parameterClass="tst_SurveyItem">
+		INSERT INTO TST_SURVITEMBANK(
+				ITEMNO,
+				ITEMGROUP,
+				ITEMCONTENTS,
+				REPLYTYPE,
+				ITEMGBN,
+				EXAMNO,
+				EXAMCONTENTS)
+		VALUES (#itemno#,
+				#itemgroup#,
+				#itemcontents#,
+				#replytype#,
+				#itemgbn#,
+				#examseq#,
+				#examcontents#)
+	</insert>
+
+	<!--  레코드 수정 -->
+	<update id="updateTst_SurveyTemp" parameterClass="tst_Survey">
+		UPDATE TST_SURVEYTEMP SET
+			   TITLE        = #title#       ,
+			   FROMDATE     = REPLACE(#fromdate#,'-',''),
+			   TODATE       = REPLACE(#todate#,'-',''),
+			   SUMMARY      = #summary#     ,
+			   ISLECTSURVEY = #islectsurvey#,
+			   TARGET       = #target#      ,
+			   HEADTEXT     = #headtext#    ,
+			   TAILTEXT     = #tailtext#    ,
+			   ITEMCOUNT    = #itemcount#   ,
+			   CHARGER      = #charger#
+	  WHERE SESSI = #sessi#
+	</update>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateTst_Survey" parameterClass="tst_Survey">
+		UPDATE TST_SURVEY SET
+			   TITLE        = #title#       ,
+			   FROMDATE     = REPLACE(#fromdate#,'-',''),
+			   TODATE       = REPLACE(#todate#,'-',''),
+			   SUMMARY      = #summary#     ,
+			   ISLECTSURVEY = #islectsurvey#,
+			   TARGET       = #target#      ,
+			   HEADTEXT     = #headtext#    ,
+			   TAILTEXT     = #tailtext#    ,
+			   ITEMCOUNT    = #itemcount#   ,
+			   CHARGER      = #charger#
+		WHERE SURVEYNO = #surveyno#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_Survey" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVEY
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!--  레코드 삭제 -->
+	<delete id="deleteTst_SurveyTemp" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVEYTEMP
+		 WHERE SESSI = #sessi#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_Item" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEM
+		 WHERE SURVEYNO = #surveyno#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ItemTemp" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMTEMP
+		 WHERE SESSI = #sessi#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ItemDelete" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEM
+		 WHERE SURVEYNO = #surveyno#
+			 AND REQSEQ = #delseq#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ItemTempDelete" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMTEMP
+		 WHERE SESSI = #sessi#
+			 AND REQSEQ = #delseq#
+	</delete>
+
+			<!--  레코드 삭제 -->
+	<delete id="deleteTst_Exam" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMEXAM
+		 WHERE SURVEYNO = #surveyno#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ExamTemp" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMEXAMTEMP
+		 WHERE SESSI = #sessi#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ExamDelete" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMEXAM
+		 WHERE SURVEYNO = #surveyno#
+			 AND REQSEQ = #delseq#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_ExamTempDelete" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMEXAMTEMP
+		 WHERE SESSI = #sessi#
+			 AND REQSEQ = #delseq#
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_SurveyItemMake" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEM
+		 WHERE SURVEYNO = #surveyno#
+		   AND REQSEQ = #reqseq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_SurveyItemMakeTemp" parameterClass="tst_Survey">
+		DELETE FROM TST_SURVITEMTEMP
+		 WHERE SESSI = #sessi#
+		   AND REQSEQ = #reqseq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_TeacherItem" parameterClass="tst_Survey">
+		DELETE FROM TST_TEACHERITEM
+		 WHERE COURSECODE = #coursecode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_CourseMatch" parameterClass="tst_Survey">
+		DELETE FROM TST_COURSEMATCH
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_TeacherItem1" parameterClass="tst_Survey">
+		DELETE FROM TST_TEACHERITEM
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_RsptInfo" parameterClass="tst_Survey">
+		DELETE FROM TST_RSPTINFO
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!--  레코드 삭제 -->
+	<delete id="deleteTst_CommRspt" parameterClass="tst_Survey">
+		DELETE FROM TST_COMMRSPT
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_LectRspt" parameterClass="tst_Survey">
+		DELETE FROM TST_LECTRSPT
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteTst_TeacherRspt" parameterClass="tst_Survey">
+		DELETE FROM TST_TEACHERRSPT
+		 WHERE SURVEYNO = #surveyno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<delete id="deleteTst_SurveyItemBank">
+		DELETE FROM TST_SURVITEMBANK
+	</delete>
+
+
+	<!--
+	  ===============================
+	  === ITEM BANK GROUP DDL
+	  ===============================
+	  CREATE TABLE TST_SURVEYITEMBANKGRP (
+		  GRP_NO NUMBER(3,0),
+		  ITEMNO NUMBER(3,0),
+		  CONSTRAINT PK_TST_SURVEYITEMBANKGRP PRIMARY KEY (GRP_NO, ITEMNO)
+		);
+	 -->
+	 <select id="selectTst_SurveyItemBankGrps" parameterClass="tst_SurveyItem" resultClass="tst_SurveyItem">
+	 	SELECT
+	 		grp_no as bankgrp,
+	 		itemno
+	 	FROM TST_SURVEYITEMBANKGRP
+	 	<dynamic prepend="WHERE">
+	 		<isNotEmpty prepend="AND" property="bankgrp">
+	 			grp_no = #bankgrp#
+	 		</isNotEmpty>
+	 		<isNotEmpty prepend="AND" property="itemno">
+	 			itemno = #itemno#
+	 		</isNotEmpty>
+	 	</dynamic>
+	 	ORDER BY bankgrp, itemno
+	 </select>
+
+	 <insert id="insertTst_SurveyItemBankgrp" parameterClass="tst_SurveyItem">
+	 	INSERT INTO TST_SURVEYITEMBANKGRP
+	 	(grp_no, itemno)
+	 	VALUES
+	 	(#bankgrp#, #itemno#)
+	 </insert>
+
+	 <delete id="deleteTst_SurveyItemBankgrpBygrp" parameterClass="tst_Survey">
+	 	DELETE FROM TST_SURVEYITEMBANKGRP
+	 	WHERE grp_no = #bankgrp# OR grp_no = 0
+	 </delete>
+	 <delete id="deleteTst_SurveyItemBankgrp" parameterClass="tst_SurveyItem">
+	 	DELETE FROM TST_SURVEYITEMBANKGRP
+	 	WHERE grp_no = #bankgrp# and itemno = #itemno#
+	 </delete>
+	 
+	 <select id="selectProfList" parameterClass="prf_ProfInfo" resultClass="prf_ProfInfo">
+	 	SELECT ROW_NUMBER() OVER(ORDER BY profName) AS rnum
+	 	     , professorNo
+	 	     , profName
+	 	     , workPlace
+	 	     , SUBSTR(juminNo, 1, 6) AS juminNo
+	 	  FROM PRF_PROFESSOR
+	 	 WHERE 1=1
+		   
+		   <isNotEmpty prepend="AND" property="searchKeyword">
+		 	   profname  LIKE '%' || #searchKeyword# || '%'
+		    OR workplace LIKE '%' || #searchKeyword# || '%'
+		   </isNotEmpty>
+		   
+	 	 ORDER BY profName
+	 </select>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="surveyno">
+				SURVEYNO = #surveyno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="title">
+				TITLE = #title#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="fromdate">
+				FROMDATE = #fromdate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="todate">
+				TODATE = #todate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="summary">
+				SUMMARY = #summary#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="islectsurvey">
+				ISLECTSURVEY = #islectsurvey#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="target">
+				TARGET = #target#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="headtext">
+				HEADTEXT = #headtext#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="tailtext">
+				TAILTEXT = #tailtext#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="itemcount">
+				ITEMCOUNT = #itemcount#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="charger">
+				CHARGER = #charger#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

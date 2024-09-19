@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="EUC-KR" ?>
+
+<!DOCTYPE daoConfig
+    PUBLIC "-//ibatis.apache.org//DTD DAO Configuration 2.0//EN"
+    "http://ibatis.apache.org/dtd/dao-2.dtd">
+
+<daoConfig>
+
+  <context>
+
+    <transactionManager type="SQLMAP">
+      <property name="SqlMapConfigResource"
+        value="loti/cmn/sqlmap-config.xml"/>
+    </transactionManager>
+
+<!-- ##########		Common 		########## -->
+		<!--  샘플 페이지  -->
+    <dao interface="loti.sys.test.dao.SysMenuDAO"
+    implementation="loti.sys.test.dao.SysMenuDAOImpl"/>
+	
+		
+	<!--  메인화면  -->
+    <dao interface="loti.ext.main.begn.dao.ExtMain_BeginDAO"
+    implementation="loti.ext.main.begn.dao.ExtMain_BeginDAOImpl"/>
+
+		<!--  메인메뉴  -->
+    <dao interface="loti.cmn.menu.dao.MainMenuDAO"
+    implementation="loti.cmn.menu.dao.MainMenuDAOImpl"/>
+
+		<!--  진행중인과정  -->
+    <dao interface="loti.svc.center.dao.Svc_StdPortalDAO"
+    implementation="loti.svc.center.dao.Svc_StdPortalDAOImpl"/>
+    
+    <!--  공통코드조회  -->
+    <dao interface="loti.cmn.code.dao.ComCodeDAO"
+    implementation="loti.cmn.code.dao.ComCodeDAOImpl"/>
+    
+    <!--  과정 조회 팝업 화면  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupCourseDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupCourseDAOImpl"/> 
+    
+    <!--  사용자 조회 팝업 화면  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupUserDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupUserDAOImpl"/> 
+    
+    <!--  강사 조회 팝업 화면  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupProfDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupProfDAOImpl"/> 
+    
+    <!--  과정 상세 조회 팝업 화면  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupCourseInfoDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupCourseInfoDAOImpl"/> 
+    
+    <!--  직급 직렬 조회 팝업 화면  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupRankJobDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupRankJobDAOImpl"/> 
+      
+    <!--  공통SMS발송  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupSendSMSDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupSendSMSDAOImpl"/>   
+    
+    <!--  공통EMAIL발송  -->
+    <dao interface="loti.cmn.common.dao.Cmn_PopupSendEMailDAO"
+    implementation="loti.cmn.common.dao.Cmn_PopupSendEMailDAOImpl"/> 
+    
+    <!-- 온나라 연계 -->
+    <dao interface="loti.onnara.dao.Onnara_dbDAO" 
+    implementation="loti.onnara.dao.Onnara_dbDAOImpl"/>
+    
+<!-- ##########		시스템  		########## -->
+	<!--  시스템 메뉴관리  -->
+    <dao interface="loti.sys.menu.dao.SysMenuDAO"
+    implementation="loti.sys.menu.dao.SysMenuDAOImpl"/>
+    <!--  시스템 사용자관리  -->
+    <dao interface="loti.sys.user.dao.SysUserDAO"
+    implementation="loti.sys.user.dao.SysUserDAOImpl"/>
+    <!--  시스템 그룹관리  -->
+    <dao interface="loti.sys.user.dao.SysGroupDAO"
+    implementation="loti.sys.user.dao.SysGroupDAOImpl"/>
+    <!--  시스템 조직도관리  -->
+    <dao interface="loti.sys.org.dao.SysOrgDAO"
+    implementation="loti.sys.org.dao.SysOrgDAOImpl"/>
+    <!--  시스템 내부코드관리  -->
+    <dao interface="loti.sys.code.dao.SysCodeDAO"
+    implementation="loti.sys.code.dao.SysCodeDAOImpl"/>
+    <!--  AGENT 관리  -->
+    <dao interface="loti.sys.agent.dao.SysAgentDAO"
+    implementation="loti.sys.agent.dao.SysAgentDAOImpl"/>
+    <dao interface="loti.sys.loti.dao.SysLotiScheduleDAO"
+    implementation="loti.sys.loti.dao.SysLotiScheduleDAOImpl"/>
+    
+    <dao interface="loti.sys.adm.dao.SysAdmLoginDAO"
+    implementation="loti.sys.adm.dao.SysAdmLoginDAOImpl"/>
+
+<!-- ##########		교육계획		########## -->
+    <!--  교육계획 조사서  -->
+    <dao interface="loti.pln.survey.dao.Pln_EduSurvDAO"
+    implementation="loti.pln.survey.dao.Pln_EduSurvDAOImpl"/>
+    <!--  교육계획 계획서  -->
+    <dao interface="loti.pln.plan.dao.Pln_EduPlanDAO"
+    implementation="loti.pln.plan.dao.Pln_EduPlanDAOImpl"/>
+    <!--  교육계획 계획서  확정 전송-->
+    <dao interface="loti.pln.fix.dao.Pln_PlanFixDAO"
+    implementation="loti.pln.fix.dao.Pln_PlanFixDAOImpl"/>
+    <!--  교육계획 교육과정편성 -->
+    <dao interface="loti.crs.org.dao.Crs_OrgDAO"
+    implementation="loti.crs.org.dao.Crs_OrgDAOImpl"/>
+    <!--  교육계획 교육과정조회 -->
+    <dao interface="loti.crs.req.dao.Crs_CourseDAO"
+    implementation="loti.crs.req.dao.Crs_CourseDAOImpl"/>
+
+
+<!-- ##########		과정운영	########## -->
+    <!--  교육시간표 -->
+    <dao interface="loti.crs.timetbl.dao.Crs_TimeTblDayDAO"
+    implementation="loti.crs.timetbl.dao.Crs_TimeTblDayDAOImpl"/>
+    <!--  출강관리 -->
+    <dao interface="loti.crs.prof.dao.Crs_LectureMgmtDAO"
+    implementation="loti.crs.prof.dao.Crs_LectureMgmtDAOImpl"/>
+    <!--  교육비관리 -->
+    <dao interface="loti.crs.cost.dao.Crs_CostCalcDAO"
+    implementation="loti.crs.cost.dao.Crs_CostCalcDAOImpl"/>
+    <!--  사이버교육비관리 -->
+    <dao interface="loti.crs.cost.dao.Crs_CyberCostCalcDAO"
+    implementation="loti.crs.cost.dao.Crs_CyberCostCalcDAOImpl"/>    
+    <!--  예산관리 -->
+    <dao interface="loti.crs.cost.dao.Crs_CostBudgetDAO"
+    implementation="loti.crs.cost.dao.Crs_CostBudgetDAOImpl"/> 
+    <!--  교육비분할 -->
+    <dao interface="loti.crs.costdiv.dao.Crs_CostDivideDAO"
+    implementation="loti.crs.costdiv.dao.Crs_CostDivideDAOImpl"/>     
+    <!--  교육생수신관리 -->
+    <dao interface="loti.opr.recv.dao.Opr_StudentListRcvDAO"
+    implementation="loti.opr.recv.dao.Opr_StudentListRcvDAOImpl"/>    
+    <!--  교육생확정관리 -->
+    <dao interface="loti.opr.fix.dao.Opr_StudentFixDAO"
+    implementation="loti.opr.fix.dao.Opr_StudentFixDAOImpl"/> 
+    <!--  교육생관리 -->
+    <dao interface="loti.opr.student.dao.Opr_StudentDAO"
+    implementation="loti.opr.student.dao.Opr_StudentDAOImpl"/>  
+    <!--  근태관리 -->
+    <dao interface="loti.opr.attend.dao.Opr_AttendDAO"
+    implementation="loti.opr.attend.dao.Opr_AttendDAOImpl"/>   
+    <!--  이수관리 -->
+    <dao interface="loti.opr.pass.dao.Opr_PassDAO"
+    implementation="loti.opr.pass.dao.Opr_PassDAOImpl"/>     
+    <!--  이수실적조회 -->
+    <dao interface="loti.opr.acom.dao.Opr_PassAcomDAO"
+    implementation="loti.opr.acom.dao.Opr_PassAcomDAOImpl"/>       
+    <!--  교육생검색 -->
+    <dao interface="loti.opr.search.dao.Opr_StudentSearchDAO"
+    implementation="loti.opr.search.dao.Opr_StudentSearchDAOImpl"/> 
+    <!--  교육생현황통계 -->    
+    <dao interface="loti.opr.stats.dao.Opr_StatsDAO"
+    implementation="loti.opr.stats.dao.Opr_StatsDAOImpl"/> 
+    <!--  교육생현황통계 -->    
+    <dao interface="loti.opr.orgstd.dao.Opr_OrgStdDAO"
+    implementation="loti.opr.orgstd.dao.Opr_OrgStdDAOImpl"/> 
+    
+
+<!-- ##########		자원관리	########## -->
+    <!--  교재 관리  -->
+    <dao interface="loti.rsc.book.dao.RscBookDAO"
+    implementation="loti.rsc.book.dao.RscBookDAOImpl"/>
+    <!--  기자재관리  -->
+    <dao interface="loti.rsc.inst.dao.RscInstDAO"
+    implementation="loti.rsc.inst.dao.RscInstDAOImpl"/>
+    <!--  도서관리  -->
+    <dao interface="loti.rsc.lib.dao.RscLibDAO"
+    implementation="loti.rsc.lib.dao.RscLibDAOImpl"/>
+    <!--  교육장 관리   -->
+    <dao interface="loti.rsc.room.dao.RscRoomDAO"
+    implementation="loti.rsc.room.dao.RscRoomDAOImpl"/>
+    <!--  SMS발송현황  관리   -->
+    <dao interface="loti.rsc.smsstatus.dao.RscSMSStatusListDAO"
+    implementation="loti.rsc.smsstatus.dao.RscSMSStatusListDAOImpl"/>
+    <!--  증명서 인쇄   -->
+    <dao interface="loti.ext.mylc.cert.dao.ExtMylc_CertPrtDAO"
+    implementation="loti.ext.mylc.cert.dao.ExtMylc_CertPrtDAOImpl"/>
+
+
+<!-- ##########		외부사용자	########## -->
+    <!--  조사서 접수  -->
+    <dao interface="loti.ext.crs.survplan.dao.ExtCrs_SurvEduPlanDAO"
+    implementation="loti.ext.crs.survplan.dao.ExtCrs_SurvEduPlanDAOImpl"/>
+    <!-- 과정조회  -->
+    <dao interface="loti.ext.crs.course.dao.ExtCrs_CourseDAO"
+    implementation="loti.ext.crs.course.dao.ExtCrs_CourseDAOImpl"/>
+    <!--  교육장 대여 신청  -->
+    <dao interface="loti.ext.mylc.room.dao.ExtMylc_RoomReqDAO"
+    implementation="loti.ext.mylc.room.dao.ExtMylc_RoomReqDAOImpl"/>
+    <!-- 월별교육과정  -->
+    <dao interface="loti.ext.crs.month.dao.ExtCrs_MonthPlanDAO"
+    implementation="loti.ext.crs.month.dao.ExtCrs_MonthPlanDAOImpl"/>
+    <!--  수강내역  -->
+    <dao interface="loti.ext.mylc.atnd.dao.ExtMylc_LectureListDAO"
+    implementation="loti.ext.mylc.atnd.dao.ExtMylc_LectureListDAOImpl"/>
+    <!--  개인정보수정  -->
+    <dao interface="loti.ext.main.prsn.dao.ExtMain_MyInfoDAO"
+    implementation="loti.ext.main.prsn.dao.ExtMain_MyInfoDAOImpl"/>
+    <!--  설문조사  -->
+    <dao interface="loti.ext.mylc.survey.dao.ExtMylc_SurveyDAO"
+    implementation="loti.ext.mylc.survey.dao.ExtMylc_SurveyDAOImpl"/>    
+
+
+<!-- ##########		게시판	########## -->
+    <!--  Q&A 게시판  -->
+    <dao interface="loti.svc.ref.qna.dao.Svc_BoardQNADAO"
+    implementation="loti.svc.ref.qna.dao.Svc_BoardQNADAOImpl"/>
+    <!--  자료실 게시판  -->
+    <dao interface="loti.svc.ref.morgue.dao.Svc_BoardMorgueDAO"
+    implementation="loti.svc.ref.morgue.dao.Svc_BoardMorgueDAOImpl"/>
+    <!--  교육후기 게시판  -->
+    <dao interface="loti.svc.ref.afnote.dao.Svc_BoardAfNoteDAO"
+    implementation="loti.svc.ref.afnote.dao.Svc_BoardAfNoteDAOImpl"/>
+    <!--  과정요청 게시판  -->
+    <dao interface="loti.ext.crs.req.dao.ExtCrs_ReqCrsDAO"
+    implementation="loti.ext.crs.req.dao.ExtCrs_ReqCrsDAOImpl"/>
+<!-- ADD Start:2012/11/08:yunsh -->
+    <!--  공지사항 게시판  -->
+    <dao interface="loti.svc.ref.notice.dao.Svc_BoardNoticeDAO"
+    implementation="loti.svc.ref.notice.dao.Svc_BoardNoticeDAOImpl"/>
+<!-- ADD End:2012/11/08:yunsh -->
+
+<!-- ##########		SMSEMAIL	########## -->
+    <!--  SMSEMAIL 발송  -->
+    <dao interface="loti.svc.sms.dao.Svc_SMSSendDAO"
+    implementation="loti.svc.sms.dao.Svc_SMSSendDAOImpl"/>
+
+<!-- ##########　강사관리　########## -->
+    <!--  강사 정보  -->
+    <dao interface="loti.prf.baseinfo.dao.Prf_ProfInfoDAO"
+    implementation="loti.prf.baseinfo.dao.Prf_ProfInfoDAOImpl"/>
+    <!--  강사만족도 정보  -->
+    <dao interface="loti.prf.baseinfo.dao.Prf_ProfSatisDAO"
+    implementation="loti.prf.baseinfo.dao.Prf_ProfSatisDAOImpl"/>    
+    <!--  강사 수당  -->
+    <dao interface="loti.prf.pay.dao.Prf_PayDAO"
+    implementation="loti.prf.pay.dao.Prf_PayDAOImpl"/>
+    <!--  강사 주간 수당  -->
+    <dao interface="loti.prf.weekpay.dao.Prf_WeekPayDAO"
+    implementation="loti.prf.weekpay.dao.Prf_WeekPayDAOImpl"/>
+    <!--  강사료 지급기준  -->
+    <dao interface="loti.prf.payrule.dao.Prf_PayStandardDAO"
+    implementation="loti.prf.payrule.dao.Prf_PayStandardDAOImpl"/>
+    <!--  강의실적확인  -->
+    <dao interface="loti.prf.acom.dao.Prf_LectAcomDAO"
+    implementation="loti.prf.acom.dao.Prf_LectAcomDAOImpl"/>
+
+<!-- ##########　평가설문관리　########## -->
+    <!--  성적 관리  -->
+    <dao interface="loti.tst.score.dao.Tst_ScoreDAO"
+    implementation="loti.tst.score.dao.Tst_ScoreDAOImpl"/>
+    <!--  설문 관리  -->
+    <dao interface="loti.tst.survey.dao.Tst_SurveyDAO"
+    implementation="loti.tst.survey.dao.Tst_SurveyDAOImpl"/>
+    <!--  만족도 관리  -->
+    <dao interface="loti.tst.satis.dao.Tst_SatisDAO"
+    implementation="loti.tst.satis.dao.Tst_SatisDAOImpl"/>    
+    
+<!--  ##########　 충북시도군 인사랑 #############  -->
+    <dao interface="loti.insarang.dao.Infovil_OrganDAO"
+    implementation="loti.insarang.dao.Infovil_OrganDAOImpl"/>
+ 
+    
+    <!-- ####### e-hojo 예산정보 연계 #########-->
+    <dao interface="ext.ehojo.scheduler.EhojoDAO"
+        implementation="ext.ehojo.scheduler.EhojoDAOImpl"/>
+   </context>
+
+</daoConfig>

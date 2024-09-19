@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="RscSMSStatusList">
+
+<typeAlias alias="rscSMSStatusList" type="loti.rsc.smsstatus.model.RscSMSStatusList"/>
+
+	<!-- SMS발송현황 조회 [rscSMSStatusList] -->
+	<select id="selectRscSMSStatusListList" parameterClass="rscSMSStatusList" resultClass="rscSMSStatusList">
+			SELECT 	SEND_NO  	 									,     
+					  	JUMINNO    									,   
+					  	B.NAME AS CODE_NAME 				,   
+					  	FROM_NAME  									,   
+					  	REPLACE(FROM_TEL,'-','') AS FROM_TEL,
+					  	MSG													,
+					  	MIN(REPLACE(TRANSLATE(SEND_DTTM,'-:',' '),' ', '')) AS SEND_DTTM ,  
+					  	SEND_GBN, 
+					  	DECODE(SEND_GBN, '02', (SELECT COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE, 11, 2))||'기)' FROM OPR_LECTURE WHERE COURSECODE = A.COURSECODE)) COURSENAME
+			FROM SEND_SMS_HISTORY A, SYS_SYSTEMCODE B
+			WHERE A.SMS_GBN = B.CODE
+			AND B.CODEDIV = '00030'
+		<isNotEqual property="sysMgr" compareValue="Y">
+			AND A.JUMINNO = #juminNo# 
+		</isNotEqual>
+		<isNotEmpty prepend="AND" property="searchType">
+					A.SMS_GBN = #searchType#
+		</isNotEmpty>				   
+			AND SUBSTR(SEND_DTTM,1,10) BETWEEN #searchFromDate# AND #searchToDate#
+			GROUP BY SEND_NO, JUMINNO, B.NAME, FROM_NAME, FROM_TEL, MSG, SEND_GBN, COURSECODE
+			ORDER BY SEND_NO DESC 
+	</select>
+
+	<!-- step1 SMS발송현황 상세보기를 조회 [rscSMSStatusList] -->
+	<select id="infoRscSMSStatusList" parameterClass="rscSMSStatusList" resultClass="rscSMSStatusList">
+			SELECT 	SEND_NO  	 									,     
+					  	JUMINNO    									,   
+					  	B.NAME AS CODE_NAME 				,   
+					  	FROM_NAME  									,   
+					  	REPLACE(FROM_TEL,'-','') AS FROM_TEL,
+					  	MSG													,
+					  	MIN(REPLACE(TRANSLATE(SEND_DTTM,'-:',' '),' ', '')) AS SEND_DTTM ,  
+					  	SEND_GBN  
+			FROM SEND_SMS_HISTORY A, SYS_SYSTEMCODE B
+			WHERE A.SMS_GBN = B.CODE
+			AND B.CODEDIV = '00030'
+		<isNotEqual property="sysMgr" compareValue="Y">
+			AND A.JUMINNO = #juminNo# 
+		</isNotEqual>
+			AND A.SEND_NO  = #send_no#
+			GROUP BY SEND_NO, JUMINNO, B.NAME, FROM_NAME, FROM_TEL, MSG, SEND_GBN
+	</select>
+	
+	<!-- step2 SMS발송현황 상세보기를 조회 [rscSMSStatusList] -->
+	<select id="infoRscSMSStatusListList" parameterClass="rscSMSStatusList" resultClass="rscSMSStatusList">
+			SELECT SEND_SEQ													,
+						 TO_NAME  												,  
+		  			 REPLACE(TO_TEL,'-','') AS TO_TEL	,
+		  			 MSG 
+			FROM SEND_SMS_HISTORY
+			WHERE SEND_NO  = #send_no#
+		<isNotEqual property="sysMgr" compareValue="Y">
+			  AND JUMINNO = #juminNo# 
+		</isNotEqual>
+			ORDER BY SEND_SEQ ASC
+	</select>
+	
+</sqlMap>
+	

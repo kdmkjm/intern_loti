@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_PassAcom">
+
+	<typeAlias alias="opr_PassAcom" type="loti.opr.acom.model.Opr_PassAcom"/>
+
+
+	<!-- 계획&이수 목록조회쿼리 -->
+	<select id="selectOpr_PassAcomList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT  
+            A.COURSECODE, A.YEAR, A.COURSENAME||'('||to_number(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+            A.BASEYYMM, A.crstype1, A.CRSTYPE2, A.CRSTYPE3,
+            to_char(to_date(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || to_char(to_date(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+            A.EDUCOUNT PLANCOUNT,
+           (SELECT  COUNT(*)    FROM  OPR_APPLICANT 
+             WHERE  COURSECODE = A.COURSECODE) APPLYCOUNT,
+           (SELECT  COUNT(*)    FROM  OPR_CRSSTUDENT 
+             WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y') COMPLYCOUNT,
+           (SELECT  COUNT(*)    FROM OPR_CRSSTUDENT 
+             WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'N') NOTCOMPLYCOUNT,
+						ROUND((SELECT  COUNT(*)    FROM OPR_CRSSTUDENT 
+                    WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y') * 100 / DECODE(A.EDUCOUNT, 0, null, A.EDUCOUNT)) COMPLYRATE
+      FROM  OPR_LECTURE A
+		 WHERE	A.ISPASS LIKE 'Y'
+       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+		<isNotEmpty prepend="AND" property="crsType1"> 
+			<!-- 집합교육 검색 처리 -->
+			<isEqual property="crsType1" compareValue="00000">
+				(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+			</isEqual>
+			<isNotEqual property="crsType1" compareValue="00000">
+				A.CRSTYPE1 = #crsType1#
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType2">
+						A.CRSTYPE2 = #crsType2#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType3">
+						A.CRSTYPE3 = #crsType3#
+		</isNotEmpty>
+  ORDER BY	A.BASEYYMM, A.EDUFROM, A.EDUTO, A.COURSENAME
+	</select>
+	
+	
+	<select id="selectOpr_PassAcomExcelList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT    
+            COURSENAME      COL_A,
+            EDUDATE         COL_B,
+            PLANCOUNT       COL_C,
+            APPLYCOUNT      COL_D,
+            COMPLYCOUNT     COL_E,
+            NOTCOMPLYCOUNT  COL_F,
+            COMPLYRATE      COL_G 
+      FROM    
+           (SELECT  
+                    0           NUM        ,
+                    '과정명'    COURSENAME   ,
+                    '교육기간'  EDUDATE  ,
+                    '계획'      PLANCOUNT    ,
+                    '신청'      APPLYCOUNT    ,
+                    '이수'      COMPLYCOUNT  ,
+                    '미이수'    NOTCOMPLYCOUNT ,
+                    '이수율'    COMPLYRATE    
+              FROM  DUAL
+         UNION ALL
+             SELECT  
+                    1 NUM, '계' COURSENAME, '' EDUDATE, A.*, TO_CHAR(ROUND(COMPLYCOUNT * 100 / A.PLANCOUNT)) COMPLYRATE
+              FROM
+                   (SELECT  
+                            TO_CHAR(SUM(A.EDUCOUNT)) PLANCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_APPLICANT  WHERE COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y'))) COMPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'N'))) NOTCOMPLYCOUNT
+                      FROM  OPR_LECTURE A
+                     WHERE  A.ISPASS LIKE 'Y'
+                    <isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+								<isEqual property="crsType1" compareValue="00000">
+									(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+								</isEqual>
+								<isNotEqual property="crsType1" compareValue="00000">
+									A.CRSTYPE1 = #crsType1#
+								</isNotEqual>
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="crsType2">
+									A.CRSTYPE2 = #crsType2#
+					</isNotEmpty>
+					<isNotEmpty prepend="AND" property="crsType3">
+									A.CRSTYPE3 = #crsType3#
+					</isNotEmpty>
+                       AND  SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)    BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')) A
+         UNION ALL
+            SELECT  
+                    ROWNUM+1 NUM, A.*
+              FROM
+                   (SELECT  
+                            A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+                            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+                            TO_CHAR(A.EDUCOUNT) PLANCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_APPLICANT  WHERE COURSECODE = A.COURSECODE)) APPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y')) COMPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'N')) NOTCOMPLYCOUNT,
+                            TO_CHAR(ROUND((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y') * 100 / DECODE(A.EDUCOUNT, 0, NULL, A.EDUCOUNT))) COMPLYRATE
+                      FROM  OPR_LECTURE A
+                     WHERE  A.ISPASS LIKE 'Y'
+                       AND  SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)    BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+										<isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+											<isEqual property="crsType1" compareValue="00000">
+												(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+											</isEqual>
+											<isNotEqual property="crsType1" compareValue="00000">
+												A.CRSTYPE1 = #crsType1#
+											</isNotEqual>
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType2">
+														A.CRSTYPE2 = #crsType2#
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType3">
+														A.CRSTYPE3 = #crsType3#
+										</isNotEmpty>
+                  ORDER BY  A.BASEYYMM, A.EDUFROM, A.EDUTO, A.COURSENAME) A
+        )
+	</select>
+	
+	
+	<!-- 기관 목록조회쿼리 -->
+	<select id="selectOpr_PassAcomOrganList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT  
+            A.COURSECODE, A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+            (SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE=A.COURSECODE) APPLYCOUNT,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y') COMPLYCOUNT,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '6430000') ORG6430000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5710000') ORG5710000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4360000') ORG4360000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4390000') ORG4390000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4400000') ORG4400000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4410000') ORG4410000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4420000') ORG4420000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4430000') ORG4430000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4440000') ORG4440000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4450000') ORG4450000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4460000') ORG4460000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4470000') ORG4470000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4480000') ORG4480000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5570000') ORG5570000,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NOT NULL) ORGOTHER,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NULL) ORG9999999
+      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+     WHERE  A.COURSECODE = B.COURSECODE
+     	 AND	A.ISPASS LIKE 'Y'
+       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+		<isNotEmpty prepend="AND" property="crsType1">
+						<!-- 집합교육 검색 처리 -->
+			<isEqual property="crsType1" compareValue="00000">
+				(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+			</isEqual>
+			<isNotEqual property="crsType1" compareValue="00000">
+				A.CRSTYPE1 = #crsType1#
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType2">
+						A.CRSTYPE2 = #crsType2#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType3">
+						A.CRSTYPE3 = #crsType3#
+		</isNotEmpty>
+  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO
+  ORDER BY	A.EDUFROM, A.EDUTO, A.COURSENAME
+	</select>
+	
+	
+	<!-- 기관 목록조회쿼리 -->
+	<select id="selectOpr_PassAcomOrganExcelList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT    
+            COURSENAME      COL_A,
+            EDUDATE         COL_B,
+            APPLYCOUNT      COL_C,
+            COMPLYCOUNT     COL_D,
+            ORG6430000      COL_E,
+            ORG5710000	  COL_F
+            ORG4360000      COL_G,
+            ORG4390000      COL_H,
+            ORG4400000      COL_I,
+            ORG4410000      COL_J,
+            ORG4420000      COL_K,
+            ORG4430000      COL_L,
+            ORG4440000      COL_M,
+            ORG4450000      COL_N,
+            ORG4460000      COL_O,
+            ORG4470000      COL_P,
+            ORG4480000      COL_Q,
+            ORG5570000      COL_R,
+            ORGOTHER        COL_S,
+            ORG9999999      COL_T
+      FROM    
+           (SELECT  
+                    0         NUM         ,
+                    '과정명'   COURSENAME  ,
+                    '교육기간' EDUDATE     ,
+                    '신청'    APPLYCOUNT  ,
+                    '이수'    COMPLYCOUNT ,
+                    '충북'    ORG6430000  ,
+                    '청주'	ORG5710000,
+                    '(구)청주'    ORG4360000  ,
+                    '충주'    ORG4390000  ,
+                    '제천'    ORG4400000  ,
+                    '청원'    ORG4410000  ,
+                    '보은'    ORG4420000  ,
+                    '옥천'    ORG4430000  ,
+                    '영동'    ORG4440000  ,
+                    '진천'    ORG4450000  ,
+                    '괴산'    ORG4460000  ,
+                    '음성'    ORG4470000  ,
+                    '단양'    ORG4480000  ,
+                    '증평'    ORG5570000  ,
+                    '타시도'  ORGOTHER    ,
+                    '기타'    ORG9999999       
+              FROM  DUAL
+         UNION ALL
+            SELECT  
+                    1 NUM, '계' COURSENAME, '' EDUDATE, A.*
+              FROM
+                   (SELECT  
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y'))) COMPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '6430000'))) ORG6430000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5710000'))) ORG5710000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4360000'))) ORG4360000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4390000'))) ORG4390000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4400000'))) ORG4400000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4410000'))) ORG4410000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4420000'))) ORG4420000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4430000'))) ORG4430000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4440000'))) ORG4440000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4450000'))) ORG4450000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4460000'))) ORG4460000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4470000'))) ORG4470000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4480000'))) ORG4480000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5570000'))) ORG5570000,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NOT NULL))) ORGOTHER,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NULL))) ORG9999999
+								      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+								     WHERE  A.COURSECODE = B.COURSECODE
+								     	 AND	A.ISPASS LIKE 'Y'
+								       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+										<isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+												<isEqual property="crsType1" compareValue="00000">
+													(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+												</isEqual>
+												<isNotEqual property="crsType1" compareValue="00000">
+													A.CRSTYPE1 = #crsType1#
+												</isNotEqual>
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType2">
+														A.CRSTYPE2 = #crsType2#
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType3">
+														A.CRSTYPE3 = #crsType3#
+										</isNotEmpty>
+								  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO) A
+         UNION ALL
+            SELECT  
+                    ROWNUM+1 NUM, A.*
+              FROM
+                   (SELECT  
+                            A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+                            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y')) COMPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '6430000')) ORG6430000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5710000')) ORG5710000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4360000')) ORG4360000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4390000')) ORG4390000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4400000')) ORG4400000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4410000')) ORG4410000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4420000')) ORG4420000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4430000')) ORG4430000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4440000')) ORG4440000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4450000')) ORG4450000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4460000')) ORG4460000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4470000')) ORG4470000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '4480000')) ORG4480000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '5570000')) ORG5570000,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NOT NULL)) ORGOTHER,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND CHIEFORGAN = '9999999' AND RANKNAME IS NULL)) ORG9999999
+								      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+								     WHERE  A.COURSECODE = B.COURSECODE
+								     	 AND	A.ISPASS LIKE 'Y'
+								       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+										<isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+												<isEqual property="crsType1" compareValue="00000">
+													(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+												</isEqual>
+												<isNotEqual property="crsType1" compareValue="00000">
+													A.CRSTYPE1 = #crsType1#
+												</isNotEqual>
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType2">
+														A.CRSTYPE2 = #crsType2#
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType3">
+														A.CRSTYPE3 = #crsType3#
+										</isNotEmpty>
+								  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO
+								  ORDER BY	A.EDUFROM, A.EDUTO, A.COURSENAME) A
+        )
+	</select>
+	
+	
+	<!-- 직급 목록조회쿼리 -->
+	<select id="selectOpr_PassAcomRankList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT  
+            A.COURSECODE, A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+            (SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE = A.COURSECODE) APPLYCOUNT,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y') COMPLYCOUNT,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '012') RANK2,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '013') RANK3,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '014') RANK4,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '015') RANK5,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '016') RANK6,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '017') RANK7,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '018') RANK8,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '019') RANK9,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('020','021','022','023','024','025','026','027','028','029')) RANKGN,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('030','031','032','033')) RANKYGJD,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('115','116','117','118','119','120','121','122','123')) RANKBJ,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND RANKNAME LIKE '%계약%') RANKGY,
+            (SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IS NULL AND NVL(RANKNAME,' ') NOT LIKE '%계약%') RANKETC
+      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.ISPASS LIKE 'Y'
+       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+		<isNotEmpty prepend="AND" property="crsType1">
+						<!-- 집합교육 검색 처리 -->
+			<isEqual property="crsType1" compareValue="00000">
+				(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+			</isEqual>
+			<isNotEqual property="crsType1" compareValue="00000">
+				A.CRSTYPE1 = #crsType1#
+			</isNotEqual>
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType2">
+						A.CRSTYPE2 = #crsType2#
+		</isNotEmpty>
+		<isNotEmpty prepend="AND" property="crsType3">
+						A.CRSTYPE3 = #crsType3#
+		</isNotEmpty>
+  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO
+  ORDER BY	A.EDUFROM, A.EDUTO, A.COURSENAME
+	</select>
+	
+	
+	<!-- 직급 목록조회쿼리 -->
+	<select id="selectOpr_PassAcomRankExcelList" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT    
+            COURSENAME      COL_A,
+            EDUDATE         COL_B,
+            APPLYCOUNT      COL_C,
+            COMPLYCOUNT     COL_D,
+            RANK2           COL_E,
+            RANK3           COL_F,
+            RANK4           COL_G,
+            RANK5           COL_H,
+            RANK6           COL_I,
+            RANK7           COL_J,
+            RANK8           COL_K,
+            RANK9           COL_L,
+            RANKGN          COL_M,
+            RANKYGJD        COL_N,
+            RANKBJ          COL_O,
+            RANKGY          COL_P,
+            RANKETC         COL_Q
+      FROM    
+           (SELECT  
+                    0           NUM         ,
+                    '과정명'    COURSENAME  ,
+                    '교육기간'  EDUDATE     ,
+                    '신청'      APPLYCOUNT  ,
+                    '이수'      COMPLYCOUNT ,
+                    '2급'       RANK2  ,
+                    '3급'       RANK3  ,
+                    '4급'       RANK4  ,
+                    '5급'       RANK5  ,
+                    '6급'       RANK6  ,
+                    '7급'       RANK7  ,
+                    '8급'       RANK8  ,
+                    '9급'       RANK9  ,
+                    '기능'      RANKGN  ,
+                    '연구지도'  RANKYGJD  ,
+                    '별정'      RANKBJ  ,
+                    '계약'      RANKGY    ,
+                    '기타'      RANKETC       
+              FROM  DUAL
+         UNION ALL
+            SELECT  
+                    1 NUM, '계' COURSENAME, '' EDUDATE, A.*
+              FROM
+              		 (SELECT  
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y'))) COMPLYCOUNT,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '012'))) RANK2,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '013'))) RANK3,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '014'))) RANK4,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '015'))) RANK5,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '016'))) RANK6,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '017'))) RANK7,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '018'))) RANK8,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '019'))) RANK9,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('020','021','022','023','024','025','026','027','028','029')))) RANKGN,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('030','031','032','033')))) RANKYGJD,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('115','116','117','118','119','120','121','122','123')))) RANKBJ,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND RANKNAME LIKE '%계약%'))) RANKGY,
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IS NULL AND NVL(RANKNAME,' ') NOT LIKE '%계약%'))) RANKETC
+								      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+								     WHERE  A.COURSECODE = B.COURSECODE
+								       AND  A.ISPASS LIKE 'Y'
+								       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+										<isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+											<isEqual property="crsType1" compareValue="00000">
+												(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+											</isEqual>
+											<isNotEqual property="crsType1" compareValue="00000">
+												A.CRSTYPE1 = #crsType1#
+											</isNotEqual>
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType2">
+														A.CRSTYPE2 = #crsType2#
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType3">
+														A.CRSTYPE3 = #crsType3#
+										</isNotEmpty>
+								  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO) A
+         UNION ALL
+            SELECT  
+                    ROWNUM+1 NUM, A.*
+              FROM
+                   (SELECT  
+                            A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+                            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+                            TO_CHAR(SUM((SELECT COUNT(*) FROM OPR_APPLICANT WHERE COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y')) COMPLYCOUNT,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '012')) RANK2,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '013')) RANK3,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '014')) RANK4,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '015')) RANK5,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '016')) RANK6,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '017')) RANK7,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '018')) RANK8,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE = '019')) RANK9,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('020','021','022','023','024','025','026','027','028','029'))) RANKGN,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('030','031','032','033'))) RANKYGJD,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IN ('115','116','117','118','119','120','121','122','123'))) RANKBJ,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND RANKNAME LIKE '%계약%')) RANKGY,
+                            TO_CHAR((SELECT COUNT(*) FROM OPR_CRSSTUDENT WHERE COURSECODE = A.COURSECODE AND ISFINISH = 'Y' AND GRADECODE IS NULL AND NVL(RANKNAME,' ') NOT LIKE '%계약%')) RANKETC
+								      FROM  OPR_LECTURE A, OPR_CRSSTUDENT B
+								     WHERE  A.COURSECODE = B.COURSECODE
+								       AND  A.ISPASS LIKE 'Y'
+								       AND	SUBSTR(REPLACE(A.EDUFROM,'-',''), 1, 6)	BETWEEN REPLACE(#searchFromDate#,'-','') AND  REPLACE(#searchToDate#,'-','')
+										<isNotEmpty prepend="AND" property="crsType1">
+														<!-- 집합교육 검색 처리 -->
+												<isEqual property="crsType1" compareValue="00000">
+													(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+												</isEqual>
+												<isNotEqual property="crsType1" compareValue="00000">
+													A.CRSTYPE1 = #crsType1#
+												</isNotEqual>
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType2">
+														A.CRSTYPE2 = #crsType2#
+										</isNotEmpty>
+										<isNotEmpty prepend="AND" property="crsType3">
+														A.CRSTYPE3 = #crsType3#
+										</isNotEmpty>
+								  GROUP BY  A.COURSECODE, A.COURSENAME, A.EDUFROM, A.EDUTO
+				  				ORDER BY	A.EDUFROM, A.EDUTO, A.COURSENAME) A
+        )
+	</select>
+	
+	
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_CyberNotPassAcom" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT  
+            A.COURSECODE, A.YEAR, A.COURSENAME||'('||to_number(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME, 
+            A.BASEYYMM, A.CRSTYPE1, A.CRSTYPE2, A.CRSTYPE3,
+            to_char(to_date(A.EDUFROM,'YYYYMMDD'), 'MM.DD') || '~' || to_char(to_date(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+            B.STDNAME, SUBSTR(B.BIRTHSEX,0,2)||'.'||SUBSTR(B.BIRTHSEX,3,2)||'.'||SUBSTR(B.BIRTHSEX,5,2) JUMINNO, 
+            MOD(TO_NUMBER(SUBSTR(A.BASEYYMM,5,2))+2,12)||'월 까지 수강제한' RESTRICT
+      FROM  OPR_LECTURE A,
+            OPR_CRSSTUDENT B
+		 WHERE A.COURSECODE = B.COURSECODE	
+       AND A.BASEYYMM	BETWEEN		REPLACE(#searchFromDate#,'-','')	AND		REPLACE(#searchToDate#,'-','')
+       AND A.CRSTYPE1 = '00003'
+       AND B.ISFINISH = 'N'
+       AND B.STDNAME LIKE '%'||#searchStdName#||'%'
+  ORDER BY	A.BASEYYMM, B.STDNAME, A.EDUFROM, A.EDUTO 
+	</select>
+		
+	
+	<!-- 이수실적조회 엑셀 다운로드 -->
+	<select id="selectOpr_PassAcomExcel" parameterClass="opr_PassAcom" resultClass="opr_PassAcom">
+		SELECT  DATANO          COL_A   ,
+            COURSENAME      COL_B   ,
+            EDUDATE         COL_C   ,
+            PLANCOUNT       COL_D   ,
+            APPLYCOUNT      COL_E  ,
+            COMPLYCOUNT     COL_F  ,
+            NOTCOMPLYCOUNT  COL_G  ,
+            COMPLYRATE      COL_H  
+      FROM
+					<isNotEqual compareValue="000000000000000" property="searchCrsType">
+           (SELECT  0       NUM,     
+                    A.NAME || '(' || #searchFromDate# ||' ~ '|| #searchToDate# || ')'     DATANO,
+                    ' '			COURSENAME    ,
+                    ' '     EDUDATE,
+                    ' '     PLANCOUNT    ,
+                    ' '     APPLYCOUNT    ,
+                    ' '     COMPLYCOUNT    ,
+                    ' '     NOTCOMPLYCOUNT    ,
+                    ' '     COMPLYRATE
+              FROM  DUAL, 
+                           (SELECT  NAME 
+                              FROM  CMN_SUBJECTTYPE 
+                             WHERE  TYPEDIV     = #crsType1#
+                               AND  TYPECODE    = #crsType2#) A
+					</isNotEqual>
+					<isEqual compareValue="000000000000000" property="searchCrsType">
+					 (SELECT  0       NUM,     
+                    #searchFromDate# ||' ~ '|| #searchToDate#     DATANO,
+                    ' '			COURSENAME    ,
+                    ' '     EDUDATE,
+                    ' '     PLANCOUNT    ,
+                    ' '     APPLYCOUNT    ,
+                    ' '     COMPLYCOUNT    ,
+                    ' '     NOTCOMPLYCOUNT    ,
+                    ' '     COMPLYRATE
+              FROM  DUAL
+					</isEqual>
+         UNION ALL
+            SELECT  1					NUM,
+                    '번호'			DATANO,
+                    '과정명'		COURSENAME    ,
+                    '교육기간'	EDUDATE,
+                    '계획'			PLANCOUNT    ,
+                    '신청'			APPLYCOUNT    ,
+                    '이수'			COMPLYCOUNT    ,
+                    '미이수'		NOTCOMPLYCOUNT    ,
+                    '이수율'		COMPLYRATE       
+              FROM   DUAL
+         UNION ALL
+            SELECT  ROWNUM+1 NUM, TO_CHAR(ROWNUM) DATANO, A.*
+              FROM
+                   (SELECT  
+                            A.COURSENAME||'('||TO_NUMBER(SUBSTR(A.COURSECODE,11,2))||'기)' COURSENAME,
+                            TO_CHAR(TO_DATE(A.EDUFROM,'YYYYMMDD'), 'YYYY.MM.DD') || '~' || TO_CHAR(TO_DATE(A.EDUTO,'YYYYMMDD'), 'MM.DD') EDUDATE, 
+                            TO_CHAR(A.EDUCOUNT) PLANCOUNT,
+                            TO_CHAR((SELECT  COUNT(*)    FROM  OPR_APPLICANT 
+                                      WHERE  COURSECODE = A.COURSECODE)) APPLYCOUNT,
+                            TO_CHAR((SELECT  COUNT(*)    FROM  OPR_CRSSTUDENT 
+                                      WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y')) COMPLYCOUNT,
+                            TO_CHAR((SELECT  COUNT(*)    FROM OPR_CRSSTUDENT 
+                                      WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'N')) NOTCOMPLYCOUNT,
+                            TO_CHAR(ROUND((SELECT  COUNT(*)    FROM OPR_CRSSTUDENT 
+                                            WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y') * 100 / A.EDUCOUNT)) COMPLYRATE
+                      FROM  OPR_LECTURE A
+                     WHERE  A.ISPASS LIKE 'Y'
+       								 AND	A.BASEYYMM    BETWEEN		#searchFromDate#    AND		#searchToDate#
+											<isNotEmpty prepend="AND" property="crsType1">
+															<!-- 집합교육 검색 처리 -->
+												<isEqual property="crsType1" compareValue="00000">
+													(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+												</isEqual>
+												<isNotEqual property="crsType1" compareValue="00000">
+													A.CRSTYPE1 = #crsType1#
+												</isNotEqual>
+											</isNotEmpty>
+											<isNotEmpty prepend="AND" property="crsType2">
+															A.CRSTYPE2 = #crsType2#
+											</isNotEmpty>
+											<isNotEmpty prepend="AND" property="crsType3">
+															A.CRSTYPE3 = #crsType3#
+											</isNotEmpty>
+                  ORDER BY    A.BASEYYMM, A.EDUFROM, A.EDUTO) A
+         UNION ALL
+            SELECT  99999   NUM,
+                    '계'    DATANO,
+                    ' '     COURSENAME    ,
+                    ' '     EDUDATE,
+                    TO_CHAR(SUM(A.EDUCOUNT)) PLANCOUNT,
+                    TO_CHAR(SUM((SELECT  COUNT(*)	FROM  OPR_APPLICANT 
+                          				WHERE  COURSECODE = A.COURSECODE))) APPLYCOUNT,
+                    TO_CHAR(SUM((SELECT  COUNT(*)	FROM  OPR_CRSSTUDENT 
+                          				WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y'))) COMPLYCOUNT,
+                    TO_CHAR(SUM((SELECT  COUNT(*)	FROM OPR_CRSSTUDENT 
+                          				WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'N'))) NOTCOMPLYCOUNT,
+                    TO_CHAR(ROUND(SUM((SELECT  COUNT(*)	FROM  OPR_CRSSTUDENT 
+                                        WHERE  COURSECODE = A.COURSECODE AND ISFINISH = 'Y')) * 100 / SUM(A.EDUCOUNT)))   COMPLYRATE  
+              FROM  OPR_LECTURE A
+             WHERE	A.ISPASS LIKE 'Y'
+       				 AND	A.BASEYYMM    BETWEEN		#searchFromDate#    AND		#searchToDate#
+							<isNotEmpty prepend="AND" property="crsType1">
+										<!-- 집합교육 검색 처리 -->
+								<isEqual property="crsType1" compareValue="00000">
+									(A.CRSTYPE1 != '00003' AND A.CRSTYPE1 != '00006')
+								</isEqual>
+								<isNotEqual property="crsType1" compareValue="00000">
+									A.CRSTYPE1 = #crsType1#
+								</isNotEqual>
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="crsType2">
+										A.CRSTYPE2 = #crsType2#
+							</isNotEmpty>
+							<isNotEmpty prepend="AND" property="crsType3">
+										A.CRSTYPE3 = #crsType3#
+							</isNotEmpty>
+          ORDER BY  NUM
+        )	
+	</select>	
+</sqlMap>
+
+

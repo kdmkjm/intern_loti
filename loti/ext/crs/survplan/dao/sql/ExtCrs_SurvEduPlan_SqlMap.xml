@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="ExtCrs_SurvEduPlan">
+
+	<typeAlias alias="extCrs_SurvEduPlan" type="loti.ext.crs.survplan.model.ExtCrs_SurvEduPlan"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectExtCrs_SurvEduPlan" parameterClass="extCrs_SurvEduPlan" resultClass="extCrs_SurvEduPlan">
+			SELECT
+				   		CRSCLUMPCODE,
+				   		ORGANCODE   ,
+				   		STDNUMBER
+			  FROM PLN_ORGSURVEY
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectExtCrs_SurvEduPlanList" parameterClass="extCrs_SurvEduPlan" resultClass="extCrs_SurvEduPlan">
+			SELECT 	ROWNUM NUM,
+				   		CRSCLUMPCODE,
+				   		ORGANCODE   ,
+				   		STDNUMBER
+			  FROM PLN_ORGSURVEY
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+			<!-- 목록조회쿼리  EXCEL 다운용-->
+	<select id="selectExtCrs_SurvEduPlanExcel" parameterClass="extCrs_SurvEduPlan" resultClass="extCrs_SurvEduPlan" >
+			SELECT   PLANYEAR   COL_A   ,
+                     CRSCLUMPCODE COL_B,
+                     CRSCLUMPNAME COL_C,
+                     ORGANCODE COL_D,
+                     STDNUMBER   COL_E,
+                     ORGSTDNUMBER   COL_F
+            FROM (
+                    SELECT            0 NUM,
+                                    '기준년도' PLANYEAR    ,
+                                    '대표과정코드' CRSCLUMPCODE,
+                                    '과정명' CRSCLUMPNAME,
+                                    '기관코드' ORGANCODE,
+                                    '교육인원' STDNUMBER   ,
+                                    '수요인원' ORGSTDNUMBER
+                    FROM   DUAL
+                    UNION
+                    SELECT ROWNUM NUM , A.*
+                    FROM     (
+                             SELECT    P.PLANYEAR    ,
+                                       P.CRSCLUMPCODE,
+                                       P.CRSCLUMPNAME,
+                                       #selOrganCode# ORGANCODE,
+                                       TO_CHAR(P.STDNUMBER) STDNUMBER  ,
+                                       TO_CHAR(NVL(O.STDNUMBER,0)) ORDSTDNUMBER
+                              FROM   PLN_SURVEY P, (
+                                                    SELECT *
+                                                    FROM PLN_ORGSURVEY
+                                                    WHERE ORGANCODE = #organCode#
+                                                    )  O
+                             WHERE     P.CRSCLUMPCODE = O.CRSCLUMPCODE(+)
+                            AND PLANYEAR = #selPlanYear#
+                            ORDER BY P.CRSCLUMPCODE, P.CRSCLUMPNAME
+                            ) A
+                 )
+                ORDER BY NUM
+
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectExtCrs_SurvEduPlanListCount" parameterClass="extCrs_SurvEduPlan" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PLN_ORGSURVEY
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectExtCrs_SurvEduPlanCount" parameterClass="extCrs_SurvEduPlan" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PLN_ORGSURVEY
+		WHERE CRSCLUMPCODE = #crsClumpCode#
+		AND  ORGANCODE = #organCode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertExtCrs_SurvEduPlan" parameterClass="extCrs_SurvEduPlan">
+		INSERT INTO PLN_ORGSURVEY (
+			   			CRSCLUMPCODE,
+			   			ORGANCODE   ,
+			   			STDNUMBER
+		) VALUES (
+
+			   			#crsClumpCode#,
+			   			#organCode#   ,
+			   			#stdNumber#
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateExtCrs_SurvEduPlan" parameterClass="extCrs_SurvEduPlan">
+		UPDATE PLN_ORGSURVEY SET
+			   STDNUMBER    = #stdNumber#
+			   WHERE CRSCLUMPCODE = #crsClumpCode# 
+			   AND ORGANCODE = #organCode#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteExtCrs_SurvEduPlan" parameterClass="extCrs_SurvEduPlan">
+		DELETE FROM PLN_ORGSURVEY
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="crsclumpcode">
+				CRSCLUMPCODE = #crsclumpcode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="organcode">
+				ORGANCODE = #organcode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="stdnumber">
+				STDNUMBER = #stdnumber#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

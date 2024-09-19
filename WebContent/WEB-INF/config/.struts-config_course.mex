@@ -1,0 +1,287 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlowViewLayout Version="1.2">
+  <StrutsActivity path="/crsOrg.do" location="174,0" dimension="212,96" />
+  <StrutsActivity path="/crsCourse.do" location="350,750" dimension="228,96" />
+  <StrutsActivity path="/crsTimeTblDay.do" location="650,50" dimension="275,96" />
+  <StrutsActivity path="/crsTimeTblCourseAndDay.do" location="1550,550" dimension="356,84" />
+  <StrutsActivity path="/crsLectureMgmt.do" location="650,450" dimension="263,96" />
+  <StrutsActivity path="/crsCostCalc.do" location="650,850" dimension="243,96" />
+  <StrutsActivity path="/crsCyberCostCalc.do" location="1250,150" dimension="274,96" />
+  <StrutsActivity path="/crsCostBudget.do" location="950,850" dimension="258,96" />
+  <StrutsActivity path="/crsCostDivide.do" location="1250,350" dimension="270,96" />
+  <StrutsActivity path="/crs/org/Crs_Org.jsp" location="0,196" dimension="139,51" />
+  <StrutsActivity path="/crs/org/Crs_OrgMod.jsp" location="239,196" dimension="164,51" />
+  <StrutsActivity path="/crs/org/Crs_TimeTblMod.jsp" location="50,350" dimension="186,51" />
+  <StrutsActivity path="/crs/org/Crs_OrgCyberMod.jsp" location="350,350" dimension="195,51" />
+  <StrutsActivity path="/common/dao_result.jsp" location="50,750" dimension="162,51" />
+  <StrutsActivity path="/crsOrg.act" location="503,196" dimension="90,51" />
+  <StrutsActivity path="/crs/req/Crs_CourseList.jsp" location="350,1050" dimension="173,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblDayExcel.jsp" location="950,1350" dimension="229,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblDay.jsp" location="650,250" dimension="202,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblMonth.jsp" location="950,250" dimension="217,51" />
+  <StrutsActivity path="/crs/timetbl/Crs_AddTimeTbl.jsp" location="1250,750" dimension="221,48" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp" location="1550,750" dimension="316,48" />
+  <StrutsActivity path="/crs/timetbl/Crs_TimeTblCourseAndDay.jsp" location="1550,850" dimension="284,48" />
+  <StrutsActivity path="/crsLectureMgmt.act" location="350,1450" dimension="142,51" />
+  <StrutsActivity path="/crs/prof/Crs_LectureMgmt.jsp" location="650,650" dimension="195,51" />
+  <StrutsActivity path="/crs/org/Crs_SetProf_Frame.jsp" location="950,650" dimension="196,51" />
+  <StrutsActivity path="/crs/org/Crs_SetProf.jsp" location="50,550" dimension="158,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCalc.jsp" location="950,1150" dimension="170,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCalcMod.jsp" location="50,950" dimension="195,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCalcInfo.jsp" location="650,1050" dimension="191,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCourse.jsp" location="1250,1250" dimension="184,51" />
+  <StrutsActivity path="/crs/cost/Crs_CyberCostCalc.jsp" location="1250,550" dimension="201,51" />
+  <StrutsActivity path="/crs/cost/Crs_CyberCostCalcMod.jsp" location="1250,1050" dimension="226,51" />
+  <StrutsActivity path="/crs/cost/Crs_CyberCostCalcInfo.jsp" location="50,1150" dimension="222,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostBudget.jsp" location="350,1250" dimension="185,51" />
+  <StrutsActivity path="/crs/costdiv/Crs_CostDivideExcel.jsp" location="650,1450" dimension="224,51" />
+  <StrutsActivity path="/crs/costdiv/Crs_CostDivide.jsp" location="50,1350" dimension="197,51" />
+  <StrutsActivity path="/crs/org/Crs_SetProf_Fame.jsp" location="350,550" dimension="192,51" />
+  <StrutsActivity path="/crs/cost/Crs_CostCalcCrs.jsp" location="650,1250" dimension="187,51" />
+  <StrutsTransition id="/crsCyberCostCalc.do,modify,/crs/cost/Crs_CyberCostCalcMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,create_cyber,/crs/org/Crs_OrgCyberMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="386,65" />
+      <AbsolutePoint location="477,65" />
+      <AbsolutePoint location="477,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCourse.do,move,/crs/req/Crs_CourseList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="494,846" />
+      <AbsolutePoint location="494,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostCalc.do,course,/crs/cost/Crs_CostCourse.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="856,946" />
+      <AbsolutePoint location="856,1275" />
+      <AbsolutePoint location="1250,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,delete,/crsOrg.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="386,35" />
+      <AbsolutePoint location="518,35" />
+      <AbsolutePoint location="518,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,modify_cyber,/crs/org/Crs_OrgCyberMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="386,95" />
+      <AbsolutePoint location="447,95" />
+      <AbsolutePoint location="447,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblDay.do,list,/crs/timetbl/Crs_TimeTblDay.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,146" />
+      <AbsolutePoint location="787,250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblDay.do,chk_lect,/common/dao_result.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,98" />
+      <AbsolutePoint location="131,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblCourseAndDay.do,excel,/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1728,634" />
+      <AbsolutePoint location="1728,750" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsLectureMgmt.do,excel,/crsLectureMgmt.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="781,498" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCyberCostCalc.do,info,/crs/cost/Crs_CyberCostCalcInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblDay.do,AddTimeTbl,/crs/timetbl/Crs_AddTimeTbl.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,98" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblCourseAndDay.do,course,/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1728,592" />
+      <AbsolutePoint location="1708,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostBudget.do,info,/crs/cost/Crs_CostBudget.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1079,898" />
+      <AbsolutePoint location="442,1275" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,modify,/crs/org/Crs_OrgMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="280,96" />
+      <AbsolutePoint location="280,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCyberCostCalc.do,create,/crs/cost/Crs_CyberCostCalcMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsLectureMgmt.do,setprof,/crs/org/Crs_SetProf.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,498" />
+      <AbsolutePoint location="129,498" />
+      <AbsolutePoint location="129,550" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,move,/crs/org/Crs_Org.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="174,78" />
+      <AbsolutePoint location="99,78" />
+      <AbsolutePoint location="99,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,time_mod,/crs/org/Crs_TimeTblMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="221,96" />
+      <AbsolutePoint location="221,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,list,/crs/org/Crs_Org.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="174,48" />
+      <AbsolutePoint location="69,48" />
+      <AbsolutePoint location="69,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsLectureMgmt.do,list,/crs/prof/Crs_LectureMgmt.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="781,546" />
+      <AbsolutePoint location="781,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostCalc.do,info,/crs/cost/Crs_CostCalcInfo.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="771,898" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCourse.do,list,/crs/req/Crs_CourseList.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="464,846" />
+      <AbsolutePoint location="464,1050" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblDay.do,monthlist,/crs/timetbl/Crs_TimeTblMonth.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="925,98" />
+      <AbsolutePoint location="1058,98" />
+      <AbsolutePoint location="1058,250" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblCourseAndDay.do,list,/crs/timetbl/Crs_TimeTblCourseAndDay.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1881,634" />
+      <AbsolutePoint location="1881,874" />
+      <AbsolutePoint location="1834,874" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostCalc.do,list,/crs/cost/Crs_CostCalc.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="893,898" />
+      <AbsolutePoint location="1035,898" />
+      <AbsolutePoint location="1035,1150" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostCalc.do,modify,/crs/cost/Crs_CostCalcMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,868" />
+      <AbsolutePoint location="117,868" />
+      <AbsolutePoint location="117,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostCalc.do,create,/crs/cost/Crs_CostCalcMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="650,898" />
+      <AbsolutePoint location="147,898" />
+      <AbsolutePoint location="147,950" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblDay.do,excel,/crs/timetbl/Crs_TimeTblDayExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="787,98" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsTimeTblCourseAndDay.do,day,/crs/timetbl/Crs_TimeTblCourseAndDayExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1728,592" />
+      <AbsolutePoint location="1708,774" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,create,/crs/org/Crs_OrgMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="310,96" />
+      <AbsolutePoint location="310,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostDivide.do,excel,/crs/costdiv/Crs_CostDivideExcel.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1385,398" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,fix_course,/crsOrg.act,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="280,0" />
+      <AbsolutePoint location="280,-75" />
+      <AbsolutePoint location="578,-75" />
+      <AbsolutePoint location="578,196" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,search_time,/crs/org/Crs_TimeTblMod.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="191,96" />
+      <AbsolutePoint location="191,350" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsOrg.do,chk_lect,/common/dao_result.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="174,18" />
+      <AbsolutePoint location="-75,18" />
+      <AbsolutePoint location="-75,775" />
+      <AbsolutePoint location="50,775" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCostDivide.do,list,/crs/costdiv/Crs_CostDivide.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="1385,398" />
+      <AbsolutePoint location="148,1375" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsCyberCostCalc.do,list,/crs/cost/Crs_CyberCostCalc.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="0,0" />
+      <AbsolutePoint location="0,0" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+  <StrutsTransition id="/crsLectureMgmt.do,frame,/crs/org/Crs_SetProf_Frame.jsp,1" routingType="0">
+    <AutomaticBendpoints>
+      <AbsolutePoint location="913,498" />
+      <AbsolutePoint location="1048,498" />
+      <AbsolutePoint location="1048,650" />
+    </AutomaticBendpoints>
+  </StrutsTransition>
+</FlowViewLayout>
+

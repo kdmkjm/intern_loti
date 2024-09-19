@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app id="WebApp_ID" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+<resource-ref>
+ <description>Oracle Datasource example</description>
+ <res-ref-name>loti</res-ref-name>
+ <res-type>javax.sql.DataSource</res-type>
+ <res-auth>Container</res-auth>
+</resource-ref>
+
+	<display-name>loti</display-name>
+
+	 <welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+
+
+
+
+<filter>
+  	<filter-name>Encoding Filter</filter-name>
+    <filter-class>fw.nexti.common.EncodingFilter</filter-class>
+    <init-param>
+    	<param-name>encoding</param-name>
+        <param-value>EUC-KR</param-value>
+    </init-param>
+  </filter>
+
+  <listener>
+    <listener-class>
+        loti.sys.loti.service.common.LotiServletContextListener
+    </listener-class>
+  </listener>
+
+ <!--
+    <filter>
+        <filter-name>LoginFilter</filter-name>
+        <filter-class>fw.nexti.util.LoginCheckFilter</filter-class>
+        <init-param>
+            <param-name>ExcludeURI</param-name>
+
+            <param-value>
+			  /logout.jsp;
+			  /index.jsp;
+			  /index.act;
+            </param-value>
+        </init-param>
+        <init-param>
+
+            <param-name>CheckAttributeName</param-name>
+            <param-value>juminNo</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>LoginFilter</filter-name>
+        <url-pattern>*.act</url-pattern>
+    </filter-mapping>
+    <filter-mapping>
+        <filter-name>LoginFilter</filter-name>
+        <url-pattern>*.jsp</url-pattern>
+    </filter-mapping>
+
+    -->
+ 	<filter-mapping>
+     	<filter-name>Encoding Filter</filter-name>
+     	<url-pattern>/*</url-pattern>
+  	</filter-mapping>
+
+
+	<context-param>
+		<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
+		<param-value>resources.application</param-value>
+	</context-param>
+
+	<servlet>
+        <servlet-name>action</servlet-name>
+        <servlet-class>org.apache.struts.action.ActionServlet</servlet-class>
+        <init-param>
+            <param-name>config</param-name>
+            <param-value>
+                /WEB-INF/config/struts-config.xml,
+                /WEB-INF/config/struts-config_system.xml,
+                /WEB-INF/config/struts-config_main.xml,
+                /WEB-INF/config/struts-config_resource.xml,
+                /WEB-INF/config/struts-config_professor.xml,
+                /WEB-INF/config/struts-config_plan.xml,
+                /WEB-INF/config/struts-config_exterior.xml,
+                /WEB-INF/config/struts-config_course.xml,
+                /WEB-INF/config/struts-config_operation.xml,
+                /WEB-INF/config/struts-config_test.xml,
+                /WEB-INF/config/struts-config_ext_scheduler.xml
+            </param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>action</servlet-name>
+        <url-pattern>*.act</url-pattern>
+    </servlet-mapping>
+
+    <!-- Quartz Servlet Config -->
+    <!--
+    <servlet>
+        <servlet-name>QuartzInitializer</servlet-name>
+        <servlet-class>org.quartz.ee.servlet.QuartzInitializerServlet</servlet-class>
+        <init-param>
+            <param-name>shutdown-on-unload</param-name>
+            <param-value>true</param-value>
+        </init-param>
+        <load-on-startup>2</load-on-startup>
+    </servlet>
+ 	-->
+    <!-- Tag Library Descriptors -->
+    <jsp-config>
+        <!--paging tag library-->
+        <taglib>
+            <taglib-uri>ch</taglib-uri>
+            <taglib-location>/WEB-INF/tld/nsihtml.tld</taglib-location>
+        </taglib>
+        <!--struts tag library-->
+        <taglib>
+            <taglib-uri>bean</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-bean.tld</taglib-location>
+        </taglib>
+        <taglib>
+            <taglib-uri>html</taglib-uri>
+            <taglib-location>/WEB-INF/tld/struts-html.tld</taglib-location>
+        </taglib>
+        <!--jakarta tag library-->
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/taglibs/string-1.1</taglib-uri>
+            <taglib-location>/WEB-INF/tld/taglibs-string.tld</taglib-location>
+        </taglib>
+        <taglib>
+            <taglib-uri>http://jakarta.apache.org/taglibs/log-1.0</taglib-uri>
+            <taglib-location>/WEB-INF/tld/taglibs-log.tld</taglib-location>
+        </taglib>
+    </jsp-config>
+</web-app>

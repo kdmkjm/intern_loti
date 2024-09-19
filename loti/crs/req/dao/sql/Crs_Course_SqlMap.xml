@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Crs_Course">
+
+	<typeAlias alias="crs_Course" type="loti.crs.req.model.Crs_Course"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCrs_CourseList" parameterClass="crs_Course" resultClass="crs_Course">
+		SELECT     
+            ROWNUM NUM,
+            COURSECODE,
+            YEAR,
+            COURSENAME||'('||TO_NUMBER(SUBSTR(COURSECODE,11,2))||'기)' COURSENAME,
+            EDUCOUNT,
+            CRSTYPE1,
+            EDUTARGET,
+            TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'MM.DD') EDUFROMTO,
+            CASE WHEN CRSTYPE1 = '00003' 
+                 THEN TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'MM.DD')||DECODE(CRSTYPE1,'00003','~','-')||TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'MM.DD')
+                 ELSE '-' END REQFROMTO ,
+            BASEYYMM,
+            DAYCOUNT  EDUDAY,
+            B.NAME LECROOMNO,
+            C.USERNAME CHARGER
+      FROM  OPR_LECTURE A, 
+           (SELECT 
+                    CODE, CODEDIV, NAME
+              FROM  SYS_SYSTEMCODE
+             WHERE  CODEDIV LIKE '00021'
+               AND  CODE NOT LIKE '00000'
+           ) B,
+           (SELECT
+                    JUMINNO, USERNAME
+              FROM  CMN_PUBWORKER
+             WHERE  ISADMIN LIKE 'Y'
+                OR  ISEDUCHARGER LIKE 'Y'
+           ) C
+     WHERE  A.LECROOMNO = B.CODE(+)
+       AND  A.CHARGER = C.JUMINNO(+)
+		   AND	 ( TO_DATE(EDUFROM, 'YYYYMMDD') BETWEEN TO_DATE(#eduFrom#, 'YYYY-MM-DD') AND TO_DATE(#eduTo#, 'YYYY-MM-DD') 
+		       OR  TO_DATE(EDUTO, 'YYYYMMDD')   BETWEEN TO_DATE(#eduFrom#, 'YYYY-MM-DD') AND TO_DATE(#eduTo#, 'YYYY-MM-DD') )
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+  ORDER BY	EDUFROM, EDUTO, COURSENAME
+	</select>
+
+</sqlMap>
+
+

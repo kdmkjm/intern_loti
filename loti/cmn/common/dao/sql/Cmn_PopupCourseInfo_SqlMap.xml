@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupCourseInfo">
+
+	<typeAlias alias="cmn_PopupCourseInfo" type="loti.cmn.common.model.Cmn_PopupCourseInfo"/>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCmn_PopupCourseInfoList" parameterClass="cmn_PopupCourseInfo" resultClass="cmn_PopupCourseInfo">
+			SELECT 	ROWNUM NUM, 
+				   		COURSECODE    ,
+				   		SUBJSEQ       ,
+				   		SUBJNAME    	,
+				   		SUBJTYPE      ,
+				   		LECHOUR      	,
+				   		PATHOUR       ,
+				   		ETCHOUR       ,
+				   		EDUCONTENTS 	,
+				   		NVL(ORD, 0) AS ORD,
+				   		DISPORDER             		
+			  FROM OPR_LECSUBJECT A, 
+			       (SELECT CODE, DISPORDER FROM SYS_SYSTEMCODE WHERE CODEDIV = '00023') B
+			 WHERE A.SUBJTYPE = B.CODE(+)
+			   AND COURSECODE = #coursecode#  
+   		 ORDER BY DISPORDER, SUBJTYPE, ORD, SUBJNAME
+	</select>
+	
+	<!-- 기본조회쿼리 [집합] -->
+	<select id="selectExtCrs_Course" parameterClass="cmn_PopupCourseInfo" resultClass="cmn_PopupCourseInfo">
+		SELECT     
+            A.COURSECODE, YEAR, COURSENAME, CRSTYPE1, CRSTYPE2, CRSTYPE3, 
+            EDUOBJECTIVES, EDUWAY, EDUTARGET, EDUCOUNT, CHARGER, LECROOMNO,
+            to_char(to_date(EDUFROM,'YYYYMMDD'), 'MM.DD') EDUFROM, to_char(to_date(EDUTO,'YYYYMMDD'), 'MM.DD') EDUTO,
+            A.DAYCOUNT,  A.TERMDESC,  
+            to_char(to_date(REQFROM,'YYYYMMDD'), 'MM.DD') REQFROM, to_char(to_date(REQTO,'YYYYMMDD'), 'MM.DD') REQTO,
+            BASEYYMM, CHPTCOUNT, APVHOUR, CYBERPRGSRATE , CYBERMINHOUR, CYBERFINBASE, CYBERFINNOTICE,
+            OPRDEPART, OPRDEPTTELNO, B.TYPECNT1, B.TYPECNT2, B.TYPECNT3, B.WAYCNT1, B.WAYCNT2, B.WAYCNT3,
+            ROUND(B.TYPECNT1*100/(B.TYPECNT1+B.TYPECNT2+B.TYPECNT3)) TYPERATE1,
+            ROUND(B.TYPECNT2*100/(B.TYPECNT1+B.TYPECNT2+B.TYPECNT3)) TYPERATE2,
+            ROUND(B.WAYCNT1*100/(B.WAYCNT1+B.WAYCNT2+B.WAYCNT3)) WAYRATE1,
+            ROUND(B.WAYCNT2*100/(B.WAYCNT1+B.WAYCNT2+B.WAYCNT3)) WAYRATE2,
+            CASE WHEN CRSTYPE1 = '00003' AND CRSTYPE3 = '00002' THEN  C.TYPENAME || '(민간)'
+                 ELSE C.TYPENAME END CRSTYPE        
+      FROM  OPR_LECTURE A, 
+           (SELECT 
+                    COURSECODE,  
+                    SUM(DECODE(SUBJTYPE,'00002', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT1,
+                    SUM(DECODE(SUBJTYPE,'00001', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT2,
+                    SUM(DECODE(SUBJTYPE,'00003', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT3,
+                    SUM(NVL(LECHOUR,0)) AS WAYCNT1,
+                    SUM(NVL(PATHOUR,0)) AS WAYCNT2,
+                    SUM(NVL(ETCHOUR,0)) AS WAYCNT3                           
+              FROM  OPR_LECSUBJECT A, SYS_SYSTEMCODE B
+             WHERE  A.SUBJTYPE = B.CODE(+)
+               AND  B.CODEDIV(+) = '00023'
+               AND  A.COURSECODE = #coursecode#
+          GROUP BY  COURSECODE ) B,
+           (SELECT 
+                    TYPE1, MAX(TYPENAME) TYPENAME
+              FROM  CMN_COURSETYPE
+             WHERE  TYPE2 = '00000'
+               AND  TYPE3 = '00000'
+          GROUP BY  TYPE1) C
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.CRSTYPE1 = C.TYPE1(+)
+       AND  A.COURSECODE = #coursecode#
+	</select>
+	
+	<!-- 기본조회쿼리 [사이버] -->
+	<select id="selectExtCrs_CourseCyber" parameterClass="cmn_PopupCourseInfo" resultClass="cmn_PopupCourseInfo">
+		SELECT     
+            A.COURSECODE, YEAR, COURSENAME, CRSTYPE1, CRSTYPE2, CRSTYPE3, 
+            EDUOBJECTIVES, EDUWAY, EDUTARGET, EDUCOUNT, CHARGER, LECROOMNO,
+            to_char(to_date(EDUFROM,'YYYYMMDD'), 'MM.DD') EDUFROM, to_char(to_date(EDUTO,'YYYYMMDD'), 'MM.DD') EDUTO,
+            A.DAYCOUNT,  A.TERMDESC,  
+            to_char(to_date(REQFROM,'YYYYMMDD'), 'MM.DD') REQFROM, to_char(to_date(REQTO,'YYYYMMDD'), 'MM.DD') REQTO,
+            BASEYYMM, CHPTCOUNT, APVHOUR, CYBERPRGSRATE , CYBERMINHOUR, CYBERFINBASE, CYBERFINNOTICE,
+            OPRDEPART, OPRDEPTTELNO, B.TYPECNT1, B.TYPECNT2, B.TYPECNT3, B.WAYCNT1, B.WAYCNT2, B.WAYCNT3,
+            CASE WHEN CRSTYPE1 = '00003' AND CRSTYPE3 = '00002' THEN  C.TYPENAME || '(민간)'
+                 ELSE C.TYPENAME END CRSTYPE        
+      FROM  OPR_LECTURE A, 
+           (SELECT 
+                    COURSECODE,  
+                    SUM(DECODE(SUBJTYPE,'00002', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT1,
+                    SUM(DECODE(SUBJTYPE,'00001', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT2,
+                    SUM(DECODE(SUBJTYPE,'00003', (NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)),0)) AS TYPECNT3,
+                    SUM(NVL(LECHOUR,0)) AS WAYCNT1,
+                    SUM(NVL(PATHOUR,0)) AS WAYCNT2,
+                    SUM(NVL(ETCHOUR,0)) AS WAYCNT3                           
+              FROM  OPR_LECSUBJECT A, SYS_SYSTEMCODE B
+             WHERE  A.SUBJTYPE = B.CODE(+)
+               AND  B.CODEDIV(+) = '00023'
+               AND  A.COURSECODE = #coursecode#
+          GROUP BY  COURSECODE ) B,
+           (SELECT 
+                    TYPE1, MAX(TYPENAME) TYPENAME
+              FROM  CMN_COURSETYPE
+             WHERE  TYPE2 = '00000'
+               AND  TYPE3 = '00000'
+          GROUP BY  TYPE1) C
+     WHERE  A.COURSECODE = B.COURSECODE(+)
+       AND  A.CRSTYPE1 = C.TYPE1(+)
+       AND  A.COURSECODE = #coursecode#
+	</select>
+
+</sqlMap>
+
+

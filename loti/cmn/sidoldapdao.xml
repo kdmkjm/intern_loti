@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="EUC-KR" ?>
+
+<!DOCTYPE daoConfig
+    PUBLIC "-//ibatis.apache.org//DTD DAO Configuration 2.0//EN"
+    "http://ibatis.apache.org/dtd/dao-2.dtd">
+
+<daoConfig>
+
+	<context>
+
+    <transactionManager type="SQLMAP">
+      <property name="SqlMapConfigResource"
+        value="loti/cmn/sidoldap-sqlmap-config.xml"/>
+    </transactionManager>
+
+
+<!-- ##########		시스템  		########## -->
+    <!--  시도 LDAP 조직도관리  -->
+    <dao interface="loti.sys.org.dao.SysOrgDAO"
+    implementation="loti.sys.org.dao.SysOrgDAOImpl"/>
+
+	</context>
+
+</daoConfig>

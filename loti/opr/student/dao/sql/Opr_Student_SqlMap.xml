@@ -1,0 +1,758 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_Student">
+
+	<typeAlias alias="opr_Student" type="loti.opr.student.model.Opr_Student"/>
+
+
+
+	<!-- 기본조회쿼리 --> 
+	<select id="selectOpr_Student" parameterClass="opr_Student" resultClass="opr_Student">
+		SELECT     
+            A.COURSECODE   ,
+            B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME   ,
+            SUBSTR(B.EDUFROM, 5, 2) || '.' || SUBSTR(B.EDUFROM, 7, 2) || '~' || SUBSTR(B.EDUTO, 5, 2) || '.' || SUBSTR(B.EDUTO, 7, 2) EDUDATE,
+            SEQ          ,
+            JUMINNO      ,
+            SUBSTR(A.BIRTHSEX, 1, 6) || '-' || SUBSTR(A.BIRTHSEX, 7, 1) || '******' JUMINNUMBER ,
+            STDNAME      ,
+            STDNO        ,
+            ASSIGN       ,
+            ASSIGNNAME   ,
+            GRADECODE    ,
+            GRADENAME    ,
+            RANKCODE     ,
+            RANKNAME     ,
+            JOBKIND      ,
+            JOBNAME      ,
+            EMAIL        ,
+            CELLPHONE    ,
+            #chieforgan# CHIEFORGAN,
+           (SELECT ORGANNAME FROM CMN_MSTORGAN WHERE CHIEFORGAN = #chieforgan#) ORGANNAME
+      FROM  OPR_CRSSTUDENT A, OPR_LECTURE B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.COURSECODE = #courseCode#
+       AND  SEQ = #seq#
+       
+ <!--      
+			SELECT 	
+				   		COURSECODE   ,
+				   		SEQ          ,
+				   		JUMINNO      ,
+				   		STDNAME      ,
+				   		STDNO        ,
+				   		ASSIGN       ,
+				   		ASSIGNNAME   ,
+				   		GRADECODE    ,
+				   		GRADENAME    ,
+				   		RANKCODE     ,
+				   		RANKNAME     ,
+				   		JOBKIND      ,
+				   		JOBNAME      ,
+				   		EMAIL        ,
+				   		CELLPHONE    ,
+				   		#chieforgan# CHIEFORGAN
+			  FROM OPR_CRSSTUDENT
+			 WHERE COURSECODE = #courseCode#
+			   AND SEQ = #seq#
+			   -->
+	</select>
+	
+	<select id="selectOpr_Pubworker" parameterClass="opr_Student" resultClass="opr_Student">
+			SELECT 	
+				   		A.COURSECODE COURSECODE  ,
+				   		A.SEQ     SEQ     ,
+				   		B.JUMINNO  JUMINNO    ,
+				   		B.USERNAME STDNAME      ,
+				   		A.STDNO    STDNO    ,
+				   		B.ORGANCODE ASSIGN       ,
+				   		C.SIMPLENAME ASSIGNNAME   ,
+				   		B.GRADE GRADECODE    ,
+				   		D.GRADENAME GRADENAME    ,
+				   		B.RANK RANKCODE     ,
+				   		E.RANKNAME RANKNAME     ,
+				   		B.JOBKIND JOBKIND      ,
+				   		F.CODENAME JOBNAME      ,
+				   		B.EMAIL     EMAIL   ,
+				   		B.CELLPHONE CELLPHONE   ,
+				   		#chieforgan# CHIEFORGAN
+			  FROM OPR_CRSSTUDENT A,
+			       CMN_PUBWORKER B,
+			       CMN_ORGANMAP C,
+			       CMN_GRADECODE D,
+			       CMN_RANKCODE E,
+			       CMN_JOBCODE F
+			 WHERE A.JUMINNO = B.JUMINNO
+			   AND B.ORGANCODE = C.ORGANCODE(+)
+			   AND B.GRADE = D.GRADECODE(+)
+			   AND B.RANK = E.RANKCODE(+)
+			   AND B.JOBKIND = F.CODE(+)
+			   AND A.COURSECODE = #courseCode#
+			   AND A.SEQ = #seq# 
+	</select>	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentList" parameterClass="opr_Student" resultClass="opr_Student">
+		SELECT     
+            DECODE(NVL(STDNO, 0), 0, (SELECT MAX(STDNO) FROM OPR_CRSSTUDENT WHERE COURSECODE = #searchCourseCode# AND CHIEFORGAN = A.CHIEFORGAN), STDNO) NUM, 
+            COURSECODE, SEQ, JUMINNO, STDNAME, STDNO, A.CHIEFORGAN, 
+            ASSIGN, ASSIGNNAME, GRADECODE, GRADENAME, A.RANKCODE, A.RANKNAME, JOBKIND, JOBNAME,
+            EMAIL, CELLPHONE, ISCOST, TEAMNO, ISLEADER, SCOREADD,
+            (TO_CHAR(SYSDATE,'yyyy') - CASE SUBSTR(A.BIRTHSEX,7,1)
+                                        WHEN '1' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                        WHEN '2' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                        WHEN '3' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                        WHEN '4' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                       END
+            ) AS AGE,
+            (CASE MOD(TO_NUMBER(SUBSTR(A.BIRTHSEX,7,1)),2)
+                WHEN 1 THEN '남'
+                WHEN 0 THEN '여'
+             END) AS SEX,
+             NVL(REPLACE(C.ORGANNAME, '충청북도 ', ''), '충청북도') as ORGANNAME,
+             ROOMNO          
+      FROM  OPR_CRSSTUDENT A, CMN_MSTORGAN B,
+      		(SELECT A.ORGANNAME, B.JUMINNO AS JUMIN
+            FROM    CMN_ORGANMAP A, CMN_PUBWORKER B
+            WHERE   A.ORGANCODE = B.ORGANCODE) C,
+           (SELECT
+                    RANKCODE, RANKNAME
+              FROM  CMN_RANKCODE) G
+     WHERE  A.RANKCODE = G.RANKCODE(+)
+       AND  A.CHIEFORGAN = B.CHIEFORGAN(+)
+       AND  A.JUMINNO = C.JUMIN(+)
+	   AND	COURSECODE LIKE #searchCourseCode#
+	<isNotEmpty property="orderby">
+	  ORDER BY	$orderby$
+	</isNotEmpty>
+	<isEmpty property="orderby">
+		ORDER BY STDNO, STDNAME
+	</isEmpty>
+	</select>
+	
+	<!-- 교육생 수강취소 이력을 조회 -->
+	<select id="selectOpr_CancleHistory" parameterClass="opr_Student" resultClass="opr_Student">
+		SELECT 
+            A.CANSEQ,
+            A.COURSECODE,
+            A.STDNO,
+            B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME,
+            A.ASSIGNNAME,
+            A.RANKNAME,
+            A.STDNAME,
+            SUBSTR(A.BIRTHSEX, 1, 2) || '.' || SUBSTR(A.BIRTHSEX, 3, 2) || '.' || SUBSTR(A.BIRTHSEX, 5, 2) JUMINNO,
+            A.CANREASON,
+            TO_CHAR(TO_DATE(SUBSTR(A.CANDATE, 1, 8),'YYYYMMDD'), 'YYYY.MM.DD') CANDATE
+      FROM  OPR_CANSTUDENT A, OPR_LECTURE B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND  A.CANDATE LIKE REPLACE(#courseYear# || '%', '-', '')
+	ORDER BY  B.EDUFROM, B.EDUTO, B.COURSENAME, A.STDNO
+	</select>
+	
+		<!-- 목록조회쿼리 -->
+	<select id="selectOpr_AttendList" parameterClass="opr_Student" resultClass="opr_Student">
+			SELECT 	ROWNUM NUM, 
+				   		A.COURSECODE ,
+				   		B.COURSENAME || '(' || TO_NUMBER(SUBSTR(A.COURSECODE, 11, 2)) || '기)' COURSENAME ,
+				   		B.EDUFROM		 ,
+				   		B.EDUTO			 ,
+				   		SEQ          ,
+				   		JUMINNO      ,
+				   		STDNAME      ,
+				   		STDNO        ,
+				   		ASSIGN       ,
+				   		ASSIGNNAME,	
+				   		GRADECODE    ,
+				   		GRADENAME    ,
+				   		RANKCODE     ,
+				   		RANKNAME     ,
+				   		JOBKIND      ,
+				   		JOBNAME      ,
+				   		EMAIL        ,
+				   		CELLPHONE    ,
+				   		ISCOST       ,
+				   		TEAMNO       ,
+				   		ISLEADER     				   		     
+			  FROM OPR_CRSSTUDENT A, 
+			       OPR_LECTURE B
+       WHERE A.COURSECODE = B.COURSECODE
+         AND JUMINNO = (SELECT JUMINNO FROM OPR_CRSSTUDENT WHERE COURSECODE=#courseCode# AND SEQ=#seq#)
+    ORDER BY EDUFROM DESC       
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectOpr_StudentListCount" parameterClass="opr_Student" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectOpr_StudentCount" parameterClass="opr_Student" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectOpr_MaxSendNo" parameterClass="opr_Student" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(SEND_NO),0) SEND_NO
+		FROM SEND_SMS
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectOpr_CyberChk" parameterClass="opr_Student" resultClass="java.lang.String">
+		SELECT DECODE(CRSTYPE1,'00003','Y','N')
+		  FROM OPR_LECTURE
+		 WHERE COURSECODE = #courseCode#
+		<!-- 조회조건 Key 추가 -->
+	</select>	
+	
+	<select id="selectOpr_SendMsg" parameterClass="opr_Student" resultClass="java.lang.String">
+		SELECT '과정참석 기간:'||TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'MM.DD')||'~'||TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'MM.DD')||'('||TO_CHAR((TO_DATE(EDUTO,'YYYYMMDD')-TO_DATE(EDUFROM,'YYYYMMDD'))+1)||'일)'||DECODE(LECROOMNO,NULL,'', '장소:교육원내'||
+       		 (SELECT NAME FROM SYS_SYSTEMCODE B WHERE A.LECROOMNO = B.CODE AND B.CODEDIV='00021')||'(중구청내 '||SUBSTR((SELECT NAME FROM SYS_SYSTEMCODE B WHERE A.LECROOMNO = B.CODE AND B.CODEDIV='00021'),0,2)||'층)') MSG
+  		FROM OPR_LECTURE A
+  	 WHERE COURSECODE = #courseCode#
+	</select>
+
+	<!-- 레코드 입력 -->
+	<insert id="insertOpr_Student" parameterClass="opr_Student">
+		INSERT INTO OPR_CRSSTUDENT (	
+			   			COURSECODE   ,	
+			   			SEQ          ,	
+			   			JUMINNO      ,	
+			   			STDNAME      ,	
+			   			STDNO        ,	
+			   			ASSIGN       ,	
+			   			ASSIGNNAME   ,	
+			   			GRADECODE    ,	
+			   			GRADENAME    ,	
+			   			RANKCODE     ,	
+			   			RANKNAME     ,	
+			   			JOBKIND      ,	
+			   			JOBNAME      ,	
+			   			EMAIL        ,	
+			   			CELLPHONE    ,	
+			   			ISCOST       ,	
+			   			TEAMNO       ,	
+			   			ISLEADER     ,	
+			   			SCORESTUDY   ,	
+			   			SCOREATTEND  ,	
+			   			SCORERESEARCH,	
+			   			SCORETEAM    ,	
+			   			SCOREADD     ,	
+			   			SCOREPRA     ,	
+			   			SCOREETC     ,	
+			   			SCOREAVG     ,	
+			   			PROGRESSRATE ,	
+			   			STUDYHOUR    ,	
+			   			RANKING      ,	
+			   			DISPRANKING  ,	
+			   			ISFINISH     	
+		) VALUES (
+						 
+			   			#courseCode#   ,	
+			   			#seq#          ,	
+			   			#juminno#      ,	
+			   			#stdname#      ,	
+			   			#stdno#        ,	
+			   			#assign#       ,	
+			   			#assignname#   ,	
+			   			#gradecode#    ,	
+			   			#gradename#    ,	
+			   			#rankcode#     ,	
+			   			#rankname#     ,	
+			   			#jobkind#      ,	
+			   			#jobname#      ,	
+			   			#email#        ,	
+			   			#cellphone#    ,	
+			   			#iscost#       ,	
+			   			#teamno#       ,	
+			   			#isleader#     ,	
+			   			#scorestudy#   ,	
+			   			#scoreattend#  ,	
+			   			#scoreresearch#,	
+			   			#scoreteam#    ,	
+			   			#scoreadd#     ,	
+			   			#scorepra#     ,	
+			   			#scoreetc#     ,	
+			   			#scoreavg#     ,	
+			   			#progressrate# ,	
+			   			#studyhour#    ,	
+			   			#ranking#      ,	
+			   			#dispranking#  ,	
+			   			#isfinish#     	
+		)
+	</insert>
+	
+	<!-- 문자 예약발송 입력 -->
+	<insert id="insertOpr_SendSMS" parameterClass="opr_Student">
+		INSERT INTO SEND_SMS (	
+			   			SEND_NO,	
+			   			SEND_SEQ,
+			   			JUMINNO,
+			   			SMS_GBN,
+			   			FROM_NAME,
+			   			FROM_TEL,
+			   			TO_NAME,
+			   			TO_TEL,
+			   			MSG,
+			   			SEND_DTTM,
+			   			SEND_GBN,
+			   			COURSECODE  	
+		)  SELECT #sendno#,
+		          (SELECT NVL(MAX(SEND_SEQ),0)+1 FROM SEND_SMS WHERE SEND_NO = #sendno#),
+		          #userId#,
+		          '00002',
+		          #fromname#,
+		          #fromtel#,
+		          STDNAME,
+		          CELLPHONE,
+		          #msg#,
+		          (SELECT TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD')-3, 'YYYY-MM-DD') || ' ' || #smsSendTime# FROM OPR_LECTURE WHERE COURSECODE= #courseCode#),
+		          '02',
+		          #courseCode#
+		     FROM OPR_CRSSTUDENT
+		    WHERE COURSECODE    = #courseCode#
+          AND SEQ = #seq#
+          AND JUMINNO = #juminno#  	
+		
+	</insert>
+	
+	<!--  SMS 기존 내역 삭제 -->
+	<delete id="deleteOpr_SendMsg" parameterClass="opr_Student">
+		DELETE FROM SEND_SMS
+		  WHERE	COURSECODE like #courseCode#
+	</delete>
+	
+	
+	
+	
+	<insert id="insertOpr_TxBookIo" parameterClass="opr_Student">
+			INSERT INTO RSC_TXBOOKIO (	
+			   			TXBOOKSEQ,
+  						SEQNO,
+  						IODATE,
+  						STOCKOUT,
+  						INSUSER,
+  						INSDATE,
+  						REMARKS,
+  						COURSECODE   	
+		) SELECT  TXBOOKSEQ,
+		          (SELECT NVL(MAX(SEQNO),0)+1 FROM RSC_TXBOOKIO B WHERE A.TXBOOKSEQ = B.TXBOOKSEQ),
+		          TO_CHAR(SYSDATE,'YYYYMMDD'),
+		          #stockout#,
+		          #userId#,
+		          TO_CHAR(SYSDATE,'YYYYMMDD'),
+		          '시스템('||(SELECT COURSENAME FROM OPR_LECTURE B WHERE COURSECODE=#courseCode#)||')',
+		          #courseCode#
+		    FROM  RSC_TXBOOKCOURSE A
+		   WHERE  COURSECODE = #courseCode#
+	</insert>
+
+	<!--  레코드 수정 -->
+	<update id="updateOpr_Student" parameterClass="opr_Student">
+		UPDATE OPR_CRSSTUDENT SET
+				   <isEmpty property="iscost">
+				   ISCOST        = 'N',
+				   </isEmpty>
+				   <isNotEmpty property="iscost">
+				   ISCOST        = #iscost#,
+				   </isNotEmpty>			     	
+			     TEAMNO        = #teamno#       ,
+			   	 <isEmpty property="isleader">
+				   ISLEADER        = 'N',
+				   </isEmpty>
+				   <isNotEmpty property="isleader">
+				   ISLEADER        = #isleader#,
+				   </isNotEmpty>
+				   SCOREADD = #scoreadd#,
+				   ROOMNO = #roomno#
+   	 WHERE COURSECODE    = #courseCode#
+       AND SEQ = #seq#
+       AND JUMINNO = #juminno#
+	</update>
+
+	<!--  레코드 수정 -->
+	<update id="updateOpr_StdNo" parameterClass="opr_Student">
+		UPDATE OPR_CRSSTUDENT SET
+			     STDNO        = #stdno#,
+			     TEAMNO       = #teamno#       ,
+				   <isEmpty property="iscost">
+				   ISCOST       = 'N',
+				   </isEmpty>
+				   <isNotEmpty property="iscost">
+				   ISCOST       = #iscost#,
+				   </isNotEmpty>			     	
+			   	 <isEmpty property="isleader">
+				   ISLEADER     = 'N',
+				   </isEmpty>
+				   <isNotEmpty property="isleader">
+				   ISLEADER     = #isleader#,
+				   </isNotEmpty>			     
+			     SCOREATTEND  = 100
+   	 WHERE COURSECODE   = #courseCode#
+       AND SEQ = #seq#
+       AND JUMINNO = #juminno#
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="updateOpr_Info" parameterClass="opr_Student">
+		UPDATE OPR_CRSSTUDENT SET
+			     ASSIGN = #assign#,
+			     ASSIGNNAME = #assignname#,
+			     RANKCODE = #rankcode#,
+			     RANKNAME = #rankname#,
+			     JOBKIND  = #jobkind#,	
+			   	 JOBNAME = #jobname#,
+			   	 STDNAME = #stdname#,
+			   	 EMAIL = #email#,
+			   	 CELLPHONE = #cellphone#,
+			   	 CHIEFORGAN = #chieforgan#
+   	 WHERE COURSECODE    = #courseCode#
+       AND SEQ = #seq#
+       AND JUMINNO = #juminno#
+	</update>
+	
+	<!--  레코드 수정 -->
+	<update id="updateOpr_InfoPnE" parameterClass="opr_Student">
+		UPDATE OPR_CRSSTUDENT SET
+			   	 EMAIL = #email#,
+			   	 CELLPHONE = #cellphone#
+   	 WHERE COURSECODE = #courseCode#
+       AND SEQ 				= #seq#
+       AND JUMINNO 		= #juminno#
+	</update>
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_Student" parameterClass="opr_Student">
+		DELETE FROM OPR_CRSSTUDENT
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_TxBookIo" parameterClass="opr_Student">
+		DELETE FROM RSC_TXBOOKIO
+		 WHERE TXBOOKSEQ = (SELECT TXBOOKSEQ FROM RSC_TXBOOKCOURSE WHERE  COURSECODE = #courseCode#)
+		   AND COURSECODE = #courseCode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>	
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentListExcel" remapResults="true" parameterClass="opr_Student" resultClass="opr_Student">
+	SELECT 
+		<isEqual property="mode" compareValue="list">
+            STDNO       COL_A,
+            ASSIGNNAME  COL_B,
+            STDNAME     COL_C,
+            SEX         COL_D,
+            CELLPHONE   COL_E,
+            RANKNAME    COL_F,
+            AGE         COL_G,
+            JUMINNO		COL_H,
+            TEAMNO		COL_I
+        </isEqual>
+        <isEqual property="mode" compareValue="justlist">
+            STDNO       COL_A,
+            TEAMNO		COL_B,
+            ASSIGNNAME  COL_C,
+            RANKNAME    COL_D,
+            STDNAME     COL_E, 
+            SEX         COL_F, 
+            AGE         COL_G,
+            CELLPHONE   COL_H, 
+            EMAIL       COL_I
+        </isEqual>
+        <isEqual property="mode" compareValue="sms">
+        	STDNAME			COL_A,
+        	CELLPHONE		COL_B
+        </isEqual>
+        <isEqual property="mode" compareValue="nameTag">
+            STDNO		COL_A,
+            ASSIGNNAME	COL_B,
+            STDNAME		COL_C
+        </isEqual>
+      FROM
+           (   SELECT 
+           			0                NUM,  
+                    'ㄱ'                NAME, 
+                    '교번'            STDNO,
+                    '분임조'            TEAMNO,
+                    '소속'            ASSIGNNAME    ,
+                    '직급'            RANKNAME,
+                    '주민등록번호'        JUMINNO,
+                    '성명'            STDNAME,
+                    '성별'            SEX,
+                    '연령'            AGE,
+                    '휴대전화'        CELLPHONE,
+                    '이메일'            EMAIL,
+                    '방번호'			ROOMNO
+              FROM   DUAL
+             UNION
+              SELECT NUM, NAME, STDNO, TEAMNO, ASSIGNNAME, RANKNAME, JUMINNO, STDNAME, SEX, AGE, CELLPHONE, EMAIL, ROOMNO
+              from  (SELECT 
+              			a.stdno              NUM,
+                        A.STDNAME            NAME,
+                        TO_CHAR(A.STDNO)    STDNO,
+                        TO_CHAR(A.TEAMNO)    TEAMNO,
+                        <isEqual property="mode" compareValue="nameTag">
+                            (SELECT SIMPLENAME FROM CMN_ORGANMAP WHERE ORGANCODE = A.CHIEFORGAN) ASSIGNNAME,
+                        </isEqual>
+                        <isNotEqual property="mode" compareValue="nameTag">
+                            A.ASSIGNNAME,
+                        </isNotEqual>
+                                            A.RANKNAME,
+                        A.JUMINNO JUMINNO,
+                        A.STDNAME,
+                        (CASE MOD(TO_NUMBER(SUBSTR(A.BIRTHSEX,7,1)),2)
+                            WHEN 1 THEN '남'
+                            WHEN 0 THEN '여'
+                         END) AS SEX, 
+                         TO_CHAR((TO_CHAR(SYSDATE,'yyyy') - CASE SUBSTR(A.BIRTHSEX,7,1)
+                                            WHEN '1' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                            WHEN '2' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                            WHEN '3' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                            WHEN '4' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                           END
+                        )) AS AGE,
+                        <isEqual property="mode" compareValue="sms">
+                        REPLACE(NVL(A.CELLPHONE, C.CELLPHONE),'-','') CELLPHONE,
+                        </isEqual>
+                        <isNotEqual property="mode" compareValue="sms">
+                        NVL(A.CELLPHONE, C.CELLPHONE)  CELLPHONE,
+                        </isNotEqual>
+                        NVL(A.EMAIL, C.EMAIL)              EMAIL,
+                        TO_CHAR(ROOMNO)	ROOMNO
+                     FROM  OPR_CRSSTUDENT A, CMN_MSTORGAN B,
+                          (SELECT A.ORGANNAME, B.JUMINNO AS JUMIN, a.organcode, cellphone, email
+                            FROM    CMN_ORGANMAP A, CMN_PUBWORKER B
+                            WHERE   A.ORGANCODE = B.ORGANCODE
+                           ) C,
+                           (SELECT
+                                    RANKCODE, RANKNAME
+                                      FROM  CMN_RANKCODE) G 
+                     WHERE  A.RANKCODE = G.RANKCODE(+)
+                       AND  A.CHIEFORGAN = B.CHIEFORGAN(+)
+                       AND  A.JUMINNO = C.JUMIN(+)
+                       AND  COURSECODE LIKE #searchCourseCode#
+                       <isEqual property="mode" compareValue="sms">
+                       and  NVL(A.CELLPHONE, C.CELLPHONE) is not null
+                       </isEqual>
+                       order by NUM)
+            <isEqual property="mode" compareValue="sms">
+            UNION ALL
+            SELECT NUM, NAME, STDNO, TEAMNO, ASSIGNNAME, RANKNAME, JUMINNO, STDNAME, SEX, AGE, CELLPHONE, EMAIL, ROOMNO 
+              FROM
+                    (SELECT 
+                    	a.stdno              NUM,
+                        A.STDNAME            NAME,
+                        TO_CHAR(A.STDNO)    STDNO,
+                        TO_CHAR(A.TEAMNO)    TEAMNO,
+                                            A.ASSIGNNAME,
+                                            A.RANKNAME, 
+                        A.JUMINNO JUMINNO,
+                                            A.STDNAME,
+                        (CASE MOD(TO_NUMBER(SUBSTR(A.BIRTHSEX,7,1)),2)
+                            WHEN 1 THEN '남'
+                            WHEN 0 THEN '여'
+                         END) AS SEX, 
+                         TO_CHAR((TO_CHAR(SYSDATE,'yyyy') - CASE SUBSTR(A.BIRTHSEX,7,1)
+                                            WHEN '1' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                            WHEN '2' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+1900
+                                            WHEN '3' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                            WHEN '4' THEN TO_NUMBER(LPAD(A.BIRTHSEX,2))+2000
+                                           END
+                        )) AS AGE,
+                        REPLACE(NVL(A.CELLPHONE, C.CELLPHONE),'-','') CELLPHONE,
+                        NVL(A.EMAIL, C.EMAIL)              EMAIL,
+                        TO_CHAR(ROOMNO)	ROOMNO
+                     FROM  OPR_CRSSTUDENT A, CMN_MSTORGAN B,
+                          (SELECT A.ORGANNAME, B.JUMINNO AS JUMIN, a.organcode, cellphone, email
+                            FROM    CMN_ORGANMAP A, CMN_PUBWORKER B
+                            WHERE   A.ORGANCODE = B.ORGANCODE
+                           ) C,
+                           (SELECT
+                                    RANKCODE, RANKNAME
+                                      FROM  CMN_RANKCODE) G 
+                     WHERE  A.RANKCODE = G.RANKCODE(+)
+                       AND  A.CHIEFORGAN = B.CHIEFORGAN(+)
+                       AND  A.JUMINNO = C.JUMIN(+)
+                       AND  COURSECODE LIKE #searchCourseCode#
+                       AND  NVL(A.CELLPHONE, C.CELLPHONE) is null
+                     order by NUM)
+            </isEqual>
+          )
+	
+	<!-- 임시보관
+	SELECT 
+            STDNO       COL_A,
+            ASSIGNNAME  COL_B,
+            RANKNAME    COL_C, 
+            STDNAME     COL_D, 
+            SEX         COL_E, 
+            AGE         COL_F,
+            CELLPHONE   COL_G, 
+            EMAIL        COL_H
+      FROM
+            
+           (SELECT    
+                    0                   NUM,
+                    0                   SEQ,
+                    '교번'             STDNO,
+                    '소속(부서)'        ASSIGNNAME    ,
+                    '직급'        RANKNAME,
+                    '성명'        STDNAME,
+                    '성별'        SEX,
+                    '연령'        AGE,
+                    '휴대전화'  CELLPHONE,
+                    '이메일'        EMAIL
+                    
+              FROM   DUAL
+             UNION
+            SELECT 
+                    B.STDNO                    NUM,
+                    SEQ,
+                    TO_CHAR(B.STDNO)          STDNO,
+                    NVL(REPLACE(C.ORGANNAME, '충청북도 ', ''), '충청북도') || '(' || B.ASSIGNNAME || ')' ASSIGNNAME,
+                    B.RANKNAME, 
+                    B.STDNAME,
+                    (CASE MOD(TO_NUMBER(SUBSTR(B.JUMINNO,7,1)),2)
+                        WHEN 1 THEN '남'
+                        WHEN 0 THEN '여'
+                     END) AS SEX, 
+                     TO_CHAR((TO_CHAR(SYSDATE,'yyyy') - CASE SUBSTR(B.JUMINNO,7,1)
+                                        WHEN '1' THEN TO_NUMBER(LPAD(B.JUMINNO,2))+1900
+                                        WHEN '2' THEN TO_NUMBER(LPAD(B.JUMINNO,2))+1900
+                                        WHEN '3' THEN TO_NUMBER(LPAD(B.JUMINNO,2))+2000
+                                        WHEN '4' THEN TO_NUMBER(LPAD(B.JUMINNO,2))+2000
+                                       END
+                    )) AS AGE,
+                    NVL(B.CELLPHONE, C.CELLPHONE) CELLPHONE, 
+                    NVL(B.EMAIL, C.EMAIL)              EMAIL
+                    
+              FROM  OPR_LECTURE A, OPR_CRSSTUDENT B,
+                      (SELECT A.ORGANNAME, B.JUMINNO, B.EMAIL, B.CELLPHONE
+                    FROM    CMN_ORGANMAP A, CMN_PUBWORKER B
+                    WHERE   A.ORGANCODE = B.ORGANCODE) C
+             WHERE  A.COURSECODE = B.COURSECODE
+               AND  B.JUMINNO = C.JUMINNO(+)
+               AND  A.COURSECODE = #searchCourseCode#
+               
+          ORDER BY  NUM, SEQ)
+          -->
+	</select>
+	
+	<insert id="insertOpr_StuCancle" parameterClass="opr_Student">
+		INSERT INTO OPR_CANSTUDENT (
+       CANSEQ, 
+       COURSECODE, 
+       SEQ, 
+       JUMINNO, 
+       STDNAME, 
+       STDNO, 
+       ASSIGN, 
+       ASSIGNNAME, 
+       GRADECODE, 
+       GRADENAME, 
+       RANKCODE, 
+       RANKNAME, 
+       JOBKIND, 
+       JOBNAME, 
+       EMAIL, 
+       CELLPHONE, 
+       ISCOST, 
+       TEAMNO, 
+       ISLEADER, 
+       CHIEFORGAN, 
+       CANUSER, 
+       CANDATE, 
+       CANREASON
+  ) SELECT 
+           (SELECT COUNT(*)+1 FROM OPR_CANSTUDENT WHERE COURSECODE LIKE #searchCourseCode#) CANSEQ, 
+            COURSECODE, 
+            SEQ, 
+            JUMINNO, 
+            STDNAME, 
+            STDNO, 
+            ASSIGN, 
+            ASSIGNNAME, 
+            GRADECODE, 
+            GRADENAME, 
+            RANKCODE, 
+            RANKNAME, 
+            JOBKIND, 
+            JOBNAME, 
+            EMAIL, 
+            CELLPHONE, 
+            ISCOST, 
+            TEAMNO, 
+            ISLEADER, 
+            CHIEFORGAN,
+            #canUser#,
+            to_char(sysdate,'yyyymmdd hh24:mi:ss'), 
+            #canReason#
+      FROM  OPR_CRSSTUDENT
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  SEQ LIKE #seq#
+	</insert>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_StuCancle" parameterClass="opr_Student">
+		DELETE FROM OPR_CRSSTUDENT
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  SEQ LIKE #seq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>	
+	
+
+	<insert id="insertOpr_StuCancleRollBook" parameterClass="opr_Student">
+		INSERT INTO OPR_CANROLLBOOK (
+        CANSEQ   ,
+        COURSECODE  ,
+        SEQ        ,
+        EDUDATE    ,
+        ATTENDYN    ,
+        ATTENDGUBN ,
+        ATNDSCORE ,
+        REMARKS 
+  ) SELECT 
+           (SELECT MAX(CANSEQ) FROM OPR_CANSTUDENT WHERE COURSECODE LIKE #searchCourseCode#) CANSEQ, 
+            COURSECODE  ,
+            SEQ        ,
+            EDUDATE    ,
+            ATTENDYN    ,
+            ATTENDGUBN ,
+            ATNDSCORE ,
+            REMARKS 
+      FROM  OPR_ROLLBOOK
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  SEQ LIKE #seq#
+	</insert>
+	
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_StuCancleRollBook" parameterClass="opr_Student">
+		DELETE FROM OPR_ROLLBOOK
+     WHERE  COURSECODE LIKE #searchCourseCode#
+       AND  SEQ LIKE #seq#
+		<!-- 조회조건 Key 추가 -->
+	</delete>	
+	
+	<!-- 과정종료일 체크 -->
+	<select id="selectOpr_Eduto" parameterClass="java.lang.String" resultClass="java.lang.Integer">
+		SELECT DECODE(GREATEST(EDUTO,TO_CHAR(SYSDATE,'YYYYMMDD')),EDUTO, 0, 1)		
+	    FROM OPR_LECTURE
+	   WHERE COURSECODE LIKE #coursecode#
+	</select>
+</sqlMap>
+
+

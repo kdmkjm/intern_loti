@@ -1,0 +1,513 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Opr_StudentFix">
+
+	<typeAlias alias="opr_StudentFix" type="loti.opr.fix.model.Opr_StudentFix"/>
+	<typeAlias alias="od_Or_DataBean" type="loti.insarang.conn.OD_OR_DataBean"/>
+	<typeAlias alias="fileDataBean" type="loti.insarang.conn.FileDataBean"/>
+
+<!--
+CMN_PUBWORKER 업데이트 잘못되었을때 복구하는 쿼리
+
+ UPDATE CMN_PUBWORKER C
+SET (JUMINNO, USERNAME, GRADE, RANK, JOBKIND, EMAIL, ORGANCODE)
+= (
+SELECT JUMINNO, USERNAME , GRADE, RANK, JOBKIND, EMAIL, ORGANCODE
+from (
+SELECT
+  JUMINNO, STDNAME USERNAME , GRADECODE GRADE, RANKCODE RANK, JOBKIND, EMAIL, CHIEFORGAN ORGANCODE, rank() over(partition by juminno order by coursecode desc) r
+  FROM OPR_APPLICANT WHERE JUMINNO IN (
+  SELECT JUMINNO FROM CMN_PUBWORKER
+  WHERE USERNAME IS NULL)
+  ) a where r = 1
+and a.juminno = c.juminno)
+WHERE C.username is null
+
+ -->
+ <!--
+ CMN_PUBWORKER 업데이트 잘못되었는지 확인하는 쿼리. 결과가 없어야 정상임. 결과가 있다면 ... ㅠㅠ
+
+  SELECT * FROM CMN_PUBOWRKER WHERE USERNAME IS NULL
+  -->
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectOpr_StudentFix" parameterClass="opr_StudentFix" resultClass="opr_StudentFix">
+			SELECT
+				COURSECODE,
+				SEQ,
+				JUMINNO,
+				BIRTHSEX,
+				STDNAME,
+				ASSIGN,
+				ASSIGNNAME,
+				GRADECODE,
+				GRADENAME,
+				RANKCODE,
+				RANKNAME,
+				JOBKIND,
+				JOBNAME,
+				EMAIL,
+				CELLPHONE,
+				CHIEFORGAN,
+				'Y' ISSELECTED
+		FROM	OPR_APPLICANT
+		WHERE COURSECODE = #courseCode#
+		AND JUMINNO = #juminno#
+	</select>
+
+
+	<select id="selectOpr_CourseName" parameterClass="opr_StudentFix" resultClass="java.lang.String">
+			SELECT COURSENAME
+			  FROM OPR_LECTURE
+			 WHERE COURSECODE LIKE #courseCode#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentFixList" parameterClass="opr_StudentFix" resultClass="opr_StudentFix">
+			SELECT D.COURSECODE AS COURSECODE,
+						 A.CHIEFORGAN,
+			       C.ORGANNAME,
+			       MAX(D.EDUCOUNT) AS JUNGWON,
+			       COUNT(JUMINNO) AS SINWON,
+			       SUM(DECODE(ISSELECTED,'Y',1,0)) AS FINWON,
+			       SUM(DECODE(ISSELECTED,'N',1,0)) AS MINWON,
+			       MIN(ORGANGU) ORGANGU
+			  FROM OPR_APPLICANT A,
+			       CMN_MSTORGAN C,
+			       OPR_LECTURE D
+			 WHERE A.CHIEFORGAN = C.CHIEFORGAN
+			   AND A.COURSECODE = D.COURSECODE
+			   AND A.COURSECODE LIKE #searchCourseCode#
+			 GROUP BY D.COURSECODE, A.CHIEFORGAN, C.ORGANNAME, BIGO
+			 ORDER BY BIGO, ORGANGU, CHIEFORGAN
+	</select>
+
+		<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentFixSelectList" parameterClass="opr_StudentFix" resultClass="opr_StudentFix">
+			SELECT #chieforgan# AS CHIEFORGAN,
+			       #organname# AS ORGANNAME,
+			       SEQ,
+			       JUMINNO,
+			       BIRTHSEX,
+			       STDNAME,
+			       ASSIGNNAME,
+			       RANKNAME,
+			       JOBNAME,
+			       ISSELECTED,
+			       (SELECT SUBSTR(XMLAGG(XMLELEMENT("NM",', '||
+                       (DECODE(B.ISFINISH,
+                            'N', C.COURSENAME||'('||TO_NUMBER(SUBSTR(C.COURSECODE,11,2))||'기) 미이수 '||MOD((TO_NUMBER(SUBSTR(C.EDUTO,5,2))+2),12)||'월까지 수강제한',
+                        DECODE(SIGN(to_char(sysdate, 'yyyymmdd')-C.EDUFROM),
+                            '-1',DECODE(C.ISPASS, 'Y', '', C.COURSENAME||'('||TO_NUMBER(SUBSTR(C.COURSECODE,11,2))||'기) 기선발'),C.COURSENAME||'('||TO_NUMBER(SUBSTR(C.COURSECODE,11,2))||'기) 수강중')
+                       )))ORDER BY JUMINNO).EXTRACT('//text()'),2)
+                FROM OPR_CRSSTUDENT B,
+                   (SELECT
+                            COURSENAME, COURSECODE, EDUFROM, EDUTO, NVL(ISPASS, 'N') ISPASS
+                        FROM OPR_LECTURE D
+                       WHERE SUBSTR(D.COURSECODE,4,4) LIKE SUBSTR(#courseCode#,4,4)||'%') C
+               WHERE B.COURSECODE = C.COURSECODE
+                 AND SUBSTR(B.COURSECODE,4,4) LIKE SUBSTR(#courseCode#,4,4)||'%'
+                 AND B.JUMINNO = A.JUMINNO
+                 AND (B.ISFINISH = 'N' OR B.ISFINISH IS NULL)
+             ) REMARK
+			  FROM OPR_APPLICANT A
+			 WHERE COURSECODE LIKE #courseCode#
+		     AND CHIEFORGAN = #chieforgan#
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectOpr_StudentFixListCount" parameterClass="opr_StudentFix" resultClass="java.lang.Integer">
+			SELECT COUNT(*) as CNT
+			  FROM OPR_CRSSTUDENT
+				<isNotEmpty property="searchKeyword">
+					<isNotEmpty prepend="WHERE" property="searchColumn">
+						$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+				</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectOpr_StudentFixCount" parameterClass="opr_StudentFix" resultClass="java.lang.Integer">
+			SELECT COUNT(*) as CNT
+			  FROM OPR_CRSSTUDENT
+			 WHERE COURSECODE = #courseCode#
+			   AND CHIEFORGAN = #chieforgan#
+			   AND JUMINNO = #juminno#
+			<!-- 조회조건 Key 추가 -->
+	</select>
+
+	<!-- 엑셀 다운로드 목록조회쿼리  -->
+	<select id="selectOpr_StudentFixExcel" parameterClass="opr_StudentFix" resultClass="opr_StudentFix">
+		SELECT
+            ORGANNAME       COL_A,
+            RANKNAME        COL_B,
+            STDNAME         COL_C,
+            BIRTH           COL_D,
+            CELLPHONE       COL_E
+      FROM
+           (SELECT
+                    0         NUM,
+                    '소속'     ORGANNAME,
+                    '직급'     RANKNAME,
+                    '성명'     STDNAME,
+                    '주민번호'  BIRTH,
+                    '핸드폰'   CELLPHONE
+              FROM  DUAL
+             UNION
+            SELECT
+                    ROWNUM NUM,
+                    C.*
+              FROM
+                   (SELECT
+                            A.ASSIGNNAME ORGANNAME,
+                            A.RANKNAME  ,
+                            A.STDNAME  ,
+<!--                        DECODE(B.CRSTYPE1||B.CRSTYPE3,
+                                '0000300000', A.JUMINNO,
+                                '0000300001', A.JUMINNO,
+                                SUBSTR(A.JUMINNO,0,6)||'-'||SUBSTR(A.JUMINNO,7,3)||'****') BIRTH,-->
+                            DECODE(SUBSTR(B.COURSENAME,1,2),'e-',  A.JUMINNO, SUBSTR(A.BIRTHSEX,0,6)||'-'||SUBSTR(C.BIRTHSEX,7,1)||'******') BIRTH,
+                            NVL(A.CELLPHONE, C.CELLPHONE) CELLPHONE
+                      FROM  OPR_CRSSTUDENT A, OPR_LECTURE B, CMN_PUBWORKER C
+                     WHERE  A.COURSECODE = B.COURSECODE
+                       AND  A.JUMINNO = C.JUMINNO(+)
+                       AND  A.COURSECODE LIKE #courseCode#
+                  ORDER BY  ORGANNAME, STDNAME
+                   ) C
+            )
+  ORDER BY  NUM
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectOpr_StudentFixSendList" parameterClass="opr_StudentFix" resultClass="od_Or_DataBean">
+			SELECT A.COURSECODE COURSECODE,
+		 	       B.COURSENAME COURSENAME,
+             C.EDUGBN EDUGBN,
+             B.EDUFROM EDUFROM,
+             B.EDUTO EDUTO,
+             (SELECT SUM(NVL(LECHOUR,0)+NVL(PATHOUR,0)+NVL(ETCHOUR,0)) FROM OPR_SUBJECT D WHERE A.COURSECODE = D.COURSECODE) EDUHOUR,
+             C.EDUTYPE EDUTYPE,
+             DECODE(B.CRSTYPE1,'00003' ,'2', '1') EDUMETHOD,
+             A.JUMINNO JUMINNO,
+             CHIEFORGAN STDORGCODE,
+             '1' ISSELECTED,
+             DECODE(ISFINISH,'Y','1','0') ISFINISHED,
+             (SCORESTUDY+SCOREATTEND+SCORERESEARCH+SCORETEAM+SCOREADD+SCOREPRA+SCOREETC+SCOREFOREIGN+SCORECONVER+SCOREPAPER+SCOREPERSONAL+SCORETEAMDISC+SCOREHOBBY+SCORESTAMINA+SCOREINFO+SCOREVALUE) SCORE
+		 	  FROM OPR_CRSSTUDENT A,
+		 	       OPR_LECTURE B,
+		 	       (SELECT TYPE1, MAX(EDUGBN) EDUGBN, MAX(EDUTYPE) EDUTYPE FROM CMN_COURSETYPE GROUP BY TYPE1) C
+       WHERE A.COURSECODE = B.COURSECODE
+         AND B.CRSTYPE1 = C.TYPE1
+         AND A.COURSECODE = #courseCode#
+	</select>
+
+	<select id="selectOpr_StudentFixListForBatch" parameterClass="opr_StudentFix" resultClass="opr_StudentFix">
+		SELECT
+				COURSECODE,
+				SEQ,
+				JUMINNO,
+				BIRTHSEX,
+				STDNAME,
+				ASSIGN,
+				ASSIGNNAME,
+				GRADECODE,
+				GRADENAME,
+				RANKCODE,
+				RANKNAME,
+				JOBKIND,
+				JOBNAME,
+				EMAIL,
+				CELLPHONE,
+				CHIEFORGAN,
+				'Y' ISSELECTED
+		FROM	OPR_APPLICANT
+		WHERE	COURSECODE LIKE #searchCourseCode#
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertOpr_StudentFix" parameterClass="opr_StudentFix">
+		INSERT INTO OPR_CRSSTUDENT (
+			   			COURSECODE   ,
+			   			SEQ          ,
+			   			JUMINNO      ,
+			   			BIRTHSEX     ,
+			   			STDNAME      ,
+			   			STDNO        ,
+			   			CHIEFORGAN   ,
+			   			ASSIGN       ,
+			   			ASSIGNNAME   ,
+			   			GRADECODE    ,
+			   			GRADENAME    ,
+			   			RANKCODE     ,
+			   			RANKNAME     ,
+			   			JOBKIND      ,
+			   			JOBNAME      ,
+			   			EMAIL        ,
+			   			CELLPHONE
+		)
+		(  SELECT COURSECODE   ,
+			   			(SELECT NVL(MAX(SEQ),0)+1 FROM OPR_CRSSTUDENT WHERE COURSECODE = #courseCode#) AS SEQ  ,
+			   			JUMINNO      ,
+			   			BIRTHSEX     ,
+			   			STDNAME      ,
+			   			''     			 ,
+			   			CHIEFORGAN   ,
+			   			ASSIGN       ,
+			   			ASSIGNNAME   ,
+			   			GRADECODE    ,
+			   			GRADENAME    ,
+			   			RANKCODE     ,
+			   			RANKNAME     ,
+			   			JOBKIND      ,
+			   			JOBNAME      ,
+			   			EMAIL        ,
+			   			CELLPHONE
+			   FROM OPR_APPLICANT
+			  WHERE COURSECODE = #courseCode#
+			    AND SEQ = #seq#
+			    AND ISSELECTED = 'Y'
+		)
+	</insert>
+
+	<!-- 레코드 입력 -->
+	<insert id="cmnRelayFile" parameterClass="fileDataBean">
+		INSERT INTO CMN_RELAYFILE (
+			   			MESSAGEID    		,
+			   			FILENAME        ,
+			   			DOCCODE    			,
+			   			RECIPIENT      	,
+			   			FORM      			,
+			   			SENDDATE      	,
+			   			RECEIVEDATE 		,
+			   			FILESIZE        ,
+			   			RECUSER      		,
+			   			RECDATE
+		) VALUES (
+			   			#messageID#    	,
+			   			#subject#				,
+			   			#docCode#     	,
+			   			#recipent#    	,
+			   			#forms#					,
+			   			#sendDate#			,
+			   			#receiveDate# 	,
+			   			#fsize#        	,
+			   			''      ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD')
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateOpr_StudentFix" parameterClass="opr_StudentFix">
+		UPDATE OPR_APPLICANT SET
+			   ISSELECTED = #isselected#
+	 WHERE COURSECODE    = #courseCode#
+		 AND SEQ           = #seq#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteOpr_StudentFix" parameterClass="opr_StudentFix">
+		DELETE FROM OPR_CRSSTUDENT
+		 WHERE COURSECODE = #courseCode#
+		   AND CHIEFORGAN = #chieforgan#
+		   AND JUMINNO = #juminno#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+	<select id="selectCmn_PubworkerCount" parameterClass="opr_StudentFix" resultClass="java.lang.Integer">
+	    SELECT COUNT(JUMINNO)
+	    FROM CMN_PUBWORKER
+	    WHERE JUMINNO = #juminno#
+	</select>
+
+	<insert id="insertCmn_Pubworker" parameterClass="opr_StudentFix">
+	    INSERT INTO CMN_PUBWORKER
+	    (
+	    JUMINNO,
+	    BIRTHSEX,
+	    USERNAME,
+	    CELLPHONE,
+	    GRADE,
+	    RANK,
+	    JOBKIND,
+	    EMAIL,
+	    ORGANCODE,
+	    INSDATE,
+	    INSUSER
+	    )
+	    VALUES
+	    (
+	    #juminno#,
+	    #birthsex#,
+	    #stdname#,
+	    #cellphone#,
+	    #gradecode#,
+	    #rankcode#,
+	    #jobkind#,
+	    #email#,
+	    #chieforgan#,
+	    (SELECT TO_CHAR(SYSDATE, 'yyyymmddhh24miss') FROM DUAL),
+	    'System'
+	    )
+	</insert>
+
+	<update id="updateCmn_Pubworker" parameterClass="opr_StudentFix">
+	    UPDATE CMN_PUBWORKER
+	    SET
+	    	USERNAME = #stdname#,
+	    	GRADE = #gradecode#,
+	    	RANK = #rankcode#,
+	    	JOBKIND = #jobkind#,
+	    	EMAIL = #email#,
+	    	ORGANCODE = #chieforgan#,
+	    	UPDDATE = (SELECT TO_CHAR(SYSDATE, 'yyyymmddhh24miss') FROM DUAL),
+	    	UPDUSER = 'System'
+	    WHERE JUMINNO = #juminno#
+	</update>
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="seq">
+				SEQ = #seq#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="juminno">
+				JUMINNO = #juminno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="stdname">
+				STDNAME = #stdname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="stdno">
+				STDNO = #stdno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="assign">
+				ASSIGN = #assign#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="assignname">
+				ASSIGNNAME = #assignname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="gradecode">
+				GRADECODE = #gradecode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="gradename">
+				GRADENAME = #gradename#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="rankcode">
+				RANKCODE = #rankcode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="rankname">
+				RANKNAME = #rankname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="jobkind">
+				JOBKIND = #jobkind#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="jobname">
+				JOBNAME = #jobname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="email">
+				EMAIL = #email#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cellphone">
+				CELLPHONE = #cellphone#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="iscost">
+				ISCOST = #iscost#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="teamno">
+				TEAMNO = #teamno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="isleader">
+				ISLEADER = #isleader#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scorestudy">
+				SCORESTUDY = #scorestudy#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreattend">
+				SCOREATTEND = #scoreattend#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreresearch">
+				SCORERESEARCH = #scoreresearch#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreteam">
+				SCORETEAM = #scoreteam#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreadd">
+				SCOREADD = #scoreadd#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scorepra">
+				SCOREPRA = #scorepra#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreetc">
+				SCOREETC = #scoreetc#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="scoreavg">
+				SCOREAVG = #scoreavg#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="progressrate">
+				PROGRESSRATE = #progressrate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="studyhour">
+				STUDYHOUR = #studyhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="ranking">
+				RANKING = #ranking#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="dispranking">
+				DISPRANKING = #dispranking#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="isfinish">
+				ISFINISH = #isfinish#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

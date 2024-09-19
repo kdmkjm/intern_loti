@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Pln_EduPlan">
+
+	<typeAlias alias="pln_EduPlan" type="loti.pln.plan.model.Pln_EduPlan"/>
+	<typeAlias alias="pln_CourseTurn" type="loti.pln.plan.model.Pln_CourseTurn"/>
+	<typeAlias alias="pln_Subject" type="loti.pln.plan.model.Pln_Subject"/>
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPln_EduPlan" parameterClass="pln_EduPlan" resultClass="pln_EduPlan">
+			SELECT
+				   		APPLYYEAR     ,
+				   		CRSCLUMPCODE  ,
+				   		CRSTYPE1||CRSTYPE2||CRSTYPE3 CRSTYPE     ,
+				   		CRSCLUMPNAME  ,
+				   		EDUTARGET     ,
+				   		CHARGER       ,
+				   		INSUSER       ,
+				   		INSDATE       ,
+				   		UPDUSER       ,
+				   		EDUOBJECTIVES ,
+				   		UPDDATE       ,
+				   		EDUWAY        ,
+				   		CHPTCOUNT     ,
+				   		APVHOUR       ,
+				   		CYBERPRGSRATE ,
+				   		CYBERMINHOUR  ,
+				   		CYBERFINBASE  ,
+				   		CYBERFINNOTICE,
+				   		OPRDEPART     ,
+				   		OPRDEPTTELNO  ,
+				   		SENDER        ,
+				   		SENDDATE			,
+			   			DAYCOUNT			
+			  FROM 		PLN_EDUPLAN
+			  WHERE 	CRSCLUMPCODE = #crsClumpCode#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPln_EduPlanList" parameterClass="pln_EduPlan" resultClass="pln_EduPlan">
+		SELECT 	
+						A.CRSCLUMPCODE,
+            CRSCLUMPNAME  ,
+            EDUTARGET     ,
+            CHPTCOUNT     ,
+            CRSTYPE1      ,
+            APVHOUR       ,
+            SURVEYSTDNB   ,
+            B.STDNUMBER	  ,
+            A.DAYCOUNT 	  ,
+            B.COURSECOUNT ,
+            DECODE(CRSTYPE1,'00003','Y','N') ISCYBER
+      FROM  PLN_EDUPLAN A,
+           (SELECT 
+                    CRSCLUMPCODE,
+                    SUM(EDUCOUNT) STDNUMBER, 
+                    COUNT(CRSCLUMPCODE) COURSECOUNT
+              FROM  PLN_COURSETURN
+          GROUP BY  CRSCLUMPCODE
+           ) B
+     WHERE  A.CRSCLUMPCODE = B.CRSCLUMPCODE(+)
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="selPlanYear">
+				APPLYYEAR = #selPlanYear#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType1">
+				CRSTYPE1 = #crsType1#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType2">
+				CRSTYPE2 = #crsType2#
+			</isNotEmpty>
+			<isNotEmpty prepend="AND" property="crsType3">
+				CRSTYPE3 = #crsType3#
+			</isNotEmpty>
+			ORDER BY CRSCLUMPNAME
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPln_EduPlanListCount" parameterClass="pln_EduPlan" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PLN_EDUPLAN
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPln_EduPlanCount" parameterClass="pln_EduPlan" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM PLN_EDUPLAN
+		WHERE CRSCLUMPCODE = #crsClumpCode#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+		<!-- 신규 과정코드 생성  -->
+	<select id="selectNewCrsCode" parameterClass="pln_EduPlan" resultClass="java.lang.String">
+		SELECT '643'||#applyYear#||LPAD(NVL(MAX(SUBSTR(CRSCLUMPCODE,8,3)),0) + 1,3,'0' ) CRSCLUMPCODE
+		FROM PLN_EDUPLAN
+		WHERE APPLYYEAR = #applyYear#
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPln_EduPlan" parameterClass="pln_EduPlan">
+		INSERT INTO PLN_EDUPLAN (
+			   			APPLYYEAR     ,
+			   			CRSCLUMPCODE  ,
+			   			CRSTYPE1      ,
+			   			CRSTYPE2      ,
+			   			CRSTYPE3      ,
+			   			CRSCLUMPNAME  ,
+			   			EDUTARGET     ,
+			   			CHARGER       ,
+			   			INSUSER       ,
+			   			INSDATE       ,
+			   			UPDUSER       ,
+			   			EDUOBJECTIVES ,
+			   			UPDDATE       ,
+			   			EDUWAY        ,
+			   			CHPTCOUNT     ,
+			   			APVHOUR       ,
+			   			CYBERPRGSRATE ,
+			   			CYBERMINHOUR  ,
+			   			CYBERFINBASE  ,
+			   			CYBERFINNOTICE,
+			   			OPRDEPART     ,
+			   			OPRDEPTTELNO	,
+			   			DAYCOUNT			
+		) VALUES (
+
+			   			#applyYear#     ,
+			   			#crsClumpCode#  ,
+			   			SUBSTR(#crsType#,1,5)    ,
+			   			SUBSTR(#crsType#,6,5)    ,
+			   			SUBSTR(#crsType#,11,5)    ,
+			   			#crsClumpName#  ,
+			   			#eduTarget#     ,
+			   			#charger#       ,
+			   			#insUser#       ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD')       ,
+			   			#updUser#       ,
+			   			#eduObjectives# ,
+			   			TO_CHAR(SYSDATE,'YYYYMMDD')       ,
+			   			#eduWay#        ,
+			   			#chptCount#     ,
+			   			#apvHour#       ,
+			   			#cyberPrgsRate# ,
+			   			#cyberMinHour#  ,
+			   			#cyberFinBase#  ,
+			   			#cyberFinNotice#,
+			   			#oprDepart#     ,
+			   			#oprDeptTelno#	,
+			   			#dayCount#			
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updatePln_EduPlan" parameterClass="pln_EduPlan">
+		UPDATE PLN_EDUPLAN SET
+			   APPLYYEAR      = #applyYear#     ,
+			   CRSCLUMPCODE   = #crsClumpCode#  ,
+			   CRSTYPE1       = SUBSTR(#crsType#,1,5)      ,
+			   CRSTYPE2       = SUBSTR(#crsType#,6,5)      ,
+			   CRSTYPE3       = SUBSTR(#crsType#,11,5)      ,
+			   CRSCLUMPNAME   = #crsClumpName#  ,
+			   EDUTARGET      = #eduTarget#     ,
+			   CHARGER        = #charger#       ,
+			   UPDUSER        = #updUser#       ,
+			   EDUOBJECTIVES  = #eduObjectives# ,
+			   UPDDATE        = TO_CHAR(SYSDATE,'YYYYMMDD')       ,
+			   EDUWAY         = #eduWay#        ,
+			   CHPTCOUNT      = #chptCount#     ,
+			   APVHOUR        = #apvHour#       ,
+			   CYBERPRGSRATE  = #cyberPrgsRate# ,
+			   CYBERMINHOUR   = #cyberMinHour#  ,
+			   CYBERFINBASE   = #cyberFinBase#  ,
+			   CYBERFINNOTICE = #cyberFinNotice#,
+			   OPRDEPART      = #oprDepart#     ,
+			   OPRDEPTTELNO   = #oprDeptTelno#  ,
+			   DAYCOUNT				=	#dayCount#			
+		WHERE CRSCLUMPCODE   = #crsClumpCode#
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePln_EduPlan" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_EDUPLAN
+		WHERE CRSCLUMPCODE = #crsClumpCode#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+
+		<!-- 계획서 기수 목록조회쿼리 -->
+	<select id="selectPln_CrsTurnList" parameterClass="pln_EduPlan" resultClass="pln_CourseTurn">
+			SELECT      ROWNUM NUM,
+                        CRSCLUMPCODE,
+                        TURNNO      ,
+                        TO_CHAR(TO_DATE(EDUFROM,'YYYYMMDD'),'YYYY-MM-DD')  EDUFROM,
+                        TO_CHAR(TO_DATE(EDUTO,'YYYYMMDD'),'YYYY-MM-DD')    EDUTO,
+                        SUBSTR(APPLYYYMM,1,4)||'-'||SUBSTR(APPLYYYMM,5) APPLYYYMM,
+                        EDUCOUNT    ,
+                        TO_CHAR(TO_DATE(REQTO,'YYYYMMDD'),'YYYY-MM-DD') REQTO       ,
+                        TO_CHAR(TO_DATE(REQFROM,'YYYYMMDD'),'YYYY-MM-DD') REQFROM     ,
+                        LECROOMNO
+              FROM      PLN_COURSETURN
+			  WHERE 	CRSCLUMPCODE = #crsClumpCode#
+	</select>
+
+
+	<!-- 계획서 기수 입력 -->
+	<insert id="insertPln_CourseTurn" parameterClass="pln_CourseTurn">
+		INSERT INTO PLN_COURSETURN (
+			   			CRSCLUMPCODE,
+			   			TURNNO      ,
+			   			EDUFROM     ,
+			   			EDUTO       ,
+			   			APPLYYYMM   ,
+			   			EDUCOUNT    ,
+			   			REQTO       ,
+			   			REQFROM     ,
+			   			LECROOMNO
+		) VALUES (
+
+			   			#crsClumpCode#,
+			   			#turnNo#      ,
+			   			#eduFrom#     ,
+			   			#eduTo#       ,
+			   			#applyYYMM#   ,
+			   			#eduCount#    ,
+			   			#reqTo#       ,
+			   			#reqFrom#     ,
+			   			#lecRoomNo#
+		)
+	</insert>
+
+	<!--  계획서 기수  삭제 -->
+	<delete id="deletePln_CourseTurn" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_COURSETURN
+		WHERE CRSCLUMPCODE = #crsClumpCode#
+	</delete>
+
+
+
+	<!--  계획서 교과목 목록조회쿼리 -->
+	<select id="selectPln_SubList" parameterClass="pln_EduPlan" resultClass="pln_Subject">
+			SELECT 	ROWNUM NUM,
+				   		CRSCLUMPCODE,
+			   			SUBJSEQ     ,
+			   			SUBJNAME    ,
+			   			SUBJTYPE    ,
+			   			LECHOUR     ,
+			   			PATHOUR  		,
+			   			ETCHOUR		  ,
+			   			EDUCONTENTS ,
+			   			ORD
+			  FROM 	PLN_SUBJECT
+			  WHERE CRSCLUMPCODE = #crsClumpCode#
+			  ORDER BY ORD
+	</select>
+
+
+	<!-- 계획서 교과목 입력 -->
+	<insert id="insertPln_Subject" parameterClass="pln_Subject">
+		INSERT INTO PLN_SUBJECT (
+			   			CRSCLUMPCODE,
+			   			SUBJSEQ     ,
+			   			SUBJNAME    ,
+			   			SUBJTYPE    ,
+			   			LECHOUR     ,
+			   			PATHOUR     ,
+			   			ETCHOUR			,
+			   			EDUCONTENTS ,
+			   			ORD
+		) VALUES (
+
+			   			#crsClumpCode#,
+			   			(SELECT (NVL(MAX(SUBJSEQ),0) + 1)
+			   			FROM PLN_SUBJECT
+			   			WHERE CRSCLUMPCODE = #crsClumpCode# )    ,
+			   			#subjName#    ,
+			   			#subjType#    ,
+			   			#lecHour#     ,
+			   			#patHour#			,
+			   			#etcHour#   ,
+			   			#eduContents# ,
+			   			#ord#
+		)
+	</insert>
+
+
+	<!--  계획서 교과목 삭제 -->
+	<delete id="deletePln_Subject" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_SUBJECT
+		WHERE CRSCLUMPCODE = #crsClumpCode#
+	</delete>
+
+
+	<!-- 수요조사 가져오기 -->
+	<insert id="copyPln_EduPlan" parameterClass="pln_EduPlan" >
+			INSERT INTO PLN_EDUPLAN
+						(   CRSCLUMPCODE,
+						    APPLYYEAR,
+						    CRSTYPE1,
+						    CRSTYPE2,
+						    CRSTYPE3,
+						    CRSCLUMPNAME,
+						    EDUTARGET,
+						    DAYCOUNT,
+						    SURVEYSTDNB ,
+						    CHPTCOUNT,
+						    APVHOUR,
+						    INSUSER,
+						    INSDATE,
+						    EDUOBJECTIVES,
+						    EDUWAY,
+						    EDUCOST,
+						    STAYFLAG,
+						    LUNCHFLAG,
+						    CHARGER,
+						    CYBERPRGSRATE,
+						    CYBERMINHOUR,
+						    CYBERFINBASE,
+						    CYBERFINNOTICE,
+						    OPRDEPART,
+						    OPRDEPTTELNO,
+						    EXCRSCLUMPCODE
+					    )
+				SELECT
+                            CRSCLUMPCODE,
+                            PLANYEAR APPLYYEAR,
+                            CRSTYPE1,
+                            CRSTYPE2,
+                            CRSTYPE3,
+                            CRSCLUMPNAME,
+                            EDUTARGET,
+                            DAYCOUNT,
+                            SURVEYSTDNB ,
+                            CHPTCOUNT,
+                            APVHOUR,
+                            INSUSER,
+                            TO_CHAR(SYSDATE,'YYYYMMDD') INSDATE,
+                            EDUOBJECTIVES,
+                            EDUWAY,
+                            EDUCOST,
+                            STAYFLAG,
+                            LUNCHFLAG,
+                            CHARGER,
+                            CYBERPRGSRATE,
+                            CYBERMINHOUR,
+                            CYBERFINBASE,
+                            CYBERFINNOTICE,
+                            OPRDEPART,
+                            OPRDEPTTELNO,
+                            EXCRSCLUMPCODE
+                    FROM(
+                           SELECT
+                                    P.CRSCLUMPCODE,
+                                    P.PLANYEAR,
+                                    P.CRSTYPE1,
+                                    P.CRSTYPE2,
+                                    P.CRSTYPE3,
+                                    P.CRSCLUMPNAME,
+                                    P.EDUTARGET,
+                                    P.DAYCOUNT,
+                                    P.ORGSTDNUMBER SURVEYSTDNB,
+                                    P.CHPTCOUNT,
+                                    P.APVHOUR,
+                                    P.INSUSER,
+                                    P.INSDATE,
+                                    E.EDUOBJECTIVES,
+                                    E.EDUWAY,
+                                    E.EDUCOST,
+                                    E.STAYFLAG,
+                                    E.LUNCHFLAG,
+                                    E.CHARGER,
+                                    E.CYBERPRGSRATE,
+                                    E.CYBERMINHOUR,
+                                    E.CYBERFINBASE,
+                                    E.CYBERFINNOTICE,
+                                    E.OPRDEPART,
+                                    E.OPRDEPTTELNO,
+                                    E.CRSCLUMPCODE EXCRSCLUMPCODE
+
+                             FROM (
+																		SELECT	S.PLANYEAR    ,
+								                           	S.CRSCLUMPCODE,
+								                           	S.CRSTYPE1    ,
+								                           	S.CRSTYPE2    ,
+								                           	S.CRSTYPE3    ,
+								                           	S.CRSTYPE1+S.CRSTYPE2+S.CRSTYPE3  CRSTYPE  ,
+								                           	S.CRSCLUMPNAME,
+								                           	S.EDUTARGET   ,
+								                           	S.DAYCOUNT    ,
+								                           	NVL(O.ORGSTDNUMBER,0) ORGSTDNUMBER,
+								                           	S.CHPTCOUNT   ,
+								                           	S.APVHOUR     ,
+								                           	S.INSUSER     ,
+								                           	S.INSDATE     ,
+								                           	S.UPDUSER     ,
+								                           	S.UPDDATE     ,
+								                            S.EXCRSCLUMPCODE
+								              		    FROM	PLN_SURVEY S,
+		                                        (
+		                                        SELECT CRSCLUMPCODE, SUM(STDNUMBER) ORGSTDNUMBER
+		                                          FROM PLN_ORGSURVEY
+		                                         WHERE SUBSTR(CRSCLUMPCODE,4,4) LIKE #selPlanYear#||'%'
+		                                         GROUP BY CRSCLUMPCODE
+		                                        )  O
+								              		   WHERE 	S.CRSCLUMPCODE = O.CRSCLUMPCODE(+)
+								              		     AND  S.PLANYEAR = #selPlanYear#
+													           ORDER BY S.CRSCLUMPCODE
+                        						)  P, 
+                        						PLN_EDUPLAN E
+                              WHERE P.EXCRSCLUMPCODE = E.CRSCLUMPCODE
+                              UNION
+                             SELECT
+                                    CRSCLUMPCODE,
+                                    PLANYEAR,
+                                    CRSTYPE1,
+                                    CRSTYPE2,
+                                    CRSTYPE3,
+                                    CRSCLUMPNAME,
+                                    EDUTARGET,
+                                    DAYCOUNT,
+                                    ORGSTDNUMBER SURVEYSTDNB,                                    
+                                    CHPTCOUNT,
+                                    APVHOUR,
+                                    INSUSER,
+                                    INSDATE,
+                                    NULL EDUOBJECTIVES,
+                                    NULL EDUWAY,
+                                    NULL EDUCOST,
+                                    NULL STAYFLAG,
+                                    NULL LUNCHFLAG,
+                                    NULL CHARGER,
+                                    NULL CYBERPRGSRATE,
+                                    NULL CYBERMINHOUR,
+                                    NULL CYBERFINBASE,
+                                    NULL CYBERFINNOTICE,
+                                    NULL OPRDEPART,
+                                    NULL OPRDEPTTELNO,
+                                    EXCRSCLUMPCODE
+                               FROM (
+																			SELECT	S.PLANYEAR    ,
+									                           	S.CRSCLUMPCODE,
+									                           	S.CRSTYPE1    ,
+									                           	S.CRSTYPE2    ,
+									                           	S.CRSTYPE3    ,
+									                           	S.CRSTYPE1+S.CRSTYPE2+S.CRSTYPE3  CRSTYPE  ,
+									                           	S.CRSCLUMPNAME,
+									                           	S.EDUTARGET   ,
+									                           	S.DAYCOUNT    ,
+									                           	NVL(O.ORGSTDNUMBER,0) ORGSTDNUMBER,
+									                           	S.CHPTCOUNT   ,
+									                           	S.APVHOUR     ,
+									                           	S.INSUSER     ,
+									                           	S.INSDATE     ,
+									                           	S.UPDUSER     ,
+									                           	S.UPDDATE     ,
+									                            S.EXCRSCLUMPCODE
+									              		    FROM	PLN_SURVEY S,
+			                                        (
+				                                        SELECT CRSCLUMPCODE, SUM(STDNUMBER) ORGSTDNUMBER
+				                                          FROM PLN_ORGSURVEY
+				                                         WHERE SUBSTR(CRSCLUMPCODE,4,4) LIKE #selPlanYear#||'%'
+				                                         GROUP BY CRSCLUMPCODE
+			                                        )  O
+										              		 WHERE 	S.CRSCLUMPCODE = O.CRSCLUMPCODE(+)
+										              		   AND  S.PLANYEAR = #selPlanYear#
+																			  ORDER BY S.CRSCLUMPCODE
+												                        )
+												WHERE EXCRSCLUMPCODE IS NULL
+											    AND PLANYEAR = #selPlanYear#
+						            )
+	</insert>
+
+	<!-- 수요조사 가져오기 : 계획서  삭제 -->
+	<delete id="deletePln_EduPlanCopy" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_EDUPLAN
+		WHERE SUBSTR(CRSCLUMPCODE,4,4) = #selPlanYear#
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+	<!-- 수요조사 가져오기 : 계획서 교과목 입력 -->
+	<insert id="copyPln_Subject" parameterClass="pln_EduPlan">
+		INSERT INTO PLN_SUBJECT
+				(
+				    CRSCLUMPCODE,
+				    SUBJSEQ,
+				    SUBJNAME,
+				    SUBJTYPE,
+				    LECHOUR,
+				    PATHOUR,
+				    ETCHOUR,
+				    EDUCONTENTS,
+				    ORD
+				)
+				SELECT
+				    E.CRSCLUMPCODE,
+				    P.SUBJSEQ,
+				    P.SUBJNAME,
+				    P.SUBJTYPE,
+				    P.LECHOUR,
+				    P.PATHOUR,
+				    P.ETCHOUR,
+				    P.EDUCONTENTS,
+				    P.ORD
+				FROM PLN_SUBJECT P, PLN_EDUPLAN E
+				WHERE  P.CRSCLUMPCODE = E.EXCRSCLUMPCODE
+				AND SUBSTR(E.CRSCLUMPCODE,4,4) = #selPlanYear#
+	</insert>
+
+	<!--  수요조사 가져오기 : 계획서 교과목 삭제 -->
+	<delete id="deletePln_SubjectCopy" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_SUBJECT
+		WHERE SUBSTR(CRSCLUMPCODE,4,4) = #selPlanYear#
+	</delete>
+
+		<!-- 수요조사 가져오기 : 계획서 기수 입력 -->
+	<insert id="copyPln_CourseTurn" parameterClass="pln_EduPlan">
+		INSERT INTO PLN_COURSETURN
+				(
+				    CRSCLUMPCODE,
+				    TURNNO,
+				    EDUFROM,
+				    EDUTO,
+				    APPLYYYMM,
+				    EDUCOUNT,
+				    REQTO,
+				    REQFROM,
+				    LECROOMNO
+				)
+				SELECT
+				    E.CRSCLUMPCODE,
+				    P.TURNNO,
+				    #selPlanYear#||SUBSTR(P.EDUFROM,5,4),
+				    #selPlanYear#||SUBSTR(P.EDUTO,5,4),
+				    #selPlanYear#||SUBSTR(P.APPLYYYMM,5,2),
+				    P.EDUCOUNT,
+				    DECODE(P.REQTO,NULL,'',#selPlanYear#||SUBSTR(P.REQTO,5,4)),
+				    DECODE(P.REQTO,NULL,'',#selPlanYear#||SUBSTR(P.REQFROM,5,4)),
+				    P.LECROOMNO
+				FROM LOTI.PLN_COURSETURN P, PLN_EDUPLAN E
+				WHERE  P.CRSCLUMPCODE = E.EXCRSCLUMPCODE
+				AND SUBSTR(E.CRSCLUMPCODE,4,4) = #selPlanYear#
+	</insert>
+
+	<!--  수요조사 가져오기 : 계획서 기수  삭제 -->
+	<delete id="deletePln_CourseTurnCopy" parameterClass="pln_EduPlan">
+		DELETE FROM PLN_COURSETURN
+		WHERE SUBSTR(CRSCLUMPCODE,4,4) = #selPlanYear#
+	</delete>
+
+
+
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--
+				<isNotEmpty prepend="AND" property="applyyear">
+				APPLYYEAR = #applyyear#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crsclumpcode">
+				CRSCLUMPCODE = #crsClumpCode#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype1">
+				CRSTYPE1 = #crstype1#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype2">
+				CRSTYPE2 = #crstype2#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crstype3">
+				CRSTYPE3 = #crstype3#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="crsclumpname">
+				CRSCLUMPNAME = #crsclumpname#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="edutarget">
+				EDUTARGET = #edutarget#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="charger">
+				CHARGER = #charger#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insuser">
+				INSUSER = #insuser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="insdate">
+				INSDATE = #insdate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upduser">
+				UPDUSER = #upduser#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduobjectives">
+				EDUOBJECTIVES = #eduobjectives#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="upddate">
+				UPDDATE = #upddate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="eduway">
+				EDUWAY = #eduway#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="chptcount">
+				CHPTCOUNT = #chptcount#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="apvhour">
+				APVHOUR = #apvhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberprgsrate">
+				CYBERPRGSRATE = #cyberprgsrate#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberminhour">
+				CYBERMINHOUR = #cyberminhour#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinbase">
+				CYBERFINBASE = #cyberfinbase#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="cyberfinnotice">
+				CYBERFINNOTICE = #cyberfinnotice#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepart">
+				OPRDEPART = #oprdepart#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="oprdepttelno">
+				OPRDEPTTELNO = #oprdepttelno#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="sender">
+				SENDER = #sender#
+				</isNotEmpty>
+
+				<isNotEmpty prepend="AND" property="senddate">
+				SENDDATE = #senddate#
+				</isNotEmpty>
+
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

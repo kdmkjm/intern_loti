@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE sqlMapConfig PUBLIC "-//ibatis.apache.org//DTD SQL Map Config 2.0//EN" "http://ibatis.apache.org/dtd/sql-map-config-2.dtd">
+
+<sqlMapConfig>
+
+	<settings cacheModelsEnabled="true" enhancementEnabled="true"
+              maxSessions="64" maxTransactions="8" maxRequests="128"
+              useStatementNamespaces="true"/>
+
+	<!-- JNDI Resource -->
+  <transactionManager type="JDBC">
+     <dataSource type="JNDI">
+     	<!--<property name="DataSource" value="java:comp/env/mssql"/>-->
+     	<property name="DataSource" value="mssqldatasource"/>
+     </dataSource>
+ 	</transactionManager>
+
+	<!-- ==========Framework Configuration Section============= -->
+
+	<!-- ==========			자 원 관 리   		 ============= -->
+	<sqlMap resource="loti/rsc/smsstatus/dao/sql/RscSMSStatusListMSSQL_SqlMap.xml" />
+	
+	<!-- ==========				시 스 템	   		============= -->
+	<sqlMap resource="loti/sys/loti/dao/sql/SysLoti_SqlMap.xml" />
+
+</sqlMapConfig>

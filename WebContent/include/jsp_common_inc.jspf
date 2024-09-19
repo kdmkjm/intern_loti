@@ -1,0 +1,15 @@
+
+<%-----------------------------------------------------------------------------------
+
+  -----------------------------------------------------------------------------------%>
+
+<%@ taglib uri="/WEB-INF/tld/struts-bean.tld" prefix="bean" %>
+<%@ taglib uri="/WEB-INF/tld/struts-html.tld" prefix="html" %>
+<%@ taglib uri="/WEB-INF/tld/struts-logic.tld" prefix="logic" %>
+<%@ taglib uri="/WEB-INF/tld/c.tld" prefix="c" %>
+<meta http-equiv="X-UA-Compatible" content="IE=8">
+<link rel="stylesheet" href='<html:rewrite page="/style/main.css"/>' type="text/css" />
+
+<script type="text/javascript" src='<html:rewrite page="/common/js/common.js"/>'></script>
+<script type="text/javascript" src='<html:rewrite page="/common/js/prototype.js"/>'></script>
+

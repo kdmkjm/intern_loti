@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<!DOCTYPE EXCHANGE SYSTEM "exchange_mis.dtd">
+<EXCHANGE>
+<HEADER>
+   <COMMON>
+      <SENDER>
+         <SERVERID>ADM627000050</SERVERID>
+         <USERID>6806142541010</USERID>
+      </SENDER>
+      <RECEIVER>
+         <SERVERID>DOC627000002</SERVERID>
+         <USERID>6806142541010</USERID>
+      </RECEIVER>
+      <TITLE><![CDATA[02월 이수자 통보]]></TITLE>
+      <CREATED_DATE>2013-03-15 15:42:17</CREATED_DATE>
+      <ATTACHNUM>1</ATTACHNUM>
+      <ADMINISTRATIVE_NUM>APP20130000000000017</ADMINISTRATIVE_NUM>
+   </COMMON>
+   <DIRECTION>
+      <TO_DOCUMENT_SYSTEM>
+         <MODIFICATION_FLAG>
+            <MODIFIABLE modifyflag="yes"/>
+         </MODIFICATION_FLAG>
+         <DOC_INFO>
+            <SUMMARY><![CDATA[02월 이수자 통보]]></SUMMARY>
+         </DOC_INFO>
+      </TO_DOCUMENT_SYSTEM>
+   </DIRECTION>
+</HEADER>
+<BODY>
+<![CDATA[02월 이수자 통보]]>
+</BODY>
+<ATTACHMENTS>
+   <ATTACHMENT filename="attach_attach_file.pdf" desc = "001">
+   	<![CDATA[02월 이수자 명단.pdf]]>
+   </ATTACHMENT>
+</ATTACHMENTS>
+</EXCHANGE>

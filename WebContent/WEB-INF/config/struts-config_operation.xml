@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts-config PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 1.2//EN" "http://struts.apache.org/dtds/struts-config_1_2.dtd">
+<struts-config>
+  <data-sources>
+  </data-sources>
+  <form-beans>
+    <form-bean name="opr_StudentListRcvForm" 	type="loti.opr.recv.model.Opr_StudentListRcv"/>
+    <form-bean name="opr_StudentRcvResultForm" type="loti.opr.recv.model.Opr_StudentRcvResult"/>
+    <form-bean name="opr_TransResultForm" 		type="loti.opr.recv.model.Opr_TransResult"/>
+    <form-bean name="opr_CrsSendForm"         type="loti.opr.recv.model.Opr_CrsSend"/>
+	<form-bean name="opr_StudentFixForm" 			type="loti.opr.fix.model.Opr_StudentFix"/>
+	<form-bean name="opr_StudentForm" 				type="loti.opr.student.model.Opr_Student"/>
+	<form-bean name="opr_AttendForm" 					type="loti.opr.attend.model.Opr_Attend"/>
+	<form-bean name="opr_PassForm" 						type="loti.opr.pass.model.Opr_Pass"/>
+	<form-bean name="opr_PassAcomForm" 				type="loti.opr.acom.model.Opr_PassAcom"/>
+	<form-bean name="opr_StudentSearchForm" 	type="loti.opr.search.model.Opr_StudentSearch"/>
+	<form-bean name="opr_SendingForm"         type="loti.onnara.model.Sending_list"/>
+	<form-bean name="opr_StatsForm" 					type="loti.opr.stats.model.Opr_Stats"/>
+	<form-bean name="opr_OrgStdForm" 					type="loti.opr.orgstd.model.Opr_OrgStd"/>
+  </form-beans>
+  <global-exceptions>
+  </global-exceptions>
+  <global-forwards>
+  </global-forwards>
+  <action-mappings>
+
+    <!-- 교육생수신관리 -->
+    <action path="/oprStudentListRcv" name="opr_StudentListRcvForm" type="loti.opr.recv.action.Opr_StudentListRcvAction" scope="request" unknown="false" roles="111,117">
+	      <forward name="list" path="/opr/recv/Opr_StudentListRcv.jsp"/>
+	     	<forward name="excel_up" path="/opr/recv/Opr_StudentListXlsUp.jsp"/>
+	     	<forward name="insert" path="/opr/recv/Opr_StudentListInsert.jsp"/>
+    </action>
+    
+    <!-- 교육생 명단 수신결과 조회 -->
+    <action path="/oprStudentRcvResult" name="opr_StudentRcvResultForm" type="loti.opr.recv.action.Opr_StudentRcvResultAction" scope="request" unknown="false" roles="121">
+	      <forward name="list" 			path="/opr/recv/Opr_StudentRcvResult.jsp"/>	     	
+	      <forward name="fileInfo" 	path="/opr/recv/Opr_StudentRcvFileInfo.jsp"/>	
+    </action>
+    
+    <!-- 인사행정 송/수신 결과 조회 -->
+    <action path="/oprTransResult" name="opr_TransResultForm" type="loti.opr.recv.action.Opr_TransResultAction" scope="request" unknown="false" roles="131">
+	      <forward name="list" 			path="/opr/recv/Opr_TransResult.jsp"/>	   	
+	      <forward name="OC_fileInfo" 	path="/opr/recv/Opr_TransResult_OC.jsp"/>
+	      <forward name="OL_fileInfo" 	path="/opr/recv/Opr_TransResult_OL.jsp"/>
+	      <forward name="OD_fileInfo" 	path="/opr/recv/Opr_TransResult_OD_OR.jsp"/>
+	      <forward name="OR_fileInfo" 	path="/opr/recv/Opr_TransResult_OD_OR.jsp"/>	   
+    </action>
+
+    <!-- 교육생확정관리 -->
+    <action path="/oprStudentFix" name="opr_StudentFixForm" type="loti.opr.fix.action.Opr_StudentFixAction" scope="request" unknown="false" roles="71">
+	      <forward name="list" path="/opr/fix/Opr_StudentFix.jsp"/>
+	      <forward name="selectlist" path="/opr/fix/Opr_StudentSelect.jsp"/>
+	      <forward name="modify" path="/oprStudentFix.act?task=list"/>
+    </action>    
+
+    <!-- 교육생관리 -->
+    <action path="/oprStudent" name="opr_StudentForm" type="loti.opr.student.action.Opr_StudentAction" scope="request" unknown="false" roles="72,126,128">
+	      <forward name="list" 					path="/opr/student/Opr_StudentMgmt.jsp"/>
+	      <forward name="modify" 				path="/oprStudent.act?task=list"/>
+	      <forward name="updatestdno" 	path="/oprStudent.act?task=list"/>
+	      <forward name="info" 					path="/opr/student/Opr_StudentHistory.jsp"/>
+	      <forward name="excel" 				path="/oprStudent.act?task=move"/>
+	      <forward name="oprStuCancle" 	path="/opr/student/Opr_StuCancle.jsp"/>
+	      <forward name="cancelHistory" path="/opr/student/Opr_StuCancleHistory.jsp"/>
+	      <forward name="justList" 			path="/opr/student/Opr_StudentList.jsp"/>
+	      <forward name="modifyInfo" 		path="/opr/student/Opr_StudentModifyInfo.jsp"/>
+	      
+    </action>    
+
+    <!-- 근태관리 -->
+    <action path="/oprAttend" name="opr_AttendForm" type="loti.opr.attend.action.Opr_AttendAction" scope="request" unknown="false" roles="76">
+	      <forward name="list" 		path="/opr/attend/Opr_AttendMgmt.jsp"/>
+	      <forward name="move" 		path="/opr/attend/Opr_AttendMgmt.jsp"/>
+	      <forward name="modify" 	path="/oprAttend.act?task=list"/>
+	      <forward name="attend" 	path="/oprAttend.act?task=list"/>
+	      <forward name="info"		path="/opr/attend/Opr_AttendMgmtDetail.jsp"/>
+    </action>   
+
+    <!-- 이수관리 -->
+    <action path="/oprPass" name="opr_PassForm" type="loti.opr.pass.action.Opr_PassAction" scope="request" unknown="false" roles="114,115">
+	      <forward name="list" path="/opr/pass/Opr_PassMgmt.jsp"/>
+	      <forward name="move" path="/opr/pass/Opr_PassMgmt.jsp"/>
+	      <forward name="cyber_move" path="/opr/pass/Opr_CyberPass.jsp"/>
+	      <forward name="cyberList" path="/opr/pass/Opr_CyberPass.jsp"/>
+	      <forward name="uploadExcel" path="/opr/pass/Opr_CyberPassXlsUp.jsp"/>
+	      <forward name="excel_view" path="/opr/pass/Opr_CyberPassXlsUp.jsp"/>
+    </action>      
+    
+    <!-- 과정별 이수현황 -->
+    <action path="/oprPassList" name="opr_PassForm" type="loti.opr.pass.action.Opr_PassListAction" scope="request" unknown="false" roles="146">
+        <forward name="list" path="/opr/pass/Opr_PassList.jsp"/>
+    </action>
+
+    <!-- 이수실적조회 -->
+    <action path="/oprPassAcom" name="opr_PassAcomForm" type="loti.opr.acom.action.Opr_PassAcomAction" scope="request" unknown="false" roles="116">
+	      <forward name="list" 			path="/opr/acom/Opr_PassAcom.jsp"/>
+	      <forward name="excel"			path="/opr/acom/Opr_PassAcomExcel.jsp"/>
+	      <forward name="notpass"		path="/opr/acom/Opr_CyberNotPassAcom.jsp"/>
+    </action>        
+
+    <!-- 교육생검색 -->
+    <action path="/oprStudentSearch" name="opr_StudentSearchForm" type="loti.opr.search.action.Opr_StudentSearchAction" scope="request" unknown="false" roles="73">
+	      <forward name="list" 				path="/opr/search/Opr_StudentSearch.jsp"/>
+	      <forward name="info" 				path="/opr/search/Opr_StudentSearch.jsp"/>
+    </action>   
+    
+    <!-- 교육과정 확정전송 -->
+    <action path="/oprCrsSendList" name="opr_CrsSendForm" type="loti.opr.recv.action.Opr_CrsSendAction" scope="request" unknown="false" roles="120">
+      <forward name="list" path="/opr/recv/Opr_CrsSendList.jsp"/>     	
+    </action>
+    
+    <!-- 교육인원 확정 및 이수전송  -->
+    <action path="/oprSendingList" name="opr_SendingForm" type="loti.onnara.action.Onnara_ListAction" scope="request" unknown="false" roles="112,136">
+	      <forward name="list" path="/opr/sending/Opr_SendingList.jsp"/>
+	      <forward name="send" path="/opr/sending/InsaSendingList.jsp"/>
+    </action> 
+    
+    <!-- 인사랑 -->
+    <action path="/regToken" name="opr_SendingForm" type="loti.onnara.action.RegTokenAction" scope="request" unknown="false" roles="112">
+    	  <forward name="sso" path="/opr/sending/Onnara_SSO.jsp"/>
+    </action>
+    
+    <!-- 온나라 -->
+    <action path="/onnaraSend" name="opr_SendingForm" type="loti.onnara.action.OnnaraSendAction" scope="request" unknown="false" roles="112">
+    	  <forward name="sso" path="/opr/sending/Onnara_SSO.jsp"/>
+    </action>
+    <action path="/recToken" type="loti.onnara.action.RecTokenAction"/>
+    
+    <!-- 교육생현황통계 -->
+    <action path="/oprStats" name="opr_StatsForm" type="loti.opr.stats.action.Opr_StatsAction" scope="request" unknown="false" roles="143,144,145">
+	      <forward name="crsName" path="/opr/stats/Opr_StatsMgmt.jsp"/>
+	      <forward name="stats" 	path="/opr/stats/Opr_StatsMgmt.jsp"/>
+	      <!-- <forward name="stats" 	path="/opr/stats/ChartTest.jsp"/>-->
+	      <forward name="category" path="/opr/stats/Opr_StatsCategory.jsp"/>
+	      <forward name="excel" 	path="/opr/stats/Opr_StatsExcel.jsp"/>
+	      <forward name="categoryExcel" path="/opr/stats/Opr_StatsCategoryExcel.jsp"/> 
+    </action>  
+    
+    <!-- 교육신청자 현황 -->
+    <action path="/oprOrgStd" name="opr_OrgStdForm" type="loti.opr.orgstd.action.Opr_OrgStdAction" scope="request" unknown="false" roles="130">
+	      <forward name="plan" 		path="/opr/orgstd/Opr_OrgStdPlan.jsp"/>
+	      <forward name="course" 	path="/opr/orgstd/Opr_OrgStdCourse.jsp"/>
+	      <forward name="list" 		path="/opr/orgstd/Opr_OrgStdStats.jsp"/>
+	      <forward name="excel"		path="/opr/orgstd/Opr_OrgStdStatsExcel.jsp"/>
+    </action>  
+    
+  </action-mappings>
+  
+  <controller processorClass="fw.nexti.common.NewRequestProcessor" multipartClass="org.apache.struts.upload.DiskMultipartRequestHandler"/>
+</struts-config>

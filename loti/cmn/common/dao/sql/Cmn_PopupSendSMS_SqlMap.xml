@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Cmn_PopupSendSMS">
+
+	<typeAlias alias="cmn_PopupSendSMS" type="loti.cmn.common.model.Cmn_PopupSendSMS"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectCmn_PopupSendSMS" parameterClass="cmn_PopupSendSMS" resultClass="cmn_PopupSendSMS">
+			SELECT 	
+				   		SENDDATETIME,
+				   		SENDUSER    ,
+				   		SENDCONTENTS,
+				   		SENDPHONE   ,
+				   		SENDGUBN    
+			  FROM SEND_SMS
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectCmn_PopupSendSMSList" parameterClass="cmn_PopupSendSMS" resultClass="cmn_PopupSendSMS">
+			SELECT 	ROWNUM NUM, 
+				   		SEND_NO,
+  						SEND_SEQ,
+  						JUMINNO,
+  						SMS_GBN,
+  						FROM_NAME,
+  						FROM_TEL,
+  						TO_NAME,
+  						TO_TEL,
+  						MSG,
+  						SEND_DTTM,
+  						SEND_GBN,
+  						SEND_YN   
+			  FROM SEND_SMS
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectCmn_PopupSendSMSListCount" parameterClass="cmn_PopupSendSMS" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM SEND_SMS
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCmn_PopupSendSMSCount" parameterClass="cmn_PopupSendSMS" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM SEND_SMS
+		<!-- 조회조건 Key 추가 -->
+	</select>
+	
+	<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectCmn_PopupSendSMSNo" parameterClass="cmn_PopupSendSMS" resultClass="java.lang.Integer">
+		SELECT NVL(MAX(SEND_NO),0)+1 AS MAXNO
+		FROM SEND_SMS
+		<!-- 조회조건 Key 추가 -->
+	</select>	
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertCmn_PopupSendSMS" parameterClass="cmn_PopupSendSMS">
+		INSERT INTO SEND_SMS (	
+			   			SEND_NO,
+  						SEND_SEQ,
+  						JUMINNO,
+  						SMS_GBN,
+  						FROM_NAME,
+  						FROM_TEL,
+  						TO_NAME,
+  						TO_TEL,
+  						MSG,
+  						SEND_DTTM,
+  						SEND_GBN   	
+		) VALUES (
+						 
+			   			#sendno#,	
+			   			(SELECT NVL(MAX(SEND_SEQ),0)+1 FROM SEND_SMS WHERE SEND_NO = #sendno#),	
+			   			#juminno#,	
+			   			#sendgbn#,	
+			   			#fromname#,
+			   			#fromtel#,
+			   			NVL(#toname#,''),
+			   			#totel#,
+			   			#msg#,
+			   			TO_CHAR(SYSDATE,'YYYY-MM-DD HH24:MI:SS'),
+			   			'01'    	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updateCmn_PopupSendSMS" parameterClass="cmn_PopupSendSMS">
+		UPDATE SEND_SMS SET
+			   			SEND_NO = #sendno#,
+  						SEND_SEQ = #sendseq#,
+  						JUMINNO = #juminno#,
+  						SMS_GBN = #smsgbn#,
+  						FROM_NAME = #fromname#,
+  						FROM_TEL = #fromtel#,
+  						TO_NAME = #toname#,
+  						TO_TEL = #totel#,
+  						MSG = #msg#,
+  						SEND_DTTM = #senddttm#,
+  						SEND_GBN = #sendgbn#,
+  						SEND_YN = #sendyn#      
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deleteCmn_PopupSendSMS" parameterClass="cmn_PopupSendSMS">
+		DELETE FROM SEND_SMS
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="senddatetime">
+				SENDDATETIME = #senddatetime#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="senduser">
+				SENDUSER = #senduser#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendcontents">
+				SENDCONTENTS = #sendcontents#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendphone">
+				SENDPHONE = #sendphone#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="sendgubn">
+				SENDGUBN = #sendgubn#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

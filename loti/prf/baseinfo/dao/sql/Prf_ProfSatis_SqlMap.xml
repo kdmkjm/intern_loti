@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="euc-kr" ?>
+
+<!DOCTYPE sqlMap
+	PUBLIC "-//ibatis.apache.org//DTD SQL Map 2.0//EN"
+	"http://ibatis.apache.org/dtd/sql-map-2.dtd">
+
+<sqlMap namespace="Prf_ProfSatis">
+
+	<typeAlias alias="prf_ProfSatis" type="loti.prf.baseinfo.model.Prf_ProfSatis"/>
+	<typeAlias alias="comCode" type="loti.cmn.code.model.ComCode"/>
+
+
+
+	<!-- 기본조회쿼리 -->
+	<select id="selectPrf_ProfSatis" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+			SELECT 	
+							PROFESSORNO PROFNO,
+				   		PROFNAME  ,
+				   		CELLPHONE,
+				   		EMAIL 
+			  FROM PRF_PROFESSOR
+			 WHERE PROFESSORNO = #profno#
+	</select>
+
+	<!-- 목록조회쿼리 -->
+	<select id="selectPrf_ProfSatisList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+			SELECT 	ROWNUM NUM, 
+				   		SURVEYNO  ,
+				   		REQSEQ    ,
+				   		REPLYSEQ  ,
+				   		COURSECODE,
+				   		PROFNO    ,
+				   		REPLY     
+			  FROM TST_TEACHERRSPT
+			 <isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+	
+	<!-- 목록조회쿼리(나이) -->
+	<select id="selectPrf_AgesList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+				SELECT SUBSTR((ABS(TO_CHAR(SYSDATE, 'RRRR') - TO_CHAR(TO_DATE(SUBSTR(NVL(B.JUMINNO, '00'), 1, 2), 'RRRR'), 'RRRR')) + 1),0,1)||'0대' AS COL_A,
+		           TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+               ((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C         
+          FROM TST_TEACHERRSPT A,
+               TST_RSPTINFO B
+     		 WHERE A.SURVEYNO = B.SURVEYNO
+           AND A.REPLYSEQ = B.REPLYSEQ
+           AND A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+           AND A.PROFNO = #profno#
+         GROUP BY SUBSTR((ABS(TO_CHAR(SYSDATE, 'RRRR') - TO_CHAR(TO_DATE(SUBSTR(NVL(B.JUMINNO, '00'), 1, 2), 'RRRR'), 'RRRR')) + 1),0,1)
+         ORDER BY 1
+	</select>	
+	
+	<!-- 목록조회쿼리(직군) -->
+	<select id="selectPrf_JobList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+		<!-- SELECT DECODE(b.reply, 1, '행정', 2, '기술', 3, '연구·지도', 4, '그 외') AS COL_A
+		     , TO_CHAR((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B
+		     , ((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C         
+		  FROM TST_TEACHERRSPT a
+		     , TST_COMMRSPT b
+		 WHERE a.surveyno = b.surveyno
+		   AND a.replyseq = b.replyseq
+		   AND b.reqseq = 4
+		   AND a.coursecode LIKE NVL(#coursecode#,'')||'%'
+		   AND a.profno = #profno#
+		 GROUP BY b.reply
+		 ORDER BY b.reply -->
+		 
+     SELECT DECODE(a.reply, 1, '행정', 2, '기술', 3, '연구·지도', 4, '기타') AS COL_A
+          , TO_CHAR((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*)),'FM9.0') AS COL_B
+          , ((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*))/5)*100 AS COL_C   
+       FROM TST_COMMRSPT a
+          , TST_SURVITEM b
+          , TST_COURSEMATCH c
+     WHERE a.surveyno = b.surveyno
+       AND a.surveyno = c.surveyno     
+       AND a.reqseq = 4
+       AND b.profno = #profno#
+       AND c.coursecode LIKE NVL(#coursecode#,'')||'%'
+     GROUP BY a.reply
+	</select>		
+	
+	<!-- 목록조회쿼리(직급) -->
+	<select id="selectPrf_RankList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+		<!-- SELECT DECODE(b.reply, 1, '8급 이하', 2, '7급', 3, '6급', 4, '5급 이상') AS COL_A
+		     , TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B
+		     , ((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C         
+		  FROM TST_TEACHERRSPT a
+		     , TST_COMMRSPT b
+		 WHERE a.surveyno = b.surveyno
+		   AND a.replyseq = b.replyseq
+		   AND b.reqseq = 5
+		   AND a.coursecode LIKE NVL(#coursecode#,'')||'%'
+		   AND a.profno = #profno#
+		 GROUP BY b.reply
+		 ORDER BY b.reply -->
+		 
+     SELECT DECODE(a.reply, 1, '8급 이하', 2, '7급', 3, '6급', 4, '5급 이상') AS COL_A
+          , TO_CHAR((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*)),'FM9.0') AS COL_B
+          , ((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*))/5)*100 AS COL_C   
+       FROM TST_COMMRSPT a
+          , TST_SURVITEM b
+          , TST_COURSEMATCH c
+     WHERE a.surveyno = b.surveyno
+       AND a.surveyno = c.surveyno     
+       AND a.reqseq = 5
+       AND b.profno = #profno#
+       AND c.coursecode LIKE NVL(#coursecode#,'')||'%'
+     GROUP BY a.reply
+	</select>	
+	
+	<!-- 목록조회쿼리(성별) -->
+	<select id="selectPrf_GenderList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+		<!-- SELECT DECODE(b.reply, 1, '남', 2, '여') AS COL_A
+		     , TO_CHAR((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B
+		     , ((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C         
+		  FROM TST_TEACHERRSPT a
+		     , TST_COMMRSPT b
+		 WHERE a.surveyno = b.surveyno
+		   AND a.replyseq = b.replyseq
+		   AND b.reqseq = 1
+		   AND a.coursecode LIKE NVL(#coursecode#,'')||'%'
+		   AND a.profno = #profno#
+		 GROUP BY b.reply  
+		 ORDER BY b.reply -->
+		 
+     SELECT DECODE(a.reply, 1, '남', 2, '여') AS COL_A
+          , TO_CHAR((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*)),'FM9.0') AS COL_B
+          , ((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*))/5)*100 AS COL_C   
+       FROM TST_COMMRSPT a
+          , TST_SURVITEM b
+          , TST_COURSEMATCH c
+     WHERE a.surveyno = b.surveyno
+       AND a.surveyno = c.surveyno     
+       AND a.reqseq = 1
+       AND b.profno = #profno#
+       AND c.coursecode LIKE NVL(#coursecode#,'')||'%'
+     GROUP BY a.reply		 
+	</select>	
+	
+	<!-- 목록조회쿼리(과목) -->
+	<select id="selectPrf_SubjList" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+		<!-- SELECT (SELECT timesubject FROM OPR_TIMETABLE WHERE coursecode = '643201600301000' AND subjseq = b.subjname) AS COL_A
+		     , TO_CHAR((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B
+		     , ((SUM(DECODE(a.reply,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C
+		  FROM (SELECT surveyno, reqseq, replyseq, coursecode, profno, reply
+		          FROM TST_TEACHERRSPT
+		         WHERE coursecode LIKE NVL (#coursecode#, '') || '%'
+		           AND profno = #profno#) a
+		     , (SELECT surveyno, reqseq, coursecode, profno, itemcontents, subjname, displayno
+		          FROM TST_TEACHERITEM
+		         WHERE coursecode LIKE NVL (#coursecode#, '') || '%'
+		           AND profno = #profno#) b
+		 WHERE a.coursecode = b.coursecode
+		   AND a.surveyno = b.surveyno
+		   AND a.reqseq = b.reqseq
+		   AND a.profno = b.profno
+		 GROUP BY b.subjname
+		 ORDER BY 1 -->
+				
+				<!-- 
+				SELECT REPLACE(SUBJNAME,' ','') AS COL_A,
+		           TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+               ((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100 AS COL_C         
+          FROM TST_TEACHERRSPT A,
+               TST_TEACHERITEM B
+     		 WHERE A.SURVEYNO = B.SURVEYNO
+     		   AND A.REQSEQ = B.REQSEQ
+     		   AND A.PROFNO = B.PROFNO
+           AND A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+           AND A.PROFNO = #profno#
+         GROUP BY REPLACE(SUBJNAME,' ','')
+         ORDER BY 1 -->
+         
+     SELECT d.timesubject AS COL_A
+          , TO_CHAR((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*)),'FM9.0') AS COL_B
+          , ((SUM(DECODE((SELECT reply FROM TST_COMMRSPT WHERE surveyno = a.surveyno AND replyseq = a.replyseq AND reqseq = b.reqseq), 1, 5, 2, 4, 3, 3, 4, 2, 1))/COUNT(*))/5)*100 AS COL_C   
+       FROM TST_COMMRSPT a
+          , TST_SURVITEM b
+          , TST_COURSEMATCH c
+          , OPR_TIMETABLE d
+      WHERE a.surveyno = b.surveyno
+        AND a.surveyno = c.surveyno
+        AND b.profno = #profno#
+        AND b.profno = (SELECT professorno FROM PRF_PROFESSOR WHERE profname = d.profname AND workplace = d.profassign)
+        AND c.coursecode = d.coursecode
+        AND c.coursecode LIKE NVL(#coursecode#,'')||'%'
+      GROUP BY d.coursecode, d.timesubject         
+	</select>	
+	
+	
+	<select id="selectPrf_ProfSatisExcel" parameterClass="prf_ProfSatis" resultClass="prf_ProfSatis">
+		SELECT 
+            DECODE(RANKCODE,'99', '기타', RANKCODE||'급') AS COL_A,
+            TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+            TO_CHAR(((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100,'FM999') AS COL_C,
+            '1' AS COL_D,
+            '직급별 만족도' AS COL_E,
+            TO_NUMBER(RANKCODE) AS COL_F          
+      FROM  TST_TEACHERRSPT A, TST_RSPTINFO B
+     WHERE  A.SURVEYNO = B.SURVEYNO
+       AND  A.REPLYSEQ = B.REPLYSEQ
+       AND  A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+       AND  A.PROFNO = #profno#
+  GROUP BY  RANKCODE 
+ UNION ALL
+    SELECT  
+            DECODE(SUBSTR(JOBCODE, 0, 2), '기타', SUBSTR(JOBCODE, 3, LENGTH(JOBCODE)), JOBCODE) AS COL_A,
+            TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+            TO_CHAR(((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100,'FM999') AS COL_C,
+            '2' AS COL_D,
+            '직군별 만족도' AS COL_E,
+            0 AS COL_F                    
+      FROM  TST_TEACHERRSPT A, TST_RSPTINFO B
+     WHERE  A.SURVEYNO = B.SURVEYNO
+       AND  A.REPLYSEQ = B.REPLYSEQ
+       AND  A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+       AND  A.PROFNO = #profno#
+  GROUP BY  JOBCODE    
+ UNION ALL
+ <!--
+    SELECT 
+            REPLACE(SUBJNAME,' ','') AS COL_A,
+            TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+            TO_CHAR(((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100,'FM999') AS COL_C,
+            '3' AS COL_D,
+            '과목별 만족도' AS COL_E,
+            0 AS COL_F                    
+      FROM  TST_TEACHERRSPT A, TST_TEACHERITEM B
+     WHERE  A.SURVEYNO = B.SURVEYNO
+       AND  A.REQSEQ = B.REQSEQ
+       AND  A.PROFNO = B.PROFNO
+       AND  A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+       AND  A.PROFNO = #profno#
+  GROUP BY  REPLACE(SUBJNAME,' ','')
+ -->
+		SELECT  
+            REPLACE(SUBJNAME,' ','') AS COL_A,
+            TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+            TO_CHAR(((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100,'FM999') AS COL_C,
+            '3' AS COL_D,
+            '과목별 만족도' AS COL_E,
+            0 AS COL_F  
+      FROM 
+           (SELECT 
+                    SURVEYNO, REQSEQ, REPLYSEQ, COURSECODE, PROFNO, REPLY
+              FROM  TST_TEACHERRSPT
+             WHERE  COURSECODE LIKE NVL (#coursecode#, '') || '%'
+               AND  PROFNO = #profno#) A,
+           (SELECT 
+                    SURVEYNO, REQSEQ, COURSECODE, PROFNO, ITEMCONTENTS, SUBJNAME, DISPLAYNO
+              FROM  TST_TEACHERITEM
+             WHERE  COURSECODE LIKE NVL (#coursecode#, '') || '%'
+               AND  PROFNO = #profno#) B
+     WHERE  A.COURSECODE = B.COURSECODE
+       AND	A.SURVEYNO = B.SURVEYNO
+       AND  A.REQSEQ = B.REQSEQ
+       AND  A.PROFNO = B.PROFNO
+  GROUP BY  REPLACE(SUBJNAME, ' ', '')
+ UNION ALL
+    SELECT  
+            DECODE(GENDER,0, '남자', '여자') AS COL_A,
+            TO_CHAR((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*)),'FM9.0') AS COL_B,
+            TO_CHAR(((SUM(DECODE(A.REPLY,1,5,2,4,3,3,4,2,1))/COUNT(*))/5)*100,'FM999') AS COL_C,
+            '4' AS COL_D,
+            '성별 만족도' AS COL_E,
+            0 AS COL_F               
+      FROM  TST_TEACHERRSPT A, TST_RSPTINFO B
+     WHERE  A.SURVEYNO = B.SURVEYNO
+       AND  A.REPLYSEQ = B.REPLYSEQ
+       AND  A.COURSECODE LIKE NVL(#coursecode#,'')||'%'
+       AND  A.PROFNO = #profno#
+  GROUP BY  GENDER
+  ORDER BY  4, 6, 1
+	</select>
+
+
+	<!--  페이징 처리용 레코드 수 Count -->
+	<select id="selectPrf_ProfSatisListCount" parameterClass="prf_ProfSatis" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_TEACHERRSPT
+		<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="WHERE" property="searchColumn">
+			$searchColumn$ like '%' || #searchKeyword# || '%'
+				</isNotEmpty>
+			</isNotEmpty>
+	</select>
+
+
+		<!-- 입력/수정 구분용  레코드 수 Count -->
+	<select id="selectPrf_ProfSatisCount" parameterClass="prf_ProfSatis" resultClass="java.lang.Integer">
+		SELECT COUNT(*) as CNT
+		FROM TST_TEACHERRSPT
+		<!-- 조회조건 Key 추가 -->
+	</select>
+
+
+	<!-- 레코드 입력 -->
+	<insert id="insertPrf_ProfSatis" parameterClass="prf_ProfSatis">
+		INSERT INTO TST_TEACHERRSPT (	
+			   			SURVEYNO  ,	
+			   			REQSEQ    ,	
+			   			REPLYSEQ  ,	
+			   			COURSECODE,	
+			   			PROFNO    ,	
+			   			REPLY     	
+		) VALUES (
+						 
+			   			#surveyno#  ,	
+			   			#reqseq#    ,	
+			   			#replyseq#  ,	
+			   			#coursecode#,	
+			   			#profno#    ,	
+			   			#reply#     	
+		)
+	</insert>
+
+
+	<!--  레코드 수정 -->
+	<update id="updatePrf_ProfSatis" parameterClass="prf_ProfSatis">
+		UPDATE TST_TEACHERRSPT SET
+			   SURVEYNO   = #surveyno#  ,
+			   REQSEQ     = #reqseq#    ,
+			   REPLYSEQ   = #replyseq#  ,
+			   COURSECODE = #coursecode#,
+			   PROFNO     = #profno#    ,
+			   REPLY      = #reply#     
+	</update>
+
+
+	<!--  레코드 삭제 -->
+	<delete id="deletePrf_ProfSatis" parameterClass="prf_ProfSatis">
+		DELETE FROM TST_TEACHERRSPT
+		<!-- 조회조건 Key 추가 -->
+	</delete>
+
+		<!-- 목록 조회시 사용되는 조회 조건  (복사해서 사용)-->
+<!--			
+				<isNotEmpty prepend="AND" property="surveyno">
+				SURVEYNO = #surveyno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reqseq">
+				REQSEQ = #reqseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="replyseq">
+				REPLYSEQ = #replyseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="coursecode">
+				COURSECODE = #coursecode#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="subjseq">
+				SUBJSEQ = #subjseq#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="profno">
+				PROFNO = #profno#
+				</isNotEmpty>
+			
+				<isNotEmpty prepend="AND" property="reply">
+				REPLY = #reply#
+				</isNotEmpty>
+			
+				<isNotEmpty property="searchKeyword">
+				<isNotEmpty prepend="AND" property="searchColumn">
+					$searchColumn$ like '%' || #searchKeyword# || '%'
+					</isNotEmpty>
+						</isNotEmpty>
+-->
+
+
+</sqlMap>
+
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<quartz-config>
+ <trigger-group>
+     <!--기본표현식: "초 분 시 일 월 요일 년도(옵션)"-->
+   <!-- 매일 02시 0분-->
+  <trigger name="firstTrigger" className="org.quartz.CronTrigger">
+   <!-- <set-property property="timeZone"       value="Pacific/Marquesas"/> -->
+<!--	<set-property property="cronExpression" value="1 00 * ? * 1-7"/>-->
+	<set-property property="cronExpression" value="0 0 2 ? * *"/>
+  </trigger>
+  
+  <!-- 테스트 매분 0초마다 -->
+  <trigger name="testTrigger" className="org.quartz.CronTrigger">
+   <!-- <set-property property="timeZone"       value="Pacific/Marquesas"/> -->
+<!--	<set-property property="cronExpression" value="1 00 * ? * 1-7"/>-->
+	<set-property property="cronExpression" value="0 * * ? * *"/>
+  </trigger>
+
+   <!-- 매일 매시 2분-->
+  <!--<trigger name="secondTrigger" className="org.quartz.CronTrigger">-->
+   <!-- <set-property property="timeZone"       value="Pacific/Marquesas"/> -->
+<!--	<set-property property="cronExpression" value="10 00 * ? * 1-7"/>-->
+	<!--<set-property property="cronExpression" value="0 2 * ? * 1-7"/>-->
+  <!--</trigger>-->
+
+  <!-- 월,화,수 낮12시~13시 각시간 10분 0초부터 10분간격으로-->
+  <!--
+  <trigger name="test1" className="org.quartz.CronTrigger">
+   <set-property property="cronExpression" value="0 10/10 16-18 ? * MON,TUE,WED"/>
+  </trigger>
+	-->
+  <!-- 매일 낮 12시 5~30분 1초 사이 5분간격으로 -->
+  <!--
+  <trigger name="test2" className="org.quartz.CronTrigger">
+   <set-property property="cronExpression" value="1 5-30/5 19 ? * 1-7"/>
+  </trigger>
+  -->
+ </trigger-group>
+
+ <job-group>
+      <job name="job1" className="ext.ehojo.scheduler.JobTrigger"/>
+ </job-group>
+
+ <schedule job="job1" trigger="firstTrigger"/>
+<!-- 	<schedule job="job1" trigger="testTrigger"/> -->
+</quartz-config>
+
